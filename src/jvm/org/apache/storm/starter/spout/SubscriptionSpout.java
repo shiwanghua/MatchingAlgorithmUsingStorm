@@ -1,8 +1,8 @@
 package org.apache.storm.starter.spout;
 
 import org.apache.storm.spout.SpoutOutputCollector;
-import org.apache.storm.starter.DataStrcture.Subscription;
-import org.apache.storm.starter.DataStrcture.TypeConstant;
+import org.apache.storm.starter.DataStructure.Subscription;
+import org.apache.storm.starter.DataStructure.TypeConstant;
 import org.apache.storm.streams.Pair;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class SubscriptionSpout extends BaseRichSpout {
-    private static final Logger LOG = LoggerFactory.getLogger(RandomSentenceSpout.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SubscriptionSpout.class);
     SpoutOutputCollector collector;
     final int maxNumSubscription = 100;                    //  Maximum number of subscription emitted per time
     final int maxNumAttribute = 30;                        //  Maxinum number of attributes in a subscription

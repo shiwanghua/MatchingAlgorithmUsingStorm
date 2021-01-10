@@ -1,4 +1,4 @@
-package org.apache.storm.starter.DataStrcture;
+package org.apache.storm.starter.DataStructure;
 
 public class TypeConstant {
     public static final int Insert_Subscription = 1;

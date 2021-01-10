@@ -1,9 +1,9 @@
 package org.apache.storm.starter.spout;
 
 import org.apache.storm.spout.SpoutOutputCollector;
-import org.apache.storm.starter.DataStrcture.Event;
-import org.apache.storm.starter.DataStrcture.Subscription;
-import org.apache.storm.starter.DataStrcture.TypeConstant;
+import org.apache.storm.starter.DataStructure.Event;
+import org.apache.storm.starter.DataStructure.Subscription;
+import org.apache.storm.starter.DataStructure.TypeConstant;
 import org.apache.storm.streams.Pair;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class EventSpout extends BaseRichSpout {
-    private static final Logger LOG = LoggerFactory.getLogger(RandomSentenceSpout.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EventSpout.class);
     SpoutOutputCollector collector;
     private Random valueGenerator;
     private Integer eventID = 0;

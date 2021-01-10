@@ -1,4 +1,4 @@
-package org.apache.storm.starter.DataStrcture;
+package org.apache.storm.starter.DataStructure;
 
 import java.io.BufferedWriter;
 import java.io.File;

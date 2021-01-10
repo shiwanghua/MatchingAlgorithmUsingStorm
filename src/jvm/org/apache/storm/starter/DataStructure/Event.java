@@ -1,24 +1,21 @@
-package org.apache.storm.starter.DataStrcture;
-
-import org.apache.storm.streams.Pair;
+package org.apache.storm.starter.DataStructure;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 public class Event {
     private int numAttributes = 0;
     private Integer eventID=-1;
     private OutputToFile out;
-    HashMap<String, Double> attributeNameToValue;
+    public HashMap<String, Double> attributeNameToValue;
 
     public Event(final Integer ID, int num_attributes, ArrayList<String> attributeName, ArrayList<Double> values) throws IOException {
         eventID=ID;
         numAttributes = num_attributes;
         if (attributeName.size() < values.size()) {
             out.writeToFile("The number of value is larger than the number of attributes, event construct failed.\n");
-           return;
+            return;
         }
         for (int i = 0; i < attributeName.size(); i++) {
             if (attributeNameToValue.containsKey(attributeName.get(i))) {
@@ -42,6 +39,8 @@ public class Event {
     public Double getValue(String attributeName) {
         return attributeNameToValue.get(attributeName);
     }
+
+    public  Integer getEventID(){return eventID;}
 
     public  Boolean insertAttribute(String attributeName,Double d) throws  IOException{
         if(attributeNameToValue.containsKey(attributeName)){

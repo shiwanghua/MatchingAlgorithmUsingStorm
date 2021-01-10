@@ -1,8 +1,7 @@
-package org.apache.storm.starter.DataStrcture;
+package org.apache.storm.starter.DataStructure;
 
 import org.apache.storm.streams.Pair;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -11,7 +10,7 @@ public class Subscription {
     private int numAttributes = 0;
     private Integer subID=-1;
     private OutputToFile out;
-    HashMap<String, Pair<Double, Double>> attributeNameToPair;
+    public HashMap<String, Pair<Double, Double>> attributeNameToPair;
 
     public Subscription(final Integer ID, int num_attributes, ArrayList<String> attributeName, ArrayList<Pair<Double, Double>> pairs) throws IOException {
         subID=ID;
