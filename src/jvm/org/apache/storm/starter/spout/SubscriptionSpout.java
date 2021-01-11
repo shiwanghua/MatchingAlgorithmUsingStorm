@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,14 +24,15 @@ public class SubscriptionSpout extends BaseRichSpout {
     final int maxNumSubscription = 100;                    //  Maximum number of subscription emitted per time
     final int maxNumAttribute = 30;                        //  Maxinum number of attributes in a subscription
     private Random valueGenerator;                         //  Generate the interval value and index of attribute name
-    private int [] randomArray = new int[maxNumAttribute]; //  To get the attribute name
-    private Integer subID=0;
+    private int[] randomArray = new int[maxNumAttribute]; //  To get the attribute name
+    private Integer subID = 0;
 
-    public SubscriptionSpout(){
-        valueGenerator=new Random();
-        for(int i =0;i<maxNumAttribute;i++)
-            randomArray[i]=i;
+    public SubscriptionSpout() {
+        valueGenerator = new Random();
+        for (int i = 0; i < maxNumAttribute; i++)
+            randomArray[i] = i;
     }
+
     @Override
     public void open(Map<String, Object> map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
         this.collector = spoutOutputCollector;
@@ -49,8 +49,8 @@ public class SubscriptionSpout extends BaseRichSpout {
 
     @Override
     public void nextTuple() {
-        int numSub = (int)Math.random()*maxNumSubscription+1; // Generate the number of subscriptions in this tuple: 1~maxNumSubscription
-        ArrayList<Subscription> sub=new ArrayList<>(numSub);
+        int numSub = (int) Math.random() * maxNumSubscription + 1; // Generate the number of subscriptions in this tuple: 1~maxNumSubscription
+        ArrayList<Subscription> sub = new ArrayList<>(numSub);
 //        for(int i=0;i<numSub;i++){
 //            int numAttribute = new Random().nextInt(maxNumAttribute+1); // Generate the number of attribute in this subscription: 0~maxNumAttribute
 //
@@ -81,30 +81,30 @@ public class SubscriptionSpout extends BaseRichSpout {
         // for test
         try {
 
-            HashMap<String, Pair<Double, Double>> m1=new HashMap<>();
-            m1.put("name1",Pair.of(0.0,0.1));
-            m1.put("name2",Pair.of(0.1,0.2));
-            sub.add(new Subscription(subID++,2,m1));
+            HashMap<String, Pair<Double, Double>> m1 = new HashMap<>();
+            m1.put("name1", Pair.of(0.0, 0.1));
+            m1.put("name2", Pair.of(0.1, 0.2));
+            sub.add(new Subscription(subID++, 2, m1));
 
-            HashMap<String, Pair<Double, Double>> m2=new HashMap<>();
-            m2.put("name3",Pair.of(0.2,0.3));
-            m2.put("name4",Pair.of(0.3,0.4));
-            sub.add(new Subscription(subID++,2,m2));
+            HashMap<String, Pair<Double, Double>> m2 = new HashMap<>();
+            m2.put("name3", Pair.of(0.2, 0.3));
+            m2.put("name4", Pair.of(0.3, 0.4));
+            sub.add(new Subscription(subID++, 2, m2));
 
-            HashMap<String, Pair<Double, Double>> m3=new HashMap<>();
-            m3.put("name1",Pair.of(0.4,0.5));
-            m3.put("name2",Pair.of(0.5,0.6));
-            sub.add(new Subscription(subID++,2,m3));
+            HashMap<String, Pair<Double, Double>> m3 = new HashMap<>();
+            m3.put("name1", Pair.of(0.4, 0.5));
+            m3.put("name2", Pair.of(0.5, 0.6));
+            sub.add(new Subscription(subID++, 2, m3));
 
-            HashMap<String, Pair<Double, Double>> m4=new HashMap<>();
-            m4.put("name1",Pair.of(0.15,9.5));
-            m4.put("name3",Pair.of(0.09,8.6));
-            sub.add(new Subscription(subID++,2,m4));
+            HashMap<String, Pair<Double, Double>> m4 = new HashMap<>();
+            m4.put("name1", Pair.of(0.15, 9.5));
+            m4.put("name3", Pair.of(0.09, 8.6));
+            sub.add(new Subscription(subID++, 2, m4));
 
-            HashMap<String, Pair<Double, Double>> m5=new HashMap<>();
-            m5.put("name2",Pair.of(0.15,0.55));
-            m5.put("name4",Pair.of(0.35,9.4));
-            sub.add(new Subscription(subID++, 2,m5));
+            HashMap<String, Pair<Double, Double>> m5 = new HashMap<>();
+            m5.put("name2", Pair.of(0.15, 0.55));
+            m5.put("name4", Pair.of(0.35, 9.4));
+            sub.add(new Subscription(subID++, 2, m5));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -114,6 +114,6 @@ public class SubscriptionSpout extends BaseRichSpout {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("SubscriptionPacket"));
+        outputFieldsDeclarer.declare(new Fields("Type", "SubscriptionPacket"));
     }
 }

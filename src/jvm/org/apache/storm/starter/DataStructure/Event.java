@@ -6,12 +6,16 @@ import java.util.HashMap;
 
 public class Event {
     private int numAttributes = 0;
-    private Integer eventID=-1;
+    private Integer eventID = -1;
     private OutputToFile out;
     public HashMap<String, Double> attributeNameToValue;
 
+    public Event(){
+
+    }
+
     public Event(final Integer ID, int num_attributes, ArrayList<String> attributeName, ArrayList<Double> values) throws IOException {
-        eventID=ID;
+        eventID = ID;
         numAttributes = num_attributes;
         if (attributeName.size() < values.size()) {
             out.writeToFile("The number of value is larger than the number of attributes, event construct failed.\n");
@@ -27,33 +31,36 @@ public class Event {
     }
 
     public Event(final Integer ID, int num_attributes, HashMap<String, Double> mapNameToValue) throws IOException {
-        eventID=ID;
-        if (num_attributes< mapNameToValue.size()) {
+        eventID = ID;
+        if (num_attributes < mapNameToValue.size()) {
             out.writeToFile("The number of values is larger than the number of attributes, event construct failed.\n");
             return;
         }
         numAttributes = num_attributes;
-        attributeNameToValue=mapNameToValue;
+        attributeNameToValue = mapNameToValue;
     }
 
     public Double getValue(String attributeName) {
         return attributeNameToValue.get(attributeName);
     }
 
-    public  Integer getEventID(){return eventID;}
+    public Integer getEventID() {
+        return eventID;
+    }
 
-    public  Boolean insertAttribute(String attributeName,Double d) throws  IOException{
-        if(attributeNameToValue.containsKey(attributeName)){
+    public Boolean insertAttribute(String attributeName, Double d) throws IOException {
+        if (attributeNameToValue.containsKey(attributeName)) {
             out.writeToFile("Already exists such a attribute name, event insert failed.\n");
             return false;
         }
-        if(numAttributes == attributeNameToValue.size()){
+        if (numAttributes == attributeNameToValue.size()) {
             out.writeToFile("Number of attributes is full, event insert failed.\n");
             return false;
         }
-        attributeNameToValue.put(attributeName,d);
+        attributeNameToValue.put(attributeName, d);
         return true;
     }
+
     public Boolean deleteAttribute(String attributeName) throws IOException {
         if (attributeNameToValue.containsKey(attributeName)) {
             attributeNameToValue.remove(attributeName);
@@ -63,9 +70,9 @@ public class Event {
         return false;
     }
 
-    public Boolean updateAttribute(String attributeName,Double d)throws IOException {
-        if(attributeNameToValue.containsKey(attributeName)){
-            attributeNameToValue.put(attributeName,d);
+    public Boolean updateAttribute(String attributeName, Double d) throws IOException {
+        if (attributeNameToValue.containsKey(attributeName)) {
+            attributeNameToValue.put(attributeName, d);
             return true;
         }
         out.writeToFile("No such a attribute name, event update failed.\n");

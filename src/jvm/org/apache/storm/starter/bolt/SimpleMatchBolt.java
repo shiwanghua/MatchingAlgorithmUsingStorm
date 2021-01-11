@@ -23,7 +23,7 @@ import java.util.Map;
 public class SimpleMatchBolt extends BaseBasicBolt {
     private OutputToFile out;
     OutputCollector collector;
-    private HashMap<Integer, Subscription> mapIDtoSub;
+    private HashMap<Integer, Subscription> mapIDtoSub = new HashMap<>();
 
     @Override
     public void execute(Tuple tuple, BasicOutputCollector basicOutputCollector) {
@@ -74,6 +74,13 @@ public class SimpleMatchBolt extends BaseBasicBolt {
                     for (int i = 0; i < eventPacket.size(); i++) {
                         int eventID = eventPacket.get(i).getEventID();
                         String matchResult = "EventID: " + String.valueOf(eventID) + "; SubID:";
+
+                        if(mapIDtoSub.size()==0){
+                            out.saveMatchResult(matchResult + " null\n");
+                            continue;
+                        }
+                        System.out.println("\n\n\n"+String.valueOf(eventID)+"Begin to match." + "\n\n\n");
+
                         HashMap<String, Double> eventAttributeNameToValue = eventPacket.get(i).attributeNameToValue;
                         Iterator<HashMap.Entry<Integer, Subscription>> subIterator = mapIDtoSub.entrySet().iterator();
 
@@ -103,8 +110,8 @@ public class SimpleMatchBolt extends BaseBasicBolt {
                                 matchResult += " " + String.valueOf(subID);
                             }
                         }
-                        out.writeToFile("Event "+String.valueOf(eventID)+" matching task is done.\n");
-                        out.saveMatchResult(matchResult+"\n");
+                        out.writeToFile("Event " + String.valueOf(eventID) + " matching task is done.\n");
+                        out.saveMatchResult(matchResult + "\n");
                     }
                     break;
                 }

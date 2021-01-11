@@ -2,9 +2,7 @@ package org.apache.storm.starter.spout;
 
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.starter.DataStructure.Event;
-import org.apache.storm.starter.DataStructure.Subscription;
 import org.apache.storm.starter.DataStructure.TypeConstant;
-import org.apache.storm.streams.Pair;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichSpout;
@@ -79,7 +77,7 @@ public class EventSpout extends BaseRichSpout {
             m1.put("name2", 0.14);
             m1.put("name3", 0.25);
             m1.put("name4", 0.35);
-            sub.add(new Event(eventID++, 3, m1));
+            sub.add(new Event(eventID++, 4, m1));
 
             HashMap<String, Double> m2 = new HashMap<>();   // Match null
             m2.put("name3", 0.21);
@@ -95,7 +93,7 @@ public class EventSpout extends BaseRichSpout {
             m4.put("name1", 0.48);
             m4.put("name2", 0.56);
             m4.put("name3", 8.5);
-            sub.add(new Event(eventID++, 2, m4));
+            sub.add(new Event(eventID++, 3, m4));
 
             HashMap<String, Double> m5 = new HashMap<>(); // Match sub4
             m5.put("name2", 0.18);
@@ -110,6 +108,6 @@ public class EventSpout extends BaseRichSpout {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("Type","EventPacket"));
+        outputFieldsDeclarer.declare(new Fields("Type", "EventPacket"));
     }
 }

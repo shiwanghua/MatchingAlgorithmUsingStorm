@@ -9,5 +9,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Maven: org.apache.storm:storm-client:2.2.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.calcite.avatica:avatica:1.8.0" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.storm:storm-server:2.2.0" level="project" />
   </component>
 </module>
