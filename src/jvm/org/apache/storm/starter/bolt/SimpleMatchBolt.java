@@ -52,7 +52,7 @@ public class SimpleMatchBolt extends BaseBasicBolt {
                     for (int i = 0; i < subPacket.size(); i++) {
                         subID = subPacket.get(i).getSubID();
                         mapIDtoSub.put(subID, subPacket.get(i));
-                        out.writeToFile("Subscription "+String.valueOf(subID)+"is inserted.\n");
+                        out.writeToFile("Subscription " + String.valueOf(subID) + "is inserted.\n");
                     }
                     break;
                 }
@@ -71,37 +71,40 @@ public class SimpleMatchBolt extends BaseBasicBolt {
                 case TypeConstant.Event_Match_Subscription: {
                     ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
 
-                    for(int i=0;i<eventPacket.size();i++){
-                        int eventID=eventPacket.get(i).getEventID();
-                        HashMap<String, Double> eventAttributeNameToValue=eventPacket.get(i).attributeNameToValue;
-                        Iterator<HashMap.Entry<Integer, Subscription>> subIterator = mapIDtoSub.entrySet ().iterator();
+                    for (int i = 0; i < eventPacket.size(); i++) {
+                        int eventID = eventPacket.get(i).getEventID();
+                        String matchResult = "EventID: " + String.valueOf(eventID) + "; SubID:";
+                        HashMap<String, Double> eventAttributeNameToValue = eventPacket.get(i).attributeNameToValue;
+                        Iterator<HashMap.Entry<Integer, Subscription>> subIterator = mapIDtoSub.entrySet().iterator();
 
                         while (subIterator.hasNext()) {
                             HashMap.Entry<Integer, Subscription> subEntry = subIterator.next();
                             Integer subID = subEntry.getKey();
-                            Iterator<HashMap.Entry<String,Pair<Double,Double>>> subAttributeIterator = subEntry.getValue().attributeNameToPair.entrySet().iterator();
+                            Iterator<HashMap.Entry<String, Pair<Double, Double>>> subAttributeIterator = subEntry.getValue().attributeNameToPair.entrySet().iterator();
 
-                            Boolean matched=true;
-                            while(subAttributeIterator.hasNext()){
-                                HashMap.Entry<String, Pair<Double,Double>> subAttributeEntry = subAttributeIterator.next();
+                            Boolean matched = true;
+                            while (subAttributeIterator.hasNext()) {
+                                HashMap.Entry<String, Pair<Double, Double>> subAttributeEntry = subAttributeIterator.next();
                                 String subAttributeName = subAttributeEntry.getKey();
-                                if(!eventAttributeNameToValue.containsKey(subAttributeName)) {
-                                    matched=false;
+                                if (!eventAttributeNameToValue.containsKey(subAttributeName)) {
+                                    matched = false;
                                     break;
                                 }
 
                                 Double low = subAttributeEntry.getValue().getFirst();
-                                Double high =subAttributeEntry.getValue().getSecond();
+                                Double high = subAttributeEntry.getValue().getSecond();
                                 Double eventValue = eventAttributeNameToValue.get(subAttributeName);
-                                if(eventValue<low||eventValue>high){
-                                    matched=false;
+                                if (eventValue < low || eventValue > high) {
+                                    matched = false;
                                     break;
                                 }
                             }
-                            if(matched){   // Save this subID to MatchResult
-
+                            if (matched) {   // Save this subID to MatchResult
+                                matchResult += " " + String.valueOf(subID);
                             }
                         }
+                        out.writeToFile("Event "+String.valueOf(eventID)+" matching task is done.\n");
+                        out.saveMatchResult(matchResult+"\n");
                     }
                     break;
                 }
@@ -115,6 +118,6 @@ public class SimpleMatchBolt extends BaseBasicBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("MatchResult"));
+//        outputFieldsDeclarer.declare(new Fields("MatchResult"));
     }
 }
