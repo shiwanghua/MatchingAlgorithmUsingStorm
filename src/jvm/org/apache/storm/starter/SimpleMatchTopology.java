@@ -1,7 +1,7 @@
 package org.apache.storm.starter;
 
 import org.apache.storm.Config;
-import org.apache.storm.LocalCluster;
+//import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.starter.DataStructure.Event;
 import org.apache.storm.starter.DataStructure.OutputToFile;
@@ -34,9 +34,9 @@ public class SimpleMatchTopology {
         if (args != null && args.length > 0) {
             topoName = args[0];
         }
-        conf.setNumWorkers(2);
-        LocalCluster localCluster=new LocalCluster();
-        localCluster.submitTopology(topoName,conf,builder.createTopology());
-//        StormSubmitter.submitTopologyWithProgressBar(topoName, conf, builder.createTopology());
+        conf.setNumWorkers(3);
+//        LocalCluster localCluster=new LocalCluster();
+//        localCluster.submitTopology(topoName,conf,builder.createTopology());
+        StormSubmitter.submitTopologyWithProgressBar(topoName, conf, builder.createTopology());
     }
 }

@@ -69,7 +69,7 @@ public class EventSpout extends BaseRichSpout {
 //        }
 
         // for test
-        Utils.sleep(1000);
+        Utils.sleep(5000);
         try {
 
             HashMap<String, Double> m1 = new HashMap<>();  // Match sub0,sub1,sub3

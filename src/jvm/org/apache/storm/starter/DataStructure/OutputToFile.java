@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class OutputToFile {
     private static String logFilePath = "/home/swhua/log";
-    private static String matchResultFilePath = "/hom/swhua/MatchResult";
+    private static String matchResultFilePath = "/home/swhua/MatchResult";
 
     public static void writeToFile(String content) throws IOException {
 
