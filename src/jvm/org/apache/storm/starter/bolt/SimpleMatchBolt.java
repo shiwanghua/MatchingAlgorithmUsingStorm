@@ -2,15 +2,12 @@ package org.apache.storm.starter.bolt;
 
 //import com.esotericsoftware.kryo.Kryo;
 
-import org.apache.storm.starter.DataStructure.Event;
-import org.apache.storm.starter.DataStructure.OutputToFile;
-import org.apache.storm.starter.DataStructure.Subscription;
-import org.apache.storm.starter.DataStructure.TypeConstant;
-import org.apache.storm.streams.Pair;
+import org.apache.storm.starter.DataStructure.*;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.BasicOutputCollector;
 import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.topology.base.BaseBasicBolt;
+import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 
@@ -20,26 +17,40 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class SimpleMatchBolt extends BaseBasicBolt {
-    private OutputToFile out;
-    OutputCollector collector;
-    private HashMap<Integer, Subscription> mapIDtoSub = new HashMap<>();
+public class SimpleMatchBolt extends BaseRichBolt {
+    private OutputToFile output;
+    private HashMap<Integer, Subscription> mapIDtoSub = null;
+    private OutputCollector collector = null;
+
+    private Integer numSubPacket;
+    private Integer numEventPacket;
+    private String boltID;
+
+    public SimpleMatchBolt(String boltID) {
+        this.boltID = boltID;
+    }
 
     @Override
-    public void execute(Tuple tuple, BasicOutputCollector basicOutputCollector) {
-        // olution A: catch Exception to find whether the tuple is a subPacket or a eventPacket
+    public void prepare(Map<String, Object> map, TopologyContext topologyContext, OutputCollector outputCollector) {
+        this.collector = outputCollector;
+        output = new OutputToFile();
+        mapIDtoSub = new HashMap<>();
+        numSubPacket = 0;
+        numEventPacket = 0;
+    }
+
+    @Override
+    public void execute(Tuple tuple) {
+// olution A: catch Exception to find whether the tuple is a subPacket or a eventPacket
 //        try {
 //            ArrayList<Subscription> subPacket=(ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
-//
 //        }
 //        catch (IllegalArgumentException e) {
-//
 //        }
 //        try {
 //         ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
 //        }
 //        catch (IllegalArgumentException e){
-//
 //        }
 
         // Solution B: get the operation type to find what the tuple is
@@ -48,11 +59,15 @@ public class SimpleMatchBolt extends BaseBasicBolt {
             switch (type) {
                 case TypeConstant.Insert_Subscription: {
                     int subID;
+                    numSubPacket++;
+                    output.writeToLogFile("Bolt" + boltID + ": SubPacket" + String.valueOf(numSubPacket) + " is received.\n");
+
                     ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
                     for (int i = 0; i < subPacket.size(); i++) {
                         subID = subPacket.get(i).getSubID();
                         mapIDtoSub.put(subID, subPacket.get(i));
-                        out.writeToFile("Subscription " + String.valueOf(subID) + "is inserted.\n");
+//                        System.out.println("\n\n\nSubscription " + String.valueOf(subID) + " is inserted." + "\n\n\n");
+                        output.writeToLogFile("Bolt" + boltID + ": Subscription " + String.valueOf(subID) + " is inserted.\n");
                     }
                     break;
                 }
@@ -69,25 +84,28 @@ public class SimpleMatchBolt extends BaseBasicBolt {
                     break;
                 }
                 case TypeConstant.Event_Match_Subscription: {
+                    numEventPacket++;
+                    output.writeToLogFile("Bolt" + boltID + ": EventPacket" + String.valueOf(numEventPacket) + " is received.\n");
                     ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
 
                     for (int i = 0; i < eventPacket.size(); i++) {
                         int eventID = eventPacket.get(i).getEventID();
-                        String matchResult = "EventID: " + String.valueOf(eventID) + "; SubID:";
+                        int matchNum = 0;
+                        String matchResult = "Bolt" + boltID+" - EventID: " + String.valueOf(eventID) + "; SubNum:" + String.valueOf(mapIDtoSub.size()) + "; SubID:";
 
-                        if(mapIDtoSub.size()==0){
-                            out.saveMatchResult(matchResult + " null\n");
+                        if (mapIDtoSub.size() == 0) {
+                            output.saveMatchResult(matchResult + " ; MatchedSubNum: 0.\n");
                             continue;
                         }
-                        System.out.println("\n\n\n"+String.valueOf(eventID)+"Begin to match." + "\n\n\n");
+//                        System.out.println("\n\n\n" + String.valueOf(eventID) + " begins to match." + "\n\n\n");
 
-                        HashMap<String, Double> eventAttributeNameToValue = eventPacket.get(i).attributeNameToValue;
+                        HashMap<String, Double> eventAttributeNameToValue = eventPacket.get(i).getMap();
                         Iterator<HashMap.Entry<Integer, Subscription>> subIterator = mapIDtoSub.entrySet().iterator();
 
                         while (subIterator.hasNext()) {
                             HashMap.Entry<Integer, Subscription> subEntry = subIterator.next();
                             Integer subID = subEntry.getKey();
-                            Iterator<HashMap.Entry<String, Pair<Double, Double>>> subAttributeIterator = subEntry.getValue().attributeNameToPair.entrySet().iterator();
+                            Iterator<HashMap.Entry<String, Pair<Double, Double>>> subAttributeIterator = subEntry.getValue().getMap().entrySet().iterator();
 
                             Boolean matched = true;
                             while (subAttributeIterator.hasNext()) {
@@ -107,16 +125,17 @@ public class SimpleMatchBolt extends BaseBasicBolt {
                                 }
                             }
                             if (matched) {   // Save this subID to MatchResult
+                                matchNum++;
                                 matchResult += " " + String.valueOf(subID);
                             }
                         }
-                        out.writeToFile("Event " + String.valueOf(eventID) + " matching task is done.\n");
-                        out.saveMatchResult(matchResult + "\n");
+                        output.writeToLogFile("Bolt" + boltID+": Event " + String.valueOf(eventID) + " matching task is done.\n");
+                        output.saveMatchResult(matchResult + "; MatchedSubNum: " + String.valueOf(matchNum) + ".\n");
                     }
                     break;
                 }
                 default:
-                    out.writeToFile("Wrong operation type is detected.\n");
+                    output.writeToLogFile("Bolt" + boltID+": Wrong operation type is detected.\n");
             }
         } catch (IOException e) {
             e.printStackTrace();

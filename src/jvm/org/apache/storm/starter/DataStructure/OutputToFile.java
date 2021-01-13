@@ -6,10 +6,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class OutputToFile {
-    private static String logFilePath = "/home/swhua/log";
-    private static String matchResultFilePath = "/home/swhua/MatchResult";
+    private static final String logFilePath = "/home/swhua/log";
+    private static final String matchResultFilePath = "/home/swhua/MatchResult";
 
-    public static void writeToFile(String content) throws IOException {
+    public OutputToFile(){
+
+    }
+
+    public static void writeToLogFile(String content) throws IOException {
 
         File file = null;
         file = new File(logFilePath);
@@ -18,7 +22,7 @@ public class OutputToFile {
             System.out.println("A new file is created.");
         }
 
-        FileWriter fw = new FileWriter(file, false);
+        FileWriter fw = new FileWriter(file, true); // true means add to the tail of the file, no coverage
         BufferedWriter bw = new BufferedWriter(fw);
         bw.write(content);
         bw.close();
@@ -32,7 +36,7 @@ public class OutputToFile {
             System.out.println("A new file is created.");
         }
 
-        FileWriter fw = new FileWriter(file, false);
+        FileWriter fw = new FileWriter(file, true);
         BufferedWriter bw = new BufferedWriter(fw);
         bw.write(content);
         bw.close();

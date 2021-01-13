@@ -4,7 +4,7 @@
     <artifactId>storm</artifactId>
     <groupId>org.apache.storm</groupId>
     <version>2.2.0</version>
-    <relativePath>../../pom.xml/pom.xml</relativePath>
+    <relativePath>../pom.xml/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>storm-starter</artifactId>
@@ -17,7 +17,7 @@
         <directory>${basedir}/multilang</directory>
       </resource>
     </resources>
-    <finalName>storm-2021-01-12</finalName>
+    <finalName>storm-2021-01-13</finalName>
     <plugins>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
@@ -90,12 +90,6 @@
         <configuration>
           <excludedGroups>none</excludedGroups>
         </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <artifactId>maven-pmd-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
@@ -198,11 +192,22 @@
     </dependency>
     <dependency>
       <groupId>org.apache.storm</groupId>
-      <artifactId>storm-client</artifactId>
+      <artifactId>storm-core</artifactId>
       <version>2.2.0</version>
-      <type>test-jar</type>
-      <scope>test</scope>
+      <scope>provided</scope>
       <exclusions>
+        <exclusion>
+          <artifactId>jetty-servlets</artifactId>
+          <groupId>org.eclipse.jetty</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jackson-dataformat-smile</artifactId>
+          <groupId>com.fasterxml.jackson.dataformat</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>commons-fileupload</artifactId>
+          <groupId>commons-fileupload</groupId>
+        </exclusion>
         <exclusion>
           <artifactId>log4j-slf4j-impl</artifactId>
           <groupId>org.apache.logging.log4j</groupId>
@@ -211,6 +216,15 @@
           <artifactId>log4j-over-slf4j</artifactId>
           <groupId>org.slf4j</groupId>
         </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.storm</groupId>
+      <artifactId>storm-client</artifactId>
+      <version>2.2.0</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+      <exclusions>
         <exclusion>
           <artifactId>storm-shaded-deps</artifactId>
           <groupId>org.apache.storm</groupId>
@@ -219,96 +233,9 @@
           <artifactId>metrics-graphite</artifactId>
           <groupId>io.dropwizard.metrics</groupId>
         </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.storm</groupId>
-      <artifactId>apache-storm-source</artifactId>
-      <version>2.2.0</version>
-      <type>pom</type>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.storm</groupId>
-      <artifactId>storm-core</artifactId>
-      <version>0.9.7</version>
-      <scope>provided</scope>
-      <exclusions>
         <exclusion>
-          <artifactId>clj-time</artifactId>
-          <groupId>clj-time</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>compojure</artifactId>
-          <groupId>compojure</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>core.incubator</artifactId>
-          <groupId>org.clojure</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>tools.macro</artifactId>
-          <groupId>org.clojure</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>clout</artifactId>
-          <groupId>clout</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>ring-core</artifactId>
-          <groupId>ring</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>commons-fileupload</artifactId>
-          <groupId>commons-fileupload</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>hiccup</artifactId>
-          <groupId>hiccup</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>ring-devel</artifactId>
-          <groupId>ring</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>clj-stacktrace</artifactId>
-          <groupId>clj-stacktrace</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>ring-jetty-adapter</artifactId>
-          <groupId>ring</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>ring-servlet</artifactId>
-          <groupId>ring</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>math.numeric-tower</artifactId>
-          <groupId>org.clojure</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>tools.cli</artifactId>
-          <groupId>org.clojure</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>commons-exec</artifactId>
-          <groupId>org.apache.commons</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>disruptor</artifactId>
-          <groupId>com.googlecode.disruptor</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jgrapht-core</artifactId>
-          <groupId>org.jgrapht</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>logback-classic</artifactId>
-          <groupId>ch.qos.logback</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>logback-core</artifactId>
-          <groupId>ch.qos.logback</groupId>
+          <artifactId>log4j-slf4j-impl</artifactId>
+          <groupId>org.apache.logging.log4j</groupId>
         </exclusion>
         <exclusion>
           <artifactId>log4j-over-slf4j</artifactId>

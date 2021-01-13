@@ -5,25 +5,29 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Event {
-    private int numAttributes = 0;
-    private Integer eventID = -1;
+    private int numAttributes;
+    private Integer eventID;
     private OutputToFile output;
-    public HashMap<String, Double> attributeNameToValue;
+    private HashMap<String, Double> attributeNameToValue;
 
     public Event(){
-
+        numAttributes = 0;
+        eventID=-1;
+        output=new OutputToFile();
+        attributeNameToValue=new HashMap<>();
     }
 
     public Event(final Integer ID, int num_attributes, ArrayList<String> attributeName, ArrayList<Double> values) throws IOException {
         eventID = ID;
         numAttributes = num_attributes;
         if (attributeName.size() < values.size()) {
-            output.writeToFile("The number of value is larger than the number of attributes, event construct failed.\n");
+            output.writeToLogFile("The number of value is larger than the number of attributes, event construct failed.\n");
             return;
         }
+
         for (int i = 0; i < attributeName.size(); i++) {
             if (attributeNameToValue.containsKey(attributeName.get(i))) {
-                output.writeToFile("Attribte name duplicate, event construct failed.\n");
+                output.writeToLogFile("Attribte name duplicate, event construct failed.\n");
                 //return;
             }
             attributeNameToValue.put(attributeName.get(i), values.get(i));
@@ -33,7 +37,7 @@ public class Event {
     public Event(final Integer ID, int num_attributes, HashMap<String, Double> mapNameToValue) throws IOException {
         eventID = ID;
         if (num_attributes < mapNameToValue.size()) {
-            output.writeToFile("The number of values is larger than the number of attributes, event construct failed.\n");
+            output.writeToLogFile("The number of values is larger than the number of attributes, event construct failed.\n");
             return;
         }
         numAttributes = num_attributes;
@@ -48,13 +52,15 @@ public class Event {
         return eventID;
     }
 
+    public HashMap<String, Double> getMap(){return attributeNameToValue;}
+
     public Boolean insertAttribute(String attributeName, Double d) throws IOException {
         if (attributeNameToValue.containsKey(attributeName)) {
-            output.writeToFile("Already exists such a attribute name, event insert failed.\n");
+            output.writeToLogFile("Already exists such a attribute name, event insert failed.\n");
             return false;
         }
         if (numAttributes == attributeNameToValue.size()) {
-            output.writeToFile("Number of attributes is full, event insert failed.\n");
+            output.writeToLogFile("Number of attributes is full, event insert failed.\n");
             return false;
         }
         attributeNameToValue.put(attributeName, d);
@@ -66,7 +72,7 @@ public class Event {
             attributeNameToValue.remove(attributeName);
             return true;
         }
-        output.writeToFile("No such an attribute name, event delete failed.\n");
+        output.writeToLogFile("No such an attribute name, event delete failed.\n");
         return false;
     }
 
@@ -75,7 +81,7 @@ public class Event {
             attributeNameToValue.put(attributeName, d);
             return true;
         }
-        output.writeToFile("No such a attribute name, event update failed.\n");
+        output.writeToLogFile("No such a attribute name, event update failed.\n");
         return false;
     }
 }
