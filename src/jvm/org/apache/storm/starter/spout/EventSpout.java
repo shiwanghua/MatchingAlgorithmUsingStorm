@@ -2,6 +2,7 @@ package org.apache.storm.starter.spout;
 
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.starter.DataStructure.Event;
+import org.apache.storm.starter.DataStructure.OutputToFile;
 import org.apache.storm.starter.DataStructure.TypeConstant;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -21,30 +22,37 @@ public class EventSpout extends BaseRichSpout {
     SpoutOutputCollector collector;
     private Random valueGenerator;
     private Integer eventID;
+    private Integer numEventPacket;
     final int maxNumEvent;            //  Maximum number of event emitted per time
     final int maxNumAttribute;        //  Maxinum number of attributes in a event
     private int[] randomArray = null; // To get the attribute name
+    private OutputToFile output;
+    private String spoutName;
 
-    public EventSpout() {
+    public EventSpout(String spoutName) {
         valueGenerator = new Random();
         eventID = 1;
+        numEventPacket=0;  // messageID
         maxNumEvent = 20;
         maxNumAttribute = 30;
         randomArray = new int[maxNumAttribute];
         for (int i = 0; i < maxNumAttribute; i++)
             randomArray[i] = i;
+        this.spoutName=spoutName;
     }
 
     @Override
     public void open(Map<String, Object> map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
         this.collector = spoutOutputCollector;
+        output=new OutputToFile();
     }
 
     @Override
     public void nextTuple() {
-        Utils.sleep(100);
+//        Utils.sleep(100);
         int numEvent = (int) (Math.random() * maxNumEvent + 1); // Generate the number of subscriptions in this tuple: 1~maxNumEvent
-        ArrayList<Event> sub = new ArrayList<>(numEvent);
+        ArrayList<Event> events = new ArrayList<>(numEvent);
+
         for(int i=0;i<numEvent;i++){
             int numAttribute = new Random().nextInt(maxNumAttribute+1); // Generate the number of attribute in this subscription: 0~maxNumAttribute
 
@@ -64,7 +72,7 @@ public class EventSpout extends BaseRichSpout {
                 mapNameToValue.put(attributeName+String.valueOf(randomArray[j]), eventValue);
             }
             try {
-                sub.add(new Event(eventID,numAttribute,mapNameToValue));
+                events.add(new Event(eventID,numAttribute,mapNameToValue));
                 eventID+=1;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -80,33 +88,39 @@ public class EventSpout extends BaseRichSpout {
 //            m1.put("name2", 0.14);
 //            m1.put("name3", 0.25);
 //            m1.put("name4", 0.35);
-//            sub.add(new Event(1, 4, m1));
+//            events.add(new Event(1, 4, m1));
 //
 //            HashMap<String, Double> m2 = new HashMap<>();   // Match null
 //            m2.put("name3", 0.21);
 //            m2.put("name4", 0.5);
-//            sub.add(new Event(2, 2, m2));
+//            events.add(new Event(2, 2, m2));
 //
 //            HashMap<String, Double> m3 = new HashMap<>(); // Match sub2
 //            m3.put("name1", 0.46);
 //            m3.put("name2", 0.54);
-//            sub.add(new Event(3, 2, m3));
+//            events.add(new Event(3, 2, m3));
 //
 //            HashMap<String, Double> m4 = new HashMap<>(); // Match sub2, sub3
 //            m4.put("name1", 0.48);
 //            m4.put("name2", 0.56);
 //            m4.put("name3", 0.85);
-//            sub.add(new Event(4, 3, m4));
+//            events.add(new Event(4, 3, m4));
 //
 //            HashMap<String, Double> m5 = new HashMap<>(); // Match sub4
 //            m5.put("name2", 0.18);
 //            m5.put("name4", 0.75);
-//            sub.add(new Event(5, 2, m5));
+//            events.add(new Event(5, 2, m5));
 //
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
-        collector.emit(new Values(TypeConstant.Event_Match_Subscription, sub));
+        try {
+            output.writeToLogFile(spoutName+": Event"+String.valueOf(eventID)+" is sent.\n");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        collector.emit(new Values(TypeConstant.Event_Match_Subscription, events),++numEventPacket);
     }
 
     @Override

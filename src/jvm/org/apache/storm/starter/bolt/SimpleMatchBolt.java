@@ -24,10 +24,10 @@ public class SimpleMatchBolt extends BaseRichBolt {
 
     private Integer numSubPacket;
     private Integer numEventPacket;
-    private String boltID;
+    private String boltName;
 
-    public SimpleMatchBolt(String boltID) {
-        this.boltID = boltID;
+    public SimpleMatchBolt(String boltName) {
+        this.boltName = boltName;
     }
 
     @Override
@@ -60,15 +60,16 @@ public class SimpleMatchBolt extends BaseRichBolt {
                 case TypeConstant.Insert_Subscription: {
                     int subID;
                     numSubPacket++;
-                    output.writeToLogFile("Bolt" + boltID + ": SubPacket" + String.valueOf(numSubPacket) + " is received.\n");
+                    output.writeToLogFile(boltName + ": SubPacket" + String.valueOf(numSubPacket) + " is received.\n");
 
                     ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
                     for (int i = 0; i < subPacket.size(); i++) {
                         subID = subPacket.get(i).getSubID();
                         mapIDtoSub.put(subID, subPacket.get(i));
 //                        System.out.println("\n\n\nSubscription " + String.valueOf(subID) + " is inserted." + "\n\n\n");
-                        output.writeToLogFile("Bolt" + boltID + ": Subscription " + String.valueOf(subID) + " is inserted.\n");
+                        output.writeToLogFile(boltName + ": Subscription " + String.valueOf(subID) + " is inserted.\n");
                     }
+                    collector.ack(tuple);
                     break;
                 }
                 case TypeConstant.Insert_Attribute_Subscription: {
@@ -85,15 +86,16 @@ public class SimpleMatchBolt extends BaseRichBolt {
                 }
                 case TypeConstant.Event_Match_Subscription: {
                     numEventPacket++;
-                    output.writeToLogFile("Bolt" + boltID + ": EventPacket" + String.valueOf(numEventPacket) + " is received.\n");
+                    output.writeToLogFile(boltName + ": EventPacket" + String.valueOf(numEventPacket) + " is received.\n");
                     ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
 
                     for (int i = 0; i < eventPacket.size(); i++) {
                         int eventID = eventPacket.get(i).getEventID();
                         int matchNum = 0;
-                        String matchResult = "Bolt" + boltID+" - EventID: " + String.valueOf(eventID) + "; SubNum:" + String.valueOf(mapIDtoSub.size()) + "; SubID:";
+                        String matchResult = boltName+" - EventID: " + String.valueOf(eventID) + "; SubNum:" + String.valueOf(mapIDtoSub.size()) + "; SubID:";
 
                         if (mapIDtoSub.size() == 0) {
+                            output.writeToLogFile(boltName+": Event " + String.valueOf(eventID) + " matching task is done.\n");
                             output.saveMatchResult(matchResult + " ; MatchedSubNum: 0.\n");
                             continue;
                         }
@@ -129,13 +131,15 @@ public class SimpleMatchBolt extends BaseRichBolt {
                                 matchResult += " " + String.valueOf(subID);
                             }
                         }
-                        output.writeToLogFile("Bolt" + boltID+": Event " + String.valueOf(eventID) + " matching task is done.\n");
+                        output.writeToLogFile(boltName+": Event " + String.valueOf(eventID) + " matching task is done.\n");
                         output.saveMatchResult(matchResult + "; MatchedSubNum: " + String.valueOf(matchNum) + ".\n");
                     }
+                    collector.ack(tuple);
                     break;
                 }
                 default:
-                    output.writeToLogFile("Bolt" + boltID+": Wrong operation type is detected.\n");
+                    collector.fail(tuple);
+                    output.writeToLogFile(boltName+": Wrong operation type is detected.\n");
             }
         } catch (IOException e) {
             e.printStackTrace();

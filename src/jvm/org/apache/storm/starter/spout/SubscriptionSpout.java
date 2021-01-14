@@ -1,6 +1,8 @@
 package org.apache.storm.starter.spout;
 
+import org.apache.jasper.tagplugins.jstl.core.Out;
 import org.apache.storm.spout.SpoutOutputCollector;
+import org.apache.storm.starter.DataStructure.OutputToFile;
 import org.apache.storm.starter.DataStructure.Pair;
 import org.apache.storm.starter.DataStructure.Subscription;
 import org.apache.storm.starter.DataStructure.TypeConstant;
@@ -21,24 +23,30 @@ public class SubscriptionSpout extends BaseRichSpout {
     //    private static final Logger LOG = LoggerFactory.getLogger(SubscriptionSpout.class);
     SpoutOutputCollector collector;
     private Integer subID;
+    private Integer numSubPacket;
     final int maxNumSubscription;           //  Maximum number of subscription emitted per time
     final int maxNumAttribute;              //  Maxinum number of attributes in a subscription
     private Random valueGenerator;          //  Generate the interval value and index of attribute name
     private int[] randomArray;              //  To get the attribute name
+    private OutputToFile output;
+    private String spoutName;
 
-    public SubscriptionSpout() {
+    public SubscriptionSpout(String spoutName) {
         subID = 1;
+        numSubPacket=0;
         maxNumSubscription = 100;
         maxNumAttribute = 30;
         valueGenerator = new Random();
         randomArray = new int[maxNumAttribute];
         for (int i = 0; i < maxNumAttribute; i++)
             randomArray[i] = i;
+        this.spoutName=spoutName;
     }
 
     @Override
     public void open(Map<String, Object> map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
         this.collector = spoutOutputCollector;
+        output=new OutputToFile();
     }
 
     @Override
@@ -52,7 +60,7 @@ public class SubscriptionSpout extends BaseRichSpout {
 
     @Override
     public void nextTuple() {
-        Utils.sleep(50);
+//        Utils.sleep(50);
         int numSub = (int)(Math.random() * maxNumSubscription + 1); // Generate the number of subscriptions in this tuple: 1~maxNumSubscription
         ArrayList<Subscription> sub = new ArrayList<>(numSub);
         for(int i=0;i<numSub;i++){
@@ -113,7 +121,13 @@ public class SubscriptionSpout extends BaseRichSpout {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
-        collector.emit(new Values(TypeConstant.Insert_Subscription, sub));
+        try {
+            output.writeToLogFile(spoutName+": SubID"+String.valueOf(subID)+" is sent.\n");
+            output.writeToLogFile(spoutName + ": SubPacket" + String.valueOf(++numSubPacket) + " is sent.\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        collector.emit(new Values(TypeConstant.Insert_Subscription, sub),numSubPacket);
     }
 
     @Override

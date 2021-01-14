@@ -161,7 +161,7 @@
     </dependencies>
 
     <build>
-        <finalName>storm-2021-01-13</finalName>
+        <finalName>storm-2021-01-14</finalName>
         <sourceDirectory>src/jvm</sourceDirectory>
         <testSourceDirectory>test/jvm</testSourceDirectory>
         <resources>
