@@ -26,6 +26,7 @@ public class SubscriptionSpout extends BaseRichSpout {
     private Integer numSubPacket;
     final int maxNumSubscription;           //  Maximum number of subscription emitted per time
     final int maxNumAttribute;              //  Maxinum number of attributes in a subscription
+    final Integer subSetSize;
     private Random valueGenerator;          //  Generate the interval value and index of attribute name
     private int[] randomArray;              //  To get the attribute name
     private OutputToFile output;
@@ -36,6 +37,7 @@ public class SubscriptionSpout extends BaseRichSpout {
         numSubPacket=0;
         maxNumSubscription = 100;
         maxNumAttribute = 30;
+        subSetSize=100000;
         valueGenerator = new Random();
         randomArray = new int[maxNumAttribute];
         for (int i = 0; i < maxNumAttribute; i++)
@@ -61,6 +63,11 @@ public class SubscriptionSpout extends BaseRichSpout {
     @Override
     public void nextTuple() {
 //        Utils.sleep(50);
+        if(subID>=subSetSize){
+//            collector.emit(new Values(TypeConstant.Null_Operation, null));
+            return;
+        }
+
         int numSub = (int)(Math.random() * maxNumSubscription + 1); // Generate the number of subscriptions in this tuple: 1~maxNumSubscription
         ArrayList<Subscription> sub = new ArrayList<>(numSub);
         for(int i=0;i<numSub;i++){
@@ -84,7 +91,7 @@ public class SubscriptionSpout extends BaseRichSpout {
             }
             try {
                 sub.add(new Subscription(subID,numAttribute,mapNameToPair));
-                  subID+=1;
+                subID+=1;
             } catch (IOException e) {
                 e.printStackTrace();
             }

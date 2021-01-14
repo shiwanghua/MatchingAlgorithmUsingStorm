@@ -7,5 +7,5 @@ public class TypeConstant {
     public static final int Delete_Attribute_Subscription = 4;
     public static final int Delete_Subscription = 5;
     public static final int Event_Match_Subscription = 6;
-
+    public static final int Null_Operation = 7;
 }

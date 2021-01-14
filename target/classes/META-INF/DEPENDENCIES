@@ -239,14 +239,8 @@ From: 'Connect2id Ltd.' (http://connect2id.com)
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 From: 'Eclipse Foundation' (https://www.eclipse.org)
-  - JavaBeans Activation Framework (https://github.com/eclipse-ee4j/jaf/jakarta.activation) com.sun.activation:jakarta.activation:jar:1.2.1
-    License: EDL 1.0  (http://www.eclipse.org/org/documents/edl-v10.php)
-  - JavaBeans Activation Framework API jar (https://github.com/eclipse-ee4j/jaf/jakarta.activation-api) jakarta.activation:jakarta.activation-api:jar:1.2.1
-    License: EDL 1.0  (http://www.eclipse.org/org/documents/edl-v10.php)
   - jakarta.annotation API (https://projects.eclipse.org/projects/ee4j.ca) jakarta.annotation:jakarta.annotation-api:jar:1.3.4
     License: EPL 2.0  (http://www.eclipse.org/legal/epl-2.0)    License: GPL2 w/ CPE  (https://www.gnu.org/software/classpath/license.html)
-  - jakarta.xml.bind-api (https://github.com/eclipse-ee4j/jaxb-api/jakarta.xml.bind-api) jakarta.xml.bind:jakarta.xml.bind-api:jar:2.3.2
-    License: Eclipse Distribution License - v 1.0  (http://www.eclipse.org/org/documents/edl-v10.php)
   - OSGi resource locator (https://projects.eclipse.org/projects/ee4j/osgi-resource-locator) org.glassfish.hk2:osgi-resource-locator:jar:1.0.3
     License: EPL 2.0  (http://www.eclipse.org/legal/epl-2.0)    License: GPL2 w/ CPE  (https://www.gnu.org/software/classpath/license.html)
 
