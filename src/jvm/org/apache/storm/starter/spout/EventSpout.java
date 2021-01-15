@@ -27,6 +27,7 @@ public class EventSpout extends BaseRichSpout {
     final int maxNumAttribute;        //  Maxinum number of attributes in a event
     private int[] randomArray = null; // To get the attribute name
     private OutputToFile output;
+    private StringBuilder log;
     private String spoutName;
 
     public EventSpout(String spoutName) {
@@ -45,6 +46,7 @@ public class EventSpout extends BaseRichSpout {
     public void open(Map<String, Object> map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
         this.collector = spoutOutputCollector;
         output=new OutputToFile();
+        log=new StringBuilder();
     }
 
     @Override
@@ -114,12 +116,20 @@ public class EventSpout extends BaseRichSpout {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
+        numEventPacket++;
         try {
-            output.writeToLogFile(spoutName+": EventID"+String.valueOf(eventID)+" in EventPacket"+String.valueOf(++numEventPacket) +" is sent.\n");
+            log=new StringBuilder(spoutName);
+            log.append(": EventID ");
+            log.append(eventID);
+            log.append(" in EventPacket ");
+            log.append(numEventPacket);
+            log.append(" is sent.\n");
+            output.writeToLogFile(log.toString());
+//            output.writeToLogFile(spoutName+": EventID "+String.valueOf(eventID)+" in EventPacket "+String.valueOf(++numEventPacket) +" is sent.\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        collector.emit(new Values(TypeConstant.Event_Match_Subscription, events),++numEventPacket);
+        collector.emit(new Values(TypeConstant.Event_Match_Subscription, events),numEventPacket);
     }
 
     @Override

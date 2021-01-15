@@ -21,13 +21,34 @@ public class SimpleMatchBolt extends BaseRichBolt {
     private OutputToFile output;
     private HashMap<Integer, Subscription> mapIDtoSub = null;
     private OutputCollector collector = null;
+    StringBuilder log;
+    StringBuilder matchResult;
 
     private Integer numSubPacket;
     private Integer numEventPacket;
+    private Integer numSubInserted;
+    private Integer numEventMatched;
     private String boltName;
+
+    private long insertSubTime;
+    private long matchEventTime;
+    final private long beginTime;
+    final private long intervalTime; // The interval between two calculations of speed
+    private long speedTime;  // The time to calculate and record speed
+    private long startTime;  // a temp variable
 
     public SimpleMatchBolt(String boltName) {
         this.boltName = boltName;
+        numSubPacket = 0;
+        numEventPacket = 0;
+        numSubInserted = 0;
+        numEventMatched = 0;
+        insertSubTime = 0;
+        matchEventTime = 0;
+        beginTime = System.nanoTime();
+        intervalTime = 60000000000L;  // 1 minute
+        speedTime = System.nanoTime() + intervalTime;
+        startTime = 0;
     }
 
     @Override
@@ -35,8 +56,8 @@ public class SimpleMatchBolt extends BaseRichBolt {
         this.collector = outputCollector;
         output = new OutputToFile();
         mapIDtoSub = new HashMap<>();
-        numSubPacket = 0;
-        numEventPacket = 0;
+        log=new StringBuilder();
+        matchResult=new StringBuilder();
     }
 
     @Override
@@ -58,18 +79,31 @@ public class SimpleMatchBolt extends BaseRichBolt {
         try {
             switch (type) {
                 case TypeConstant.Insert_Subscription: {
+                    startTime = System.nanoTime();
                     int subID;
                     numSubPacket++;
-                    output.writeToLogFile(boltName + ": SubPacket" + String.valueOf(numSubPacket) + " is received.\n");
+                    log=new StringBuilder(boltName);
+                    log.append(": SubPacket ");
+                    log.append(numSubPacket);
+                    log.append(" is received.\n");
+                    output.writeToLogFile(log.toString());
+//                    output.writeToLogFile(boltName + ": SubPacket" + String.valueOf(numSubPacket) + " is received.\n");
 
                     ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
                     for (int i = 0; i < subPacket.size(); i++) {
                         subID = subPacket.get(i).getSubID();
                         mapIDtoSub.put(subID, subPacket.get(i));
 //                        System.out.println("\n\n\nSubscription " + String.valueOf(subID) + " is inserted." + "\n\n\n");
-                        output.writeToLogFile(boltName + ": Subscription " + String.valueOf(subID) + " is inserted.\n");
+                        log=new StringBuilder(boltName);
+                        log.append(": Sub ");
+                        log.append(subID);
+                        log.append(" is inserted.\n");
+                        output.writeToLogFile(log.toString());
+//                        output.writeToLogFile(boltName + ": Subscription " + String.valueOf(subID) + " is inserted.\n");
                     }
                     collector.ack(tuple);
+                    numSubInserted+=subPacket.size();
+                    insertSubTime += System.nanoTime() - startTime;
                     break;
                 }
                 case TypeConstant.Insert_Attribute_Subscription: {
@@ -85,18 +119,36 @@ public class SimpleMatchBolt extends BaseRichBolt {
                     break;
                 }
                 case TypeConstant.Event_Match_Subscription: {
+                    startTime = System.nanoTime();
                     numEventPacket++;
-                    output.writeToLogFile(boltName + ": EventPacket" + String.valueOf(numEventPacket) + " is received.\n");
+                    log=new StringBuilder(boltName);
+                    log.append(": EventPacket ");
+                    log.append(numEventPacket);
+                    log.append(" is received.\n");
+                    output.writeToLogFile(log.toString());
+//                    output.writeToLogFile(boltName + ": EventPacket" + String.valueOf(numEventPacket) + " is received.\n");
                     ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
-
                     for (int i = 0; i < eventPacket.size(); i++) {
                         int eventID = eventPacket.get(i).getEventID();
                         int matchNum = 0;
-                        String matchResult = boltName+" - EventID: " + String.valueOf(eventID) + "; SubNum:" + String.valueOf(mapIDtoSub.size()) + "; SubID:";
+                        matchResult=new StringBuilder(boltName);
+                        matchResult.append(" - EventID: ");
+                        matchResult.append(eventID);
+                        matchResult.append("; SubNum:");
+                        matchResult.append(mapIDtoSub.size());
+                        matchResult.append("; SubID:");
+//                        String matchResult = boltName + " - EventID: " + String.valueOf(eventID) + "; SubNum:" + String.valueOf(mapIDtoSub.size()) + "; SubID:";
 
                         if (mapIDtoSub.size() == 0) {
-                            output.writeToLogFile(boltName+": Event " + String.valueOf(eventID) + " matching task is done.\n");
-                            output.saveMatchResult(matchResult + " ; MatchedSubNum: 0.\n");
+                            log=new StringBuilder(boltName);
+                            log.append(": Event ");
+                            log.append(eventID);
+                            log.append(" matching task is done.\n");
+                            output.writeToLogFile(log.toString());
+//                            output.writeToLogFile(boltName + ": Event " + String.valueOf(eventID) + " matching task is done.\n");
+                            matchResult.append(" ; MatchedSubNum: 0.\n");
+                            output.writeToLogFile(matchResult.toString());
+//                            output.saveMatchResult(matchResult + " ; MatchedSubNum: 0.\n");
                             continue;
                         }
 //                        System.out.println("\n\n\n" + String.valueOf(eventID) + " begins to match." + "\n\n\n");
@@ -128,22 +180,59 @@ public class SimpleMatchBolt extends BaseRichBolt {
                             }
                             if (matched) {   // Save this subID to MatchResult
                                 matchNum++;
-                                matchResult += " " + String.valueOf(subID);
+                                matchResult.append(" ");
+                                matchResult.append(subID);
+//                                matchResult += " " + String.valueOf(subID);
                             }
                         }
-                        output.writeToLogFile(boltName+": Event " + String.valueOf(eventID) + " matching task is done.\n");
-                        output.saveMatchResult(matchResult + "; MatchedSubNum: " + String.valueOf(matchNum) + ".\n");
+                        log=new StringBuilder(boltName);
+                        log.append(": Event ");
+                        log.append(eventID);
+                        log.append(" matching task is done.\n");
+                        output.writeToLogFile(log.toString());
+//                        output.writeToLogFile(boltName + ": Event " + String.valueOf(eventID) + " matching task is done.\n");
+                        matchResult.append("; MatchedSubNum: ");
+                        matchResult.append(matchNum);
+                        matchResult.append(".\n");
+                        output.saveMatchResult(matchResult.toString());
+//                        output.saveMatchResult(matchResult + "; MatchedSubNum: " + String.valueOf(matchNum) + ".\n");
                     }
                     collector.ack(tuple);
+                    numEventMatched+=eventPacket.size();
+                    matchEventTime += System.nanoTime() - startTime;
                     break;
                 }
                 default:
                     collector.fail(tuple);
-                    output.writeToLogFile(boltName+": Wrong operation type is detected.\n");
+                    log=new StringBuilder(boltName);
+                    log.append(": Wrong operation type is detected.\n");
+                    output.writeToLogFile(log.toString());
+//                    output.writeToLogFile(boltName + ": Wrong operation type is detected.\n");
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        if (System.nanoTime() > speedTime) {
+            StringBuilder speedReport = new StringBuilder("RunTime: ");
+            speedReport.append((System.nanoTime() - beginTime) / intervalTime);
+            speedReport.append("min. numSubInserted: ");
+            speedReport.append(numSubInserted);
+            speedReport.append("; InsertSpeed: ");
+            speedReport.append(insertSubTime/numSubInserted/1000);  // us/per
+            speedReport.append(". numEventMatched: ");
+            speedReport.append(numEventMatched);
+            speedReport.append("; MatchSpeed: ");
+            speedReport.append(matchEventTime/numEventMatched/1000); // us/per
+            speedReport.append(".\n");
+            try {
+                output.recordSpeed(speedReport.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            speedTime=System.nanoTime()+intervalTime;
+        }
+
     }
 
     @Override

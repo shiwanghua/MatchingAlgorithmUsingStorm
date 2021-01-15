@@ -30,6 +30,7 @@ public class SubscriptionSpout extends BaseRichSpout {
     private Random valueGenerator;          //  Generate the interval value and index of attribute name
     private int[] randomArray;              //  To get the attribute name
     private OutputToFile output;
+    private StringBuilder log;
     private String spoutName;
 
     public SubscriptionSpout(String spoutName) {
@@ -49,6 +50,7 @@ public class SubscriptionSpout extends BaseRichSpout {
     public void open(Map<String, Object> map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
         this.collector = spoutOutputCollector;
         output=new OutputToFile();
+        log=new StringBuilder();
     }
 
     @Override
@@ -128,8 +130,16 @@ public class SubscriptionSpout extends BaseRichSpout {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
+        numSubPacket++;
         try {
-            output.writeToLogFile(spoutName+": SubID"+String.valueOf(subID)+" in SubPacket" + String.valueOf(++numSubPacket) + " is sent.\n");
+            log=new StringBuilder(spoutName);
+            log.append(": SubID ");
+            log.append(subID);
+            log.append(" in SubPacket ");
+            log.append(numSubPacket);
+            log.append(" is sent.\n");
+            output.writeToLogFile(log.toString());
+//            output.writeToLogFile(spoutName+": SubID "+String.valueOf(subID)+" in SubPacket " + String.valueOf(numSubPacket) + " is sent.\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
