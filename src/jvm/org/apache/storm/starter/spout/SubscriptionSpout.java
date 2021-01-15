@@ -129,8 +129,7 @@ public class SubscriptionSpout extends BaseRichSpout {
 //            e.printStackTrace();
 //        }
         try {
-            output.writeToLogFile(spoutName+": SubID"+String.valueOf(subID)+" is sent.\n");
-            output.writeToLogFile(spoutName + ": SubPacket" + String.valueOf(++numSubPacket) + " is sent.\n");
+            output.writeToLogFile(spoutName+": SubID"+String.valueOf(subID)+" in SubPacket" + String.valueOf(++numSubPacket) + " is sent.\n");
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -115,8 +115,7 @@ public class EventSpout extends BaseRichSpout {
 //            e.printStackTrace();
 //        }
         try {
-            output.writeToLogFile(spoutName+": Event"+String.valueOf(eventID)+" is sent.\n");
-            output.writeToLogFile(spoutName + ": EventPacket" + String.valueOf(++numEventPacket) + " is sent.\n");
+            output.writeToLogFile(spoutName+": EventID"+String.valueOf(eventID)+" in EventPacket"+String.valueOf(++numEventPacket) +" is sent.\n");
         } catch (IOException e) {
             e.printStackTrace();
         }

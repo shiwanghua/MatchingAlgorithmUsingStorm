@@ -20,7 +20,7 @@ public class SimpleMatchTopology {
 
         builder.setSpout("SubSpout", new SubscriptionSpout("SubSpout1"), 1);
         builder.setSpout("EventSpout", new EventSpout("EventSpout1"), 1);
-        builder.setBolt("SMBolt", new SimpleMatchBolt("SimpleMatchBolt1"), 4).allGrouping("SubSpout").shuffleGrouping("EventSpout");
+        builder.setBolt("SMBolt", new SimpleMatchBolt("SimpleMatchBolt1"), 5).allGrouping("SubSpout").shuffleGrouping("EventSpout");// setNumTasks
 
         Config conf = new Config();
         Config.setFallBackOnJavaSerialization(conf, false); // Don't use java's serialization.
@@ -30,11 +30,11 @@ public class SimpleMatchTopology {
         conf.registerSerialization(Subscription.class);
 
         conf.setDebug(false);
-        conf.setNumWorkers(4);
-        conf.setMaxTaskParallelism(3);
-        conf.put(Config.TOPOLOGY_ACKER_EXECUTORS, 20);// 设置acker的数量, default: 1
+        conf.setNumWorkers(3);
+        conf.setMaxTaskParallelism(5);
+        conf.put(Config.TOPOLOGY_ACKER_EXECUTORS, 10);// 设置acker的数量, default: 1
         conf.put(Config.TOPOLOGY_MAX_SPOUT_PENDING, 100);//设置一个spout task上面最多有多少个没有处理的tuple（没有ack/failed）回复，以防止tuple队列爆掉
-        conf.put(Config.TOPOLOGY_WORKER_CHILDOPTS,"-Xmx%HEAP-MEM%m -XX:+PrintGCDetails -Xloggc:artifacts/gc.log  -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=1M -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=artifacts/heapdump");
+//        conf.put(Config.TOPOLOGY_WORKER_CHILDOPTS,"-Xmx%HEAP-MEM%m -XX:+PrintGCDetails -Xloggc:artifacts/gc.log  -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=1M -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=artifacts/heapdump");
         // -XX:+PrintGCDateStamps is omitted, because it will lead to a log: "[INFO] Unrecognized VM option 'PrintGCDateStamps'"
         String topoName = "SimpleMatchTopology";
         if (args != null && args.length > 0) {
