@@ -17,7 +17,7 @@
         <directory>${basedir}/multilang</directory>
       </resource>
     </resources>
-    <finalName>storm-2021-01-15</finalName>
+    <finalName>storm-2021-01-16</finalName>
     <plugins>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>

@@ -23,7 +23,7 @@ public class SimpleMatchBolt extends BaseRichBolt {
     private OutputCollector collector = null;
     StringBuilder log;
     StringBuilder matchResult;
-
+    StringBuilder speedReport;
     private Integer numSubPacket;
     private Integer numEventPacket;
     private Integer numSubInserted;
@@ -43,8 +43,8 @@ public class SimpleMatchBolt extends BaseRichBolt {
         numEventPacket = 0;
         numSubInserted = 0;
         numEventMatched = 0;
-        insertSubTime = 0;
-        matchEventTime = 0;
+        insertSubTime = 1;// 1ns avoid divide by zero
+        matchEventTime = 1;
         beginTime = System.nanoTime();
         intervalTime = 60000000000L;  // 1 minute
         speedTime = System.nanoTime() + intervalTime;
@@ -58,6 +58,7 @@ public class SimpleMatchBolt extends BaseRichBolt {
         mapIDtoSub = new HashMap<>();
         log=new StringBuilder();
         matchResult=new StringBuilder();
+        speedReport=new StringBuilder();
     }
 
     @Override
@@ -214,16 +215,19 @@ public class SimpleMatchBolt extends BaseRichBolt {
         }
 
         if (System.nanoTime() > speedTime) {
-            StringBuilder speedReport = new StringBuilder("RunTime: ");
+            speedReport=new StringBuilder(boltName);
+            speedReport.append(" - RunTime: ");
             speedReport.append((System.nanoTime() - beginTime) / intervalTime);
             speedReport.append("min. numSubInserted: ");
             speedReport.append(numSubInserted);
             speedReport.append("; InsertSpeed: ");
-            speedReport.append(insertSubTime/numSubInserted/1000);  // us/per
+//            speedReport.append(numSubInserted*1000000000/insertSubTime);   // per/s
+            speedReport.append(insertSubTime/numSubInserted/1000);    // us/per
             speedReport.append(". numEventMatched: ");
             speedReport.append(numEventMatched);
             speedReport.append("; MatchSpeed: ");
-            speedReport.append(matchEventTime/numEventMatched/1000); // us/per
+//            speedReport.append(numEventMatched*1000000000/matchEventTime);  // per/s
+            speedReport.append(matchEventTime/numEventMatched/1000);    // us/per
             speedReport.append(".\n");
             try {
                 output.recordSpeed(speedReport.toString());
