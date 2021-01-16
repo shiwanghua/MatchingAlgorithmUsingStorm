@@ -141,13 +141,13 @@ public class SimpleMatchBolt extends BaseRichBolt {
 
                         if (mapIDtoSub.size() == 0) {
                             log=new StringBuilder(boltName);
-                            log.append(": Event ");
+                            log.append(": EventID ");
                             log.append(eventID);
                             log.append(" matching task is done.\n");
                             output.writeToLogFile(log.toString());
 //                            output.writeToLogFile(boltName + ": Event " + String.valueOf(eventID) + " matching task is done.\n");
                             matchResult.append(" ; MatchedSubNum: 0.\n");
-                            output.writeToLogFile(matchResult.toString());
+                            output.saveMatchResult(matchResult.toString());
 //                            output.saveMatchResult(matchResult + " ; MatchedSubNum: 0.\n");
                             continue;
                         }
@@ -186,7 +186,7 @@ public class SimpleMatchBolt extends BaseRichBolt {
                             }
                         }
                         log=new StringBuilder(boltName);
-                        log.append(": Event ");
+                        log.append(": EventID ");
                         log.append(eventID);
                         log.append(" matching task is done.\n");
                         output.writeToLogFile(log.toString());

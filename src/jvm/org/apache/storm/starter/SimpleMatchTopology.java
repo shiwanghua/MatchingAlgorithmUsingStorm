@@ -12,7 +12,7 @@ import org.apache.storm.starter.spout.EventSpout;
 import org.apache.storm.starter.spout.SubscriptionSpout;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
-
+//storm jar ./storm-2021-01-15.jar org.apache.storm.starter.SimpleMatchTopology
 public class SimpleMatchTopology {
     public static void main(String[] args) throws Exception {
 
@@ -20,7 +20,7 @@ public class SimpleMatchTopology {
 
         builder.setSpout("SubSpout", new SubscriptionSpout("SubSpout1"), 1);
         builder.setSpout("EventSpout", new EventSpout("EventSpout1"), 1);
-        builder.setBolt("SMBolt", new SimpleMatchBolt("SimpleMatchBolt1"), 1).allGrouping("SubSpout").shuffleGrouping("EventSpout");//setNumTasks(4)
+        builder.setBolt("SMBolt", new SimpleMatchBolt("SimpleMatchBolt1"), 1).allGrouping("SubSpout").shuffleGrouping("EventSpout").setNumTasks(8);//
 
         Config conf = new Config();
         Config.setFallBackOnJavaSerialization(conf, false); // Don't use java's serialization.
