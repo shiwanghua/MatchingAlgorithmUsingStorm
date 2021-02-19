@@ -60,6 +60,7 @@ public class SubscriptionSpout extends BaseRichSpout {
 
     @Override
     public void fail(Object id) {
+        
     }
 
     @Override
