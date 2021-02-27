@@ -21,10 +21,12 @@ public class SimpleMatchTopology {
 
         builder.setSpout("SubSpout", new SubscriptionSpout("SubSpout1"), 1);
         builder.setSpout("EventSpout", new EventSpout("EventSpout1"), 1);
-//        builder.setBolt("SMBolt1", new ThreadDivisionMatchBolt("ThreadDivisionMatchBolt",4), 4).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(1);
-        builder.setBolt("SMBolt2", new SimpleMatchBolt("SimpleMatchBolt2"), 8).shuffleGrouping("SubSpout").allGrouping("EventSpout");
-//        builder.setBolt("SMBolt3", new SimpleMatchBolt("SimpleMatchBolt3"), 1).allGrouping("SubSpout").shuffleGrouping("EventSpout");
-//        builder.setBolt("SMBolt4", new SimpleMatchBolt("SimpleMatchBolt4"), 1).allGrouping("SubSpout").shuffleGrouping("EventSpout");
+        builder.setBolt("TDMBolt0", new ThreadDivisionMatchBolt("ThreadDivisionMatchBolt0",4),1).allGrouping("SubSpout").allGrouping("EventSpout");//;
+        builder.setBolt("TDMBolt1", new ThreadDivisionMatchBolt("ThreadDivisionMatchBolt1",4),1).allGrouping("SubSpout").allGrouping("EventSpout");
+        builder.setBolt("TDMBolt2", new ThreadDivisionMatchBolt("ThreadDivisionMatchBolt2",4),1).allGrouping("SubSpout").allGrouping("EventSpout");
+        builder.setBolt("TDMBolt3", new ThreadDivisionMatchBolt("ThreadDivisionMatchBolt3",4),1).allGrouping("SubSpout").allGrouping("EventSpout");
+//        builder.setBolt("SMBolt", new SimpleMatchBolt("SimpleMatchBolt1"), 4).shuffleGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(4);
+//        builder.setBolt("SMBolt", new SimpleMatchBolt("SimpleMatchBolt2"), 4).allGrouping("SubSpout").shuffleGrouping("EventSpout");
 
         Config conf = new Config();
         Config.setFallBackOnJavaSerialization(conf, false); // Don't use java's serialization.
@@ -35,7 +37,7 @@ public class SimpleMatchTopology {
 
         conf.setDebug(false);
         conf.setNumWorkers(6);
-        conf.setMaxTaskParallelism(5);
+        conf.setMaxTaskParallelism(8);
         conf.put(Config.TOPOLOGY_ACKER_EXECUTORS, 12);// 设置acker的数量, default: 1
         conf.put(Config.TOPOLOGY_MAX_SPOUT_PENDING, 50);//设置一个spout task上面最多有多少个没有处理的tuple（没有ack/failed）回复，以防止tuple队列爆掉
         // conf.put(Config.TOPOLOGY_WORKER_CHILDOPTS,"-Xmx%HEAP-MEM%m -XX:+PrintGCDetails -Xloggc:artifacts/gc.log  -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=1M -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=artifacts/heapdump");

@@ -33,7 +33,9 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
     static private Integer numSubInserted;
     static private Integer numEventMatched;
     private Integer numExecutor;
+    private Integer boltID;
     private String boltName;
+
 
 //    private long insertSubTime;
 //    private long matchEventTime;
@@ -45,6 +47,7 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
 
     public ThreadDivisionMatchBolt(String boltName,Integer numExecutor) {
         this.boltName = boltName;
+        this.boltID = Integer.parseInt(boltName.substring(boltName.length()-1));
         this.numExecutor=numExecutor;
         numSubPacket = 0;
         numEventPacket = 0;
@@ -105,11 +108,16 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
 //        }
         // Solution B: get the operation type to find what the tuple is
         int type = (int) tuple.getValue(0);
+
         try {
             switch (type) {
                 case TypeConstant.Insert_Subscription: {
 
-                    startTime = System.nanoTime();
+                    Integer subPacketID=(Integer)tuple.getValue(1);
+                    if(subPacketID%numExecutor!=boltID)
+                        break;
+
+//                    startTime = System.nanoTime();
                     int subID;
                     numSubPacket++;
                     log=new StringBuilder(boltName);
@@ -124,8 +132,8 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                     ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
                     for (int i = 0; i < subPacket.size(); i++) {
                         subID = subPacket.get(i).getSubID();
-                        if(subID%numExecutor+2!=threadNumber)
-                            continue;
+//                        if(subID%numExecutor+2!=threadNumber)
+//                            continue;
                         mapIDtoSub.put(subID, subPacket.get(i));
                         numSubInserted++;
 //                        System.out.println("\n\n\nSubscription " + String.valueOf(subID) + " is inserted." + "\n\n\n");
@@ -155,7 +163,7 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                     break;
                 }
                 case TypeConstant.Event_Match_Subscription: {
-                    startTime = System.nanoTime();
+//                    startTime = System.nanoTime();
                     numEventPacket++;
                     log=new StringBuilder(boltName);
                     log.append(" Thread ");

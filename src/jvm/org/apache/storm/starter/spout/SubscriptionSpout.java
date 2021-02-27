@@ -144,11 +144,12 @@ public class SubscriptionSpout extends BaseRichSpout {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        collector.emit(new Values(TypeConstant.Insert_Subscription, sub),numSubPacket);
+//        collector.emit(new Values(TypeConstant.Insert_Subscription, sub),numSubPacket);
+        collector.emit(new Values(TypeConstant.Insert_Subscription,numSubPacket, sub),numSubPacket);
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("Type", "SubscriptionPacket"));
+        outputFieldsDeclarer.declare(new Fields("Type","PacketID", "SubscriptionPacket"));
     }
 }
