@@ -1,6 +1,6 @@
 package org.apache.storm.starter.spout;
 
-import org.apache.jasper.tagplugins.jstl.core.Out;
+//import org.apache.jasper.tagplugins.jstl.core.Out;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.starter.DataStructure.OutputToFile;
 import org.apache.storm.starter.DataStructure.Pair;
@@ -11,7 +11,7 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichSpout;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
-import org.apache.storm.utils.Utils;
+//import org.apache.storm.utils.Utils;
 
 import java.io.IOException;
 import java.util.ArrayList;

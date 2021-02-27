@@ -7,8 +7,8 @@
     <relativePath>../pom.xml/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>storm-starter</artifactId>
-  <name>storm-starter</name>
+  <artifactId>MatchAlgorithmUsingStorm</artifactId>
+  <name>MatchAlgorithmUsingStorm</name>
   <build>
     <sourceDirectory>src/jvm</sourceDirectory>
     <testSourceDirectory>test/jvm</testSourceDirectory>
@@ -17,7 +17,7 @@
         <directory>${basedir}/multilang</directory>
       </resource>
     </resources>
-    <finalName>storm-2021-01-16</finalName>
+    <finalName>storm-2021-02-22</finalName>
     <plugins>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
@@ -108,6 +108,10 @@
           <artifactId>bsh</artifactId>
           <groupId>org.beanshell</groupId>
         </exclusion>
+        <exclusion>
+          <artifactId>jcommander</artifactId>
+          <groupId>com.beust</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -173,6 +177,14 @@
       <scope>provided</scope>
       <exclusions>
         <exclusion>
+          <artifactId>log4j-api</artifactId>
+          <groupId>org.apache.logging.log4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>log4j-core</artifactId>
+          <groupId>org.apache.logging.log4j</groupId>
+        </exclusion>
+        <exclusion>
           <artifactId>log4j-slf4j-impl</artifactId>
           <groupId>org.apache.logging.log4j</groupId>
         </exclusion>
@@ -197,7 +209,15 @@
           <groupId>jakarta.xml.bind</groupId>
         </exclusion>
         <exclusion>
+          <artifactId>javax.annotation-api</artifactId>
+          <groupId>javax.annotation</groupId>
+        </exclusion>
+        <exclusion>
           <artifactId>metrics-graphite</artifactId>
+          <groupId>io.dropwizard.metrics</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>metrics-jvm</artifactId>
           <groupId>io.dropwizard.metrics</groupId>
         </exclusion>
       </exclusions>
@@ -209,6 +229,26 @@
       <scope>provided</scope>
       <exclusions>
         <exclusion>
+          <artifactId>commons-cli</artifactId>
+          <groupId>commons-cli</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>joda-time</artifactId>
+          <groupId>joda-time</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jetty-server</artifactId>
+          <groupId>org.eclipse.jetty</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jetty-util</artifactId>
+          <groupId>org.eclipse.jetty</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jetty-servlet</artifactId>
+          <groupId>org.eclipse.jetty</groupId>
+        </exclusion>
+        <exclusion>
           <artifactId>jetty-servlets</artifactId>
           <groupId>org.eclipse.jetty</groupId>
         </exclusion>
@@ -219,6 +259,18 @@
         <exclusion>
           <artifactId>commons-fileupload</artifactId>
           <groupId>commons-fileupload</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>hadoop-auth</artifactId>
+          <groupId>org.apache.hadoop</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>log4j-api</artifactId>
+          <groupId>org.apache.logging.log4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>log4j-core</artifactId>
+          <groupId>org.apache.logging.log4j</groupId>
         </exclusion>
         <exclusion>
           <artifactId>log4j-slf4j-impl</artifactId>
@@ -254,8 +306,24 @@
           <groupId>jakarta.xml.bind</groupId>
         </exclusion>
         <exclusion>
+          <artifactId>javax.annotation-api</artifactId>
+          <groupId>javax.annotation</groupId>
+        </exclusion>
+        <exclusion>
           <artifactId>metrics-graphite</artifactId>
           <groupId>io.dropwizard.metrics</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>metrics-jvm</artifactId>
+          <groupId>io.dropwizard.metrics</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>log4j-api</artifactId>
+          <groupId>org.apache.logging.log4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>log4j-core</artifactId>
+          <groupId>org.apache.logging.log4j</groupId>
         </exclusion>
         <exclusion>
           <artifactId>log4j-slf4j-impl</artifactId>
@@ -309,7 +377,6 @@
     </dependency>
   </dependencies>
   <properties>
-    <hbase.version>0.98.4-hadoop2</hbase.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 </project>

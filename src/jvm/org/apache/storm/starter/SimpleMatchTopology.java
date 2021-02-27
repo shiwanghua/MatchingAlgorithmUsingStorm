@@ -8,11 +8,12 @@ import org.apache.storm.starter.DataStructure.OutputToFile;
 import org.apache.storm.starter.DataStructure.Pair;
 import org.apache.storm.starter.DataStructure.Subscription;
 import org.apache.storm.starter.bolt.SimpleMatchBolt;
+import org.apache.storm.starter.bolt.ThreadDivisionMatchBolt;
 import org.apache.storm.starter.spout.EventSpout;
 import org.apache.storm.starter.spout.SubscriptionSpout;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
-//storm jar ./storm-2021-02-08.jar org.apache.storm.starter.SimpleMatchTopology
+//storm jar ./storm-2021-02-22.jar org.apache.storm.starter.SimpleMatchTopology
 public class SimpleMatchTopology {
     public static void main(String[] args) throws Exception {
 
@@ -20,17 +21,10 @@ public class SimpleMatchTopology {
 
         builder.setSpout("SubSpout", new SubscriptionSpout("SubSpout1"), 1);
         builder.setSpout("EventSpout", new EventSpout("EventSpout1"), 1);
-<<<<<<< HEAD
-        builder.setBolt("SMBolt1", new SimpleMatchBolt("SimpleMatchBolt1"), 2).allGrouping("SubSpout").shuffleGrouping("EventSpout");//.setNumTasks(1);
-//        builder.setBolt("SMBolt2", new SimpleMatchBolt("SimpleMatchBolt2"), 1).allGrouping("SubSpout").shuffleGrouping("EventSpout");
+//        builder.setBolt("SMBolt1", new ThreadDivisionMatchBolt("ThreadDivisionMatchBolt",4), 4).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(1);
+        builder.setBolt("SMBolt2", new SimpleMatchBolt("SimpleMatchBolt2"), 8).shuffleGrouping("SubSpout").allGrouping("EventSpout");
 //        builder.setBolt("SMBolt3", new SimpleMatchBolt("SimpleMatchBolt3"), 1).allGrouping("SubSpout").shuffleGrouping("EventSpout");
 //        builder.setBolt("SMBolt4", new SimpleMatchBolt("SimpleMatchBolt4"), 1).allGrouping("SubSpout").shuffleGrouping("EventSpout");
-=======
-        builder.setBolt("SimpleMatchBolt1", new SimpleMatchBolt("SMBolt1"), 1).allGrouping("SubSpout").shuffleGrouping("EventSpout");//.setNumTasks(1)
-        builder.setBolt("SimpleMatchBolt2", new SimpleMatchBolt("SMBolt2"), 1).allGrouping("SubSpout").shuffleGrouping("EventSpout");//.setNumTasks(1)
-        builder.setBolt("SimpleMatchBolt3", new SimpleMatchBolt("SMBolt3"), 2).allGrouping("SubSpout").shuffleGrouping("EventSpout");//.setNumTasks(1)
-        builder.setBolt("SimpleMatchBolt4", new SimpleMatchBolt("SMBolt4"), 4).allGrouping("SubSpout").shuffleGrouping("EventSpout");//.setNumTasks(1)
->>>>>>> 25c79b27588f0d8b88f8d032cc8ab181a3f78f26
 
         Config conf = new Config();
         Config.setFallBackOnJavaSerialization(conf, false); // Don't use java's serialization.
@@ -40,31 +34,20 @@ public class SimpleMatchTopology {
         conf.registerSerialization(Subscription.class);
 
         conf.setDebug(false);
-<<<<<<< HEAD
-        conf.setNumWorkers(7);
+        conf.setNumWorkers(6);
         conf.setMaxTaskParallelism(5);
         conf.put(Config.TOPOLOGY_ACKER_EXECUTORS, 12);// 设置acker的数量, default: 1
         conf.put(Config.TOPOLOGY_MAX_SPOUT_PENDING, 50);//设置一个spout task上面最多有多少个没有处理的tuple（没有ack/failed）回复，以防止tuple队列爆掉
         // conf.put(Config.TOPOLOGY_WORKER_CHILDOPTS,"-Xmx%HEAP-MEM%m -XX:+PrintGCDetails -Xloggc:artifacts/gc.log  -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=1M -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=artifacts/heapdump");
-=======
-        conf.setNumWorkers(6);
-        conf.setMaxTaskParallelism(4);
-        conf.put(Config.TOPOLOGY_ACKER_EXECUTORS, 10);// 设置acker的数量, default: 1
-        conf.put(Config.TOPOLOGY_MAX_SPOUT_PENDING, 100);//设置一个spout task上面最多有多少个没有处理的tuple（没有ack/failed）回复，以防止tuple队列爆掉
-//        conf.put(Config.TOPOLOGY_WORKER_CHILDOPTS,"-Xmx%HEAP-MEM%m -XX:+PrintGCDetails -Xloggc:artifacts/gc.log  -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=1M -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=artifacts/heapdump");
->>>>>>> 25c79b27588f0d8b88f8d032cc8ab181a3f78f26
+
         // -XX:+PrintGCDateStamps is omitted, because it will lead to a log: "[INFO] Unrecognized VM option 'PrintGCDateStamps'"
         String topoName = "SimpleMatchTopology";
         if (args != null && args.length > 0) {
             topoName = args[0];
         }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 25c79b27588f0d8b88f8d032cc8ab181a3f78f26
-//        LocalCluster localCluster=new LocalCluster();
-//        localCluster.submitTopology(topoName,conf,builder.createTopology());
-        StormSubmitter.submitTopologyWithProgressBar(topoName, conf, builder.createTopology());
+        LocalCluster localCluster=new LocalCluster();
+        localCluster.submitTopology(topoName,conf,builder.createTopology());
+//        StormSubmitter.submitTopologyWithProgressBar(topoName, conf, builder.createTopology());
     }
 }

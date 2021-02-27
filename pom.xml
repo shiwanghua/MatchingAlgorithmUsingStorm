@@ -24,14 +24,14 @@
         <!--      <relativePath>../../pom.xml</relativePath>-->
     </parent>
 
-    <artifactId>storm-starter</artifactId>
+    <artifactId>MatchAlgorithmUsingStorm</artifactId>
     <packaging>jar</packaging>
 
-    <name>storm-starter</name>
+    <name>MatchAlgorithmUsingStorm</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <hbase.version>0.98.4-hadoop2</hbase.version>
+<!--        <hbase.version>0.98.4-hadoop2</hbase.version>-->
     </properties>
 
     <dependencies>
@@ -137,16 +137,16 @@
             <artifactId>storm-metrics</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.storm</groupId>
-            <artifactId>storm-hdfs</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.storm</groupId>
-            <artifactId>storm-hbase</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.storm</groupId>-->
+<!--            <artifactId>storm-hdfs</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.storm</groupId>-->
+<!--            <artifactId>storm-hbase</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-redis</artifactId>
@@ -161,7 +161,7 @@
     </dependencies>
 
     <build>
-        <finalName>storm-2021-01-16</finalName>
+        <finalName>storm-2021-02-22</finalName>
         <sourceDirectory>src/jvm</sourceDirectory>
         <testSourceDirectory>test/jvm</testSourceDirectory>
         <resources>
