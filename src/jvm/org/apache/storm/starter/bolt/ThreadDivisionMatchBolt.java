@@ -9,6 +9,7 @@ import org.apache.storm.topology.BasicOutputCollector;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.MessageId;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
@@ -21,67 +22,82 @@ import java.util.Map;
 
 public class ThreadDivisionMatchBolt extends BaseRichBolt {
     private OutputToFile output;
-    private HashMap<Integer, Subscription> mapIDtoSub = null;
-    private OutputCollector collector = null;
+    private OutputCollector collector;
+    private TopologyContext boltContext;
+    private HashMap<Integer, Subscription> mapIDtoSub;
+
     private StringBuilder log;
     private StringBuilder matchResult;
 
-    private TopologyContext boltContext;
-
+    private String boltName;
     private Integer numSubPacket;
     private Integer numEventPacket;
-    static private Integer numSubInserted;
+    private Integer numSubInserted;
     static private Integer numEventMatched;
-    private Integer numExecutor;
-    private Integer boltID;
-    private String boltName;
-
-
-//    private long insertSubTime;
-//    private long matchEventTime;
+//    static private Integer numExecutor;   // use boltIDAllocator instead.
+    private Integer executorID;
+    static private Integer boltIDAllocator;
+    //    static private Integer beginExecutorID;
+    //    private long insertSubTime;
+    //    private long matchEventTime;
+    //    private long startTime;  // a temp variable
     private long runTime;
     final private long beginTime;
     final private long intervalTime; // The interval between two calculations of speed
     private long speedTime;  // The time to calculate and record speed
-    private long startTime;  // a temp variable
 
-    public ThreadDivisionMatchBolt(String boltName,Integer numExecutor) {
-        this.boltName = boltName;
-        this.boltID = Integer.parseInt(boltName.substring(boltName.length()-1));
-        this.numExecutor=numExecutor;
-        numSubPacket = 0;
-        numEventPacket = 0;
-        numSubInserted = 0;
-        numEventMatched = 0;
-//        insertSubTime = 0;
-//        matchEventTime = 0;
-        runTime=1;
+    public ThreadDivisionMatchBolt() {   // only execute one time for all executors!
         beginTime = System.nanoTime();
         intervalTime = 60000000000L;  // 1 minute
-        speedTime = System.nanoTime() + intervalTime;
-        startTime = 0;
+        boltIDAllocator=0;
     }
 
     @Override
-    public void prepare(Map<String, Object> map, TopologyContext topologyContext, OutputCollector outputCollector) {
-        this.boltContext=topologyContext;
-        this.collector = outputCollector;
+    public void prepare(Map<String, Object> map, TopologyContext topologyContext, OutputCollector outputCollector) { // execute one time for every executor!
+        numSubPacket = 0;
+        numEventPacket = 0;
+        numSubInserted = 1;
+        numEventMatched = 1;
+        runTime = 1;
+        speedTime = System.nanoTime() + intervalTime;
+        //        insertSubTime = 0;
+        //        matchEventTime = 0;
+        //        startTime = 0;
+
+        boltContext = topologyContext;
+        collector = outputCollector;
+        boltName = boltContext.getThisComponentId();
+        executorID = boltIDAllocator++;//boltContext.getThisTaskId(); // Get the current thread number
         output = new OutputToFile();
         mapIDtoSub = new HashMap<>();
-        log=new StringBuilder();
-        matchResult=new StringBuilder();
+        log = new StringBuilder();
+        matchResult = new StringBuilder();
+
+        try {
+            log = new StringBuilder(boltName);
+            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + boltName + ":");
+            List<Integer> taskIds = boltContext.getComponentTasks(boltContext.getThisComponentId());
+//            numExecutor = taskIds.size();
+            Iterator taskIdsIter = taskIds.iterator();
+            int taskID;
+//            beginExecutorID = 3;//=Integer.MAX_VALUE;
+            while (taskIdsIter.hasNext()) {
+                taskID = (Integer) taskIdsIter.next();
+//                beginExecutorID = Math.min(taskID, beginExecutorID);
+                log.append(" ");
+                log.append(taskID);
+            }
+            log.append("\nThisTaskId: ");
+            log.append(executorID);   // boltContext.getThisTaskId();
+            log.append("\n\n");
+            output.otherInfo(log.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void execute(Tuple tuple) {
-//        final String threadName = Thread.currentThread().getName();
-//        char singleDigit = threadName.charAt(threadName.length() - 2);
-//        char tensDigit = threadName.charAt(threadName.length() - 3);
-//        Integer threadNumber = (int)singleDigit - 0;
-//        if(Character.isDigit(tensDigit))
-//            threadNumber+= 10*(int)tensDigit;
-        Integer threadNumber = boltContext.getThisTaskId();
-
 // Solution A: catch Exception to find whether the tuple is a subPacket or a eventPacket
 //        try {
 //            ArrayList<Subscription> subPacket=(ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
@@ -94,35 +110,30 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
 //        catch (IllegalArgumentException e){
 //        }
 
-//        try {
-//            log = new StringBuilder(boltName);
-//            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + boltName + " " + boltContext.getThisComponentId() + ":");
-//            List<Integer> taskIds = boltContext.getComponentTasks(boltContext.getThisComponentId());
-//            Iterator taskIdsIter = taskIds.iterator();
-//            while (taskIdsIter.hasNext())
-//                log.append(" " + String.valueOf(taskIdsIter.next()));
-//            log.append("\n");
-//            output.writeToLogFile(log.toString());
-//        }catch (IOException e) {
-//            e.printStackTrace();
-//        }
-        // Solution B: get the operation type to find what the tuple is
-        int type = (int) tuple.getValue(0);
+        //        final String threadName = Thread.currentThread().getName();
+//        char singleDigit = threadName.charAt(threadName.length() - 2);
+//        char tensDigit = threadName.charAt(threadName.length() - 3);
+//        Integer threadNumber = (int)singleDigit - 0;
+//        if(Character.isDigit(tensDigit))
+//            threadNumber+= 10*(int)tensDigit;
 
+        // Solution B: get the operation type to find what the tuple is
+//        int type = (int) tuple.getValue(0);
+        int type=tuple.getInteger(0);
         try {
             switch (type) {
                 case TypeConstant.Insert_Subscription: {
 
-                    Integer subPacketID=(Integer)tuple.getValue(1);
-                    if(subPacketID%numExecutor!=boltID)
-                        break;
+//                    Integer subPacketID=tuple.getInteger(1);
+//                    if(subPacketID%boltIDAllocator!=executorID)
+//                        break;
 
 //                    startTime = System.nanoTime();
                     int subID;
                     numSubPacket++;
-                    log=new StringBuilder(boltName);
+                    log = new StringBuilder(boltName);
                     log.append(" Thread ");
-                    log.append(threadNumber);
+                    log.append(executorID);
                     log.append(": SubPacket ");
                     log.append(numSubPacket);
                     log.append(" is received.\n");
@@ -132,14 +143,14 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                     ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
                     for (int i = 0; i < subPacket.size(); i++) {
                         subID = subPacket.get(i).getSubID();
-//                        if(subID%numExecutor+2!=threadNumber)
+//                        if (subID % boltIDAllocator != executorID)
 //                            continue;
                         mapIDtoSub.put(subID, subPacket.get(i));
                         numSubInserted++;
 //                        System.out.println("\n\n\nSubscription " + String.valueOf(subID) + " is inserted." + "\n\n\n");
-                        log=new StringBuilder(boltName);
+                        log = new StringBuilder(boltName);
                         log.append(" Thread ");
-                        log.append(threadNumber);
+                        log.append(executorID);
                         log.append(": Sub ");
                         log.append(subID);
                         log.append(" is inserted.\n");
@@ -163,11 +174,16 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                     break;
                 }
                 case TypeConstant.Event_Match_Subscription: {
+
+//                    Integer eventPacketID=(Integer)tuple.getValue(1);
+//                    if(eventPacketID%boltIDAllocator!=executorID)
+//                        break;
+
 //                    startTime = System.nanoTime();
                     numEventPacket++;
-                    log=new StringBuilder(boltName);
+                    log = new StringBuilder(boltName);
                     log.append(" Thread ");
-                    log.append(threadNumber);
+                    log.append(executorID);
                     log.append(": EventPacket ");
                     log.append(numEventPacket);
                     log.append(" is received.\n");
@@ -176,9 +192,11 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                     ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
                     for (int i = 0; i < eventPacket.size(); i++) {
                         int eventID = eventPacket.get(i).getEventID();
-                        matchResult=new StringBuilder(boltName);
+                        if(eventID%boltIDAllocator!=executorID)
+                            continue;
+                        matchResult = new StringBuilder(boltName);
                         matchResult.append(" Thread ");
-                        matchResult.append(threadNumber);
+                        matchResult.append(executorID);
                         matchResult.append(" - EventID: ");
                         matchResult.append(eventID);
                         matchResult.append("; SubNum:");
@@ -187,9 +205,9 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
 //                        String matchResult = boltName + " - EventID: " + String.valueOf(eventID) + "; SubNum:" + String.valueOf(mapIDtoSub.size()) + "; SubID:";
 
                         if (mapIDtoSub.size() == 0) {
-                            log=new StringBuilder(boltName);
+                            log = new StringBuilder(boltName);
                             log.append(" Thread ");
-                            log.append(threadNumber);
+                            log.append(executorID);
                             log.append(": EventID ");
                             log.append(eventID);
                             log.append(" matching task is done.\n");
@@ -235,9 +253,9 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                                 matchedSubIDList.add(subID);
                             }
                         }
-                        log=new StringBuilder(boltName);
+                        log = new StringBuilder(boltName);
                         log.append(" Thread ");
-                        log.append(threadNumber);
+                        log.append(executorID);
                         log.append(": EventID ");
                         log.append(eventID);
                         log.append(" matching task is done.\n");
@@ -248,18 +266,18 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                         matchResult.append(".\n");
                         output.saveMatchResult(matchResult.toString());
 //                        output.saveMatchResult(matchResult + "; MatchedSubNum: " + String.valueOf(matchNum) + ".\n");
-                        collector.emit(new Values(eventID,matchedSubIDList));
+                        collector.emit(new Values(executorID, eventID, matchedSubIDList));
                     }
                     collector.ack(tuple);
-                    numEventMatched+=eventPacket.size();
+                    numEventMatched += eventPacket.size();
 //                    matchEventTime += System.nanoTime() - startTime;
                     break;
                 }
                 default:
                     collector.fail(tuple);
-                    log=new StringBuilder(boltName);
+                    log = new StringBuilder(boltName);
                     log.append(" Thread ");
-                    log.append(threadNumber);
+                    log.append(executorID);
                     log.append(": Wrong operation type is detected.\n");
                     output.writeToLogFile(log.toString());
 //                    output.writeToLogFile(boltName + ": Wrong operation type is detected.\n");
@@ -269,33 +287,37 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
         }
 
         if (System.nanoTime() > speedTime) {
-            runTime=System.nanoTime()-beginTime;
+            runTime = System.nanoTime() - beginTime;
             StringBuilder speedReport = new StringBuilder(boltName);
             speedReport.append(" Thread ");
-            speedReport.append(threadNumber);
+            speedReport.append(executorID);
             speedReport.append(" - RunTime: ");
             speedReport.append(runTime / intervalTime);
             speedReport.append("min. numSubInserted: ");
-            speedReport.append(numSubInserted);
+            speedReport.append(numSubInserted); //mapIDtoSub.size()
             speedReport.append("; InsertSpeed: ");
-            speedReport.append(runTime/numSubInserted/1000);  // us/per
+            speedReport.append(runTime / numSubInserted / 1000);  // us/per
             speedReport.append(". numEventMatched: ");
             speedReport.append(numEventMatched);
             speedReport.append("; MatchSpeed: ");
-            speedReport.append(runTime/numEventMatched/1000); // us/per
+            speedReport.append(runTime / numEventMatched / 1000); // us/per
             speedReport.append(".\n");
             try {
                 output.recordSpeed(speedReport.toString());
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            speedTime=System.nanoTime()+intervalTime;
+            speedTime = System.nanoTime() + intervalTime;
         }
 
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("eventID","subIDs"));
+        outputFieldsDeclarer.declare(new Fields("executorID", "eventID","subIDs"));
+    }
+
+    public static Integer getNumExecutor(){
+        return boltIDAllocator;
     }
 }

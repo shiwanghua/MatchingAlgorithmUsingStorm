@@ -12,10 +12,7 @@ import org.apache.storm.tuple.Values;
 import org.apache.storm.utils.Utils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class EventSpout extends BaseRichSpout {
     //    private static final Logger LOG = LoggerFactory.getLogger(EventSpout.class);
@@ -25,28 +22,74 @@ public class EventSpout extends BaseRichSpout {
     private Integer numEventPacket;
     final int maxNumEvent;            //  Maximum number of event emitted per time
     final int maxNumAttribute;        //  Maxinum number of attributes in a event
-    private int[] randomArray = null; // To get the attribute name
+    private int[] randomArray;       // To get the attribute name
     private OutputToFile output;
     private StringBuilder log;
+    private StringBuilder errorLog;
     private String spoutName;
+    TopologyContext eventSpoutTopologyContext;
 
-    public EventSpout(String spoutName) {
-        valueGenerator = new Random();
-        eventID = 1;
-        numEventPacket=0;  // messageID
+    public EventSpout() {
         maxNumEvent = 20;
         maxNumAttribute = 30;
-        randomArray = new int[maxNumAttribute];
-        for (int i = 0; i < maxNumAttribute; i++)
-            randomArray[i] = i;
-        this.spoutName=spoutName;
     }
 
     @Override
     public void open(Map<String, Object> map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
-        this.collector = spoutOutputCollector;
-        output=new OutputToFile();
-        log=new StringBuilder();
+        valueGenerator = new Random();
+        eventID = 1;
+        numEventPacket = 0;  // messageID
+        randomArray = new int[maxNumAttribute];
+        for (int i = 0; i < maxNumAttribute; i++)
+            randomArray[i] = i;
+
+        eventSpoutTopologyContext = topologyContext;
+        spoutName = eventSpoutTopologyContext.getThisComponentId();
+        collector = spoutOutputCollector;
+        output = new OutputToFile();
+        log = new StringBuilder();
+
+        try {
+            log = new StringBuilder(spoutName);
+            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + spoutName + ":");
+            List<Integer> taskIds = eventSpoutTopologyContext.getComponentTasks(spoutName);
+            Iterator taskIdsIter = taskIds.iterator();
+            while (taskIdsIter.hasNext())
+                log.append(" " + String.valueOf(taskIdsIter.next()));
+            log.append("\nThisTaskId: ");
+            log.append(eventSpoutTopologyContext.getThisTaskId());  // Get the current thread number
+            log.append("\n\n");
+            output.otherInfo(log.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void ack(Object id) {
+//        LOG.debug("Got ACK for msgId : ");
+        log=new StringBuilder(spoutName);
+        log.append(": EventTuple ");
+        log.append(id);
+        log.append(" is acked.\n");
+        try {
+            output.writeToLogFile(log.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void fail(Object id) {
+        errorLog=new StringBuilder(spoutName);
+        errorLog.append(": EventTuple ");
+        errorLog.append(id);
+        errorLog.append(" is failed.\n");
+        try {
+            output.errorLog(errorLog.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -55,27 +98,27 @@ public class EventSpout extends BaseRichSpout {
         int numEvent = (int) (Math.random() * maxNumEvent + 1); // Generate the number of subscriptions in this tuple: 1~maxNumEvent
         ArrayList<Event> events = new ArrayList<>(numEvent);
 
-        for(int i=0;i<numEvent;i++){
-            int numAttribute = new Random().nextInt(maxNumAttribute+1); // Generate the number of attribute in this subscription: 0~maxNumAttribute
+        for (int i = 0; i < numEvent; i++) {
+            int numAttribute = new Random().nextInt(maxNumAttribute + 1); // Generate the number of attribute in this subscription: 0~maxNumAttribute
 
             Double eventValue;
-            String attributeName="attributeName";
+            String attributeName = "attributeName";
 
-            for(int j=0;j<numAttribute;j++){ // Use the first #numAttribute values of randomArray to create the attribute name
-                int index = valueGenerator.nextInt(maxNumAttribute-j)+j;
+            for (int j = 0; j < numAttribute; j++) { // Use the first #numAttribute values of randomArray to create the attribute name
+                int index = valueGenerator.nextInt(maxNumAttribute - j) + j;
                 int temp = randomArray[j];
-                randomArray[j]=randomArray[index];
-                randomArray[index]=temp;
+                randomArray[j] = randomArray[index];
+                randomArray[index] = temp;
             }
 
-            HashMap<String, Double> mapNameToValue=new HashMap<>();
-            for(int j = 0; j<numAttribute; j++){
-                eventValue=valueGenerator.nextDouble();
-                mapNameToValue.put(attributeName+String.valueOf(randomArray[j]), eventValue);
+            HashMap<String, Double> mapNameToValue = new HashMap<>();
+            for (int j = 0; j < numAttribute; j++) {
+                eventValue = valueGenerator.nextDouble();
+                mapNameToValue.put(attributeName + String.valueOf(randomArray[j]), eventValue);
             }
             try {
-                events.add(new Event(eventID,numAttribute,mapNameToValue));
-                eventID+=1;
+                events.add(new Event(eventID, numAttribute, mapNameToValue));
+                eventID += 1;
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -118,7 +161,7 @@ public class EventSpout extends BaseRichSpout {
 //        }
         numEventPacket++;
         try {
-            log=new StringBuilder(spoutName);
+            log = new StringBuilder(spoutName);
             log.append(": EventID ");
             log.append(eventID);
             log.append(" in EventPacket ");
@@ -129,11 +172,12 @@ public class EventSpout extends BaseRichSpout {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        collector.emit(new Values(TypeConstant.Event_Match_Subscription, events),numEventPacket);
+
+        collector.emit(new Values(TypeConstant.Event_Match_Subscription, numEventPacket, events), numEventPacket);
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("Type", "EventPacket"));
+        outputFieldsDeclarer.declare(new Fields("Type", "PacketID", "EventPacket"));
     }
 }

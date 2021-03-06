@@ -1,6 +1,7 @@
 package org.apache.storm.starter.spout;
 
 //import org.apache.jasper.tagplugins.jstl.core.Out;
+
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.starter.DataStructure.OutputToFile;
 import org.apache.storm.starter.DataStructure.Pair;
@@ -14,14 +15,12 @@ import org.apache.storm.tuple.Values;
 //import org.apache.storm.utils.Utils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class SubscriptionSpout extends BaseRichSpout {
     //    private static final Logger LOG = LoggerFactory.getLogger(SubscriptionSpout.class);
     SpoutOutputCollector collector;
+    TopologyContext subSpoutTopologyContext;
     private Integer subID;
     private Integer numSubPacket;
     final int maxNumSubscription;           //  Maximum number of subscription emitted per time
@@ -31,70 +30,101 @@ public class SubscriptionSpout extends BaseRichSpout {
     private int[] randomArray;              //  To get the attribute name
     private OutputToFile output;
     private StringBuilder log;
+    private StringBuilder errorLog;
     private String spoutName;
 
-    public SubscriptionSpout(String spoutName) {
-        subID = 1;
-        numSubPacket=0;
+    public SubscriptionSpout() {
         maxNumSubscription = 100;
         maxNumAttribute = 30;
-        subSetSize=100000;
-        valueGenerator = new Random();
-        randomArray = new int[maxNumAttribute];
-        for (int i = 0; i < maxNumAttribute; i++)
-            randomArray[i] = i;
-        this.spoutName=spoutName;
+        subSetSize = 100000;
     }
 
     @Override
     public void open(Map<String, Object> map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
-        this.collector = spoutOutputCollector;
-        output=new OutputToFile();
-        log=new StringBuilder();
+        subID = 1;
+        numSubPacket = 0;
+        valueGenerator = new Random();
+        randomArray = new int[maxNumAttribute];
+        for (int i = 0; i < maxNumAttribute; i++)
+            randomArray[i] = i;
+        subSpoutTopologyContext = topologyContext;
+        spoutName=subSpoutTopologyContext.getThisComponentId();
+        collector = spoutOutputCollector;
+        output = new OutputToFile();
+        try {
+            log = new StringBuilder(spoutName);
+            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + spoutName + ":");
+            List<Integer> taskIds = subSpoutTopologyContext.getComponentTasks(spoutName);
+            Iterator taskIdsIter = taskIds.iterator();
+            while (taskIdsIter.hasNext())
+                log.append(" " + String.valueOf(taskIdsIter.next()));
+            log.append("\nThisTaskId: ");
+            log.append(subSpoutTopologyContext.getThisTaskId()+"\n\n");  // Get the current thread number
+            output.otherInfo(log.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void ack(Object id) {
 //        LOG.debug("Got ACK for msgId : ");
+        log=new StringBuilder(spoutName);
+        log.append(": SubTuple ");
+        log.append(id);
+        log.append(" is acked.\n");
+        try {
+            output.writeToLogFile(log.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void fail(Object id) {
-        
+        errorLog=new StringBuilder(spoutName);
+        errorLog.append(": SubTuple ");
+        errorLog.append(id);
+        errorLog.append(" is failed.\n");
+        try {
+            output.errorLog(errorLog.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void nextTuple() {
 //        Utils.sleep(50);
-        if(subID>=subSetSize){
+        if (subID >= subSetSize) {
 //            collector.emit(new Values(TypeConstant.Null_Operation, null));
             return;
         }
 
-        int numSub = (int)(Math.random() * maxNumSubscription + 1); // Generate the number of subscriptions in this tuple: 1~maxNumSubscription
+        int numSub = (int) (Math.random() * maxNumSubscription + 1); // Generate the number of subscriptions in this tuple: 1~maxNumSubscription
         ArrayList<Subscription> sub = new ArrayList<>(numSub);
-        for(int i=0;i<numSub;i++){
-            int numAttribute = new Random().nextInt(maxNumAttribute+1); // Generate the number of attribute in this subscription: 0~maxNumAttribute
+        for (int i = 0; i < numSub; i++) {
+            int numAttribute = new Random().nextInt(maxNumAttribute + 1); // Generate the number of attribute in this subscription: 0~maxNumAttribute
 
-            for(int j=0;j<numAttribute;j++){ // Use the first #numAttribute values of randomArray to create the attribute name
-                int index = valueGenerator.nextInt(maxNumAttribute-j)+j;
+            for (int j = 0; j < numAttribute; j++) { // Use the first #numAttribute values of randomArray to create the attribute name
+                int index = valueGenerator.nextInt(maxNumAttribute - j) + j;
                 int temp = randomArray[j];
-                randomArray[j]=randomArray[index];
-                randomArray[index]=temp;
+                randomArray[j] = randomArray[index];
+                randomArray[index] = temp;
             }
 
-            Double low,high;
-            String attributeName="attributeName";
-            HashMap<String, Pair<Double, Double>> mapNameToPair =new HashMap<>();
+            Double low, high;
+            String attributeName = "attributeName";
+            HashMap<String, Pair<Double, Double>> mapNameToPair = new HashMap<>();
 
-            for(int j = 0; j<numAttribute; j++){
-                low=valueGenerator.nextDouble();
-                high = low + (1.0 - low )*valueGenerator.nextDouble();
-                mapNameToPair.put(attributeName+String.valueOf(randomArray[j]), Pair.of(low,high));
+            for (int j = 0; j < numAttribute; j++) {
+                low = valueGenerator.nextDouble();
+                high = low + (1.0 - low) * valueGenerator.nextDouble();
+                mapNameToPair.put(attributeName + String.valueOf(randomArray[j]), Pair.of(low, high));
             }
             try {
-                sub.add(new Subscription(subID,numAttribute,mapNameToPair));
-                subID+=1;
+                sub.add(new Subscription(subID, numAttribute, mapNameToPair));
+                subID += 1;
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -133,7 +163,7 @@ public class SubscriptionSpout extends BaseRichSpout {
 //        }
         numSubPacket++;
         try {
-            log=new StringBuilder(spoutName);
+            log = new StringBuilder(spoutName);
             log.append(": SubID ");
             log.append(subID);
             log.append(" in SubPacket ");
@@ -144,12 +174,13 @@ public class SubscriptionSpout extends BaseRichSpout {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
 //        collector.emit(new Values(TypeConstant.Insert_Subscription, sub),numSubPacket);
-        collector.emit(new Values(TypeConstant.Insert_Subscription,numSubPacket, sub),numSubPacket);
+        collector.emit(new Values(TypeConstant.Insert_Subscription, numSubPacket, sub), numSubPacket);
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("Type","PacketID", "SubscriptionPacket"));
+        outputFieldsDeclarer.declare(new Fields("Type", "PacketID", "SubscriptionPacket"));
     }
 }

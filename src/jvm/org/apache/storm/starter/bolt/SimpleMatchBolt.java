@@ -37,7 +37,7 @@ public class SimpleMatchBolt extends BaseRichBolt {
     private String boltName;
 
     private long runTime;
-//    private long insertSubTime;
+    //    private long insertSubTime;
 //    private long matchEventTime;
     final private long beginTime;
     final private long intervalTime; // The interval between two calculations of speed
@@ -53,7 +53,7 @@ public class SimpleMatchBolt extends BaseRichBolt {
         numEventMatched = 0;
 //        insertSubTime = 1;// 1ns avoid divide by zero
 //        matchEventTime = 1;
-        runTime=1;
+        runTime = 1;
         beginTime = System.nanoTime();
         intervalTime = 60000000000L;  // 1 minute
         speedTime = System.nanoTime() + intervalTime;
@@ -67,10 +67,25 @@ public class SimpleMatchBolt extends BaseRichBolt {
         output = new OutputToFile();
         mapIDtoSub = new HashMap<>();
 
-        log=new StringBuilder();
-        matchResult=new StringBuilder();
-        speedReport=new StringBuilder();
+        log = new StringBuilder();
+        matchResult = new StringBuilder();
+        speedReport = new StringBuilder();
 
+        //boltContext.getThisTaskId
+        try {
+            log = new StringBuilder(boltName);
+            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + boltName + " " + boltContext.getThisComponentId() + ":");
+            List<Integer> taskIds = boltContext.getComponentTasks(boltContext.getThisComponentId());
+            Iterator taskIdsIter = taskIds.iterator();
+            while (taskIdsIter.hasNext())
+                log.append(" " + String.valueOf(taskIdsIter.next()));
+            log.append("\nThisTaskId: ");
+            log.append(boltContext.getThisTaskId());  // Get the current thread number
+            log.append("\n\n");
+            output.otherInfo(log.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -85,22 +100,6 @@ public class SimpleMatchBolt extends BaseRichBolt {
 //         ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
 //        }
 //        catch (IllegalArgumentException e){
-//        }
-
-        //boltContext.getThisTaskId
-//        try {
-//            log = new StringBuilder(boltName);
-//            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + boltName + " " + boltContext.getThisComponentId() + ":");
-//            List<Integer> taskIds = boltContext.getComponentTasks(boltContext.getThisComponentId());
-//            Iterator taskIdsIter = taskIds.iterator();
-//            while (taskIdsIter.hasNext())
-//                log.append(" " + String.valueOf(taskIdsIter.next()));
-//            log.append("\nThisTaskId: ");
-//            log.append(boltContext.getThisTaskId());  // Get the current thread number
-//            log.append("\n");
-//            output.writeToLogFile(log.toString());
-//        }catch (IOException e) {
-//            e.printStackTrace();
 //        }
 
         // Solution B: get the operation type to find what the tuple is
@@ -259,9 +258,9 @@ public class SimpleMatchBolt extends BaseRichBolt {
 
         if (System.nanoTime() > speedTime) {
 
-            runTime=System.nanoTime()-beginTime;
+            runTime = System.nanoTime() - beginTime;
 
-            speedReport=new StringBuilder(boltName);
+            speedReport = new StringBuilder(boltName);
             speedReport.append(" Thread ");
             speedReport.append(threadNumber);
             speedReport.append(" - RunTime: ");
@@ -272,12 +271,12 @@ public class SimpleMatchBolt extends BaseRichBolt {
             speedReport.append("; InsertSpeed: ");
 
 //            speedReport.append(numSubInserted*1000000000/insertSubTime);   // per/s
-            speedReport.append(runTime/numSubInserted/1000);           // us/per
+            speedReport.append(runTime / numSubInserted / 1000);           // us/per
             speedReport.append(". numEventMatched: ");
             speedReport.append(numEventMatched);
             speedReport.append("; MatchSpeed: ");
 //            speedReport.append(numEventMatched*1000000000/matchEventTime); // per/s
-            speedReport.append(runTime/numEventMatched/1000);         // us/per
+            speedReport.append(runTime / numEventMatched / 1000);         // us/per
             speedReport.append(".\n");
             try {
                 output.recordSpeed(speedReport.toString());

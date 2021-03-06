@@ -11,10 +11,7 @@ import org.apache.storm.tuple.Tuple;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 //import java.util.Map;
 
 public class MergerBolt extends BaseRichBolt {
@@ -22,33 +19,92 @@ public class MergerBolt extends BaseRichBolt {
     private OutputCollector collector;
     private TopologyContext boltContext;
     private StringBuilder log;
-    private StringBuilder matchResult;
+    private StringBuilder matchResultBuilder;
     private String boltName;
-    private Integer numExecutor;
+    private Integer executorID;
+    static private Integer numMatchExecutor;
     private Integer numEventMatched;
-    private HashMap<Integer, ArrayList<Integer>> mapSubIDtoExecutorID;
+    private HashMap<Integer, HashSet<Integer>> matchResultMap;
+    private HashMap<Integer, HashSet<Integer>> matchResultNum;
 
-    public MergerBolt(String boltName, Integer numExecutor) {
-        numEventMatched=0;
-        this.boltName = boltName;
-        this.numExecutor=numExecutor;
+    public MergerBolt() {
+        numMatchExecutor = ThreadDivisionMatchBolt.getNumExecutor();
     }
 
     @Override
     public void prepare(Map<String, Object> map, TopologyContext topologyContext, OutputCollector outputCollector) {
-        this.boltContext=topologyContext;
-        this.collector = outputCollector;
+        boltContext = topologyContext;
+        boltName = boltContext.getThisComponentId();
+        executorID = boltContext.getThisTaskId();
+        collector = outputCollector;
         output = new OutputToFile();
-        log=new StringBuilder();
-        matchResult=new StringBuilder();
-        mapSubIDtoExecutorID=new HashMap<>();
+        log = new StringBuilder();
+        matchResultBuilder = new StringBuilder();
+        matchResultMap = new HashMap<>();
+        numEventMatched = 0;
+
+        try {
+            log = new StringBuilder(boltName);
+            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + boltName + ":");
+            List<Integer> taskIds = boltContext.getComponentTasks(boltContext.getThisComponentId());
+            Iterator taskIdsIter = taskIds.iterator();
+            int taskID;
+            while (taskIdsIter.hasNext()) {
+                taskID = (Integer) taskIdsIter.next();
+                log.append(" ");
+                log.append(taskID);
+            }
+            log.append("\nThisTaskId: ");
+            log.append(executorID);
+            log.append("; NumberOfMatchExecutor: ");
+            log.append(numMatchExecutor);
+            log.append("\n\n");
+            output.otherInfo(log.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void execute(Tuple tuple) {
-        Integer eventID = (Integer) tuple.getValueByField("eventID");
+//        collector.ack(tuple);
+//        return;
+        Integer eventID = tuple.getInteger(1);
         ArrayList<Integer> subIDs = (ArrayList<Integer>) tuple.getValueByField("subIDs");
+        if (!matchResultNum.containsKey(eventID)) {
+            matchResultNum.put(eventID, new HashSet<>());
+            matchResultMap.put(eventID, new HashSet<>());
+        }
+        HashSet<Integer> resultSet = matchResultMap.get(eventID);
+        for (int i = 0; i < subIDs.size(); i++)
+            resultSet.add(subIDs.get(i));
+        matchResultNum.get(eventID).add(tuple.getInteger(0));
+        if (matchResultNum.get(eventID).size() == numMatchExecutor) {
+            matchResultBuilder = new StringBuilder(boltName);
+            matchResultBuilder.append(" Thread ");
+            matchResultBuilder.append(executorID);
+            matchResultBuilder.append(" - EventID: ");
+            matchResultBuilder.append(eventID);
+            matchResultBuilder.append("; MatchedSubNum: ");
+            matchResultBuilder.append(resultSet.size());
+            matchResultBuilder.append("; SubID:");
 
+            Iterator<Integer> setIterator = resultSet.iterator();
+            while (setIterator.hasNext()) {
+                matchResultBuilder.append(" ");
+                matchResultBuilder.append(setIterator.next());
+            }
+            matchResultBuilder.append(".\n");
+            try {
+                output.saveMatchResult(matchResultBuilder.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            matchResultNum.remove(eventID);
+            matchResultMap.remove(eventID);
+        }
+        collector.ack(tuple);
     }
 
     @Override
