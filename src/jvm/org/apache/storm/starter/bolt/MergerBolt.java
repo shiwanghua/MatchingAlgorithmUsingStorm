@@ -67,44 +67,44 @@ public class MergerBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
-//        collector.ack(tuple);
-//        return;
-        Integer eventID = tuple.getInteger(1);
-        ArrayList<Integer> subIDs = (ArrayList<Integer>) tuple.getValueByField("subIDs");
-        if (!matchResultNum.containsKey(eventID)) {
-            matchResultNum.put(eventID, new HashSet<>());
-            matchResultMap.put(eventID, new HashSet<>());
-        }
-        HashSet<Integer> resultSet = matchResultMap.get(eventID);
-        for (int i = 0; i < subIDs.size(); i++)
-            resultSet.add(subIDs.get(i));
-        matchResultNum.get(eventID).add(tuple.getInteger(0));
-        if (matchResultNum.get(eventID).size() == numMatchExecutor) {
-            matchResultBuilder = new StringBuilder(boltName);
-            matchResultBuilder.append(" Thread ");
-            matchResultBuilder.append(executorID);
-            matchResultBuilder.append(" - EventID: ");
-            matchResultBuilder.append(eventID);
-            matchResultBuilder.append("; MatchedSubNum: ");
-            matchResultBuilder.append(resultSet.size());
-            matchResultBuilder.append("; SubID:");
-
-            Iterator<Integer> setIterator = resultSet.iterator();
-            while (setIterator.hasNext()) {
-                matchResultBuilder.append(" ");
-                matchResultBuilder.append(setIterator.next());
-            }
-            matchResultBuilder.append(".\n");
-            try {
-                output.saveMatchResult(matchResultBuilder.toString());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            matchResultNum.remove(eventID);
-            matchResultMap.remove(eventID);
-        }
         collector.ack(tuple);
+        return;
+//        Integer eventID = tuple.getInteger(1);
+//        ArrayList<Integer> subIDs = (ArrayList<Integer>) tuple.getValueByField("subIDs");
+//        if (!matchResultNum.containsKey(eventID)) {
+//            matchResultNum.put(eventID, new HashSet<>());
+//            matchResultMap.put(eventID, new HashSet<>());
+//        }
+//        HashSet<Integer> resultSet = matchResultMap.get(eventID);
+//        for (int i = 0; i < subIDs.size(); i++)
+//            resultSet.add(subIDs.get(i));
+//        matchResultNum.get(eventID).add(tuple.getInteger(0));
+//        if (matchResultNum.get(eventID).size() == numMatchExecutor) {
+//            matchResultBuilder = new StringBuilder(boltName);
+//            matchResultBuilder.append(" Thread ");
+//            matchResultBuilder.append(executorID);
+//            matchResultBuilder.append(" - EventID: ");
+//            matchResultBuilder.append(eventID);
+//            matchResultBuilder.append("; MatchedSubNum: ");
+//            matchResultBuilder.append(resultSet.size());
+//            matchResultBuilder.append("; SubID:");
+//
+//            Iterator<Integer> setIterator = resultSet.iterator();
+//            while (setIterator.hasNext()) {
+//                matchResultBuilder.append(" ");
+//                matchResultBuilder.append(setIterator.next());
+//            }
+//            matchResultBuilder.append(".\n");
+//            try {
+//                output.saveMatchResult(matchResultBuilder.toString());
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//
+//            matchResultNum.remove(eventID);
+//            matchResultMap.remove(eventID);
+//        }
+//        collector.ack(tuple);
     }
 
     @Override

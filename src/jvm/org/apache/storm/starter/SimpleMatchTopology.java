@@ -23,10 +23,10 @@ public class SimpleMatchTopology {
 
         builder.setSpout("SubSpout", new SubscriptionSpout(), 1);
         builder.setSpout("EventSpout", new EventSpout(), 1);
-        builder.setBolt("TDMBolt0", new ThreadDivisionMatchBolt(),8).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
-//        builder.setBolt("TDMBolt1", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
-//        builder.setBolt("TDMBolt2", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
-//        builder.setBolt("TDMBolt3", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
+        builder.setBolt("TDMBolt0", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
+        builder.setBolt("TDMBolt1", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
+        builder.setBolt("TDMBolt2", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
+        builder.setBolt("TDMBolt3", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
 //        builder.setBolt("SMBolt", new SimpleMatchBolt("SimpleMatchBolt1"), 1).shuffleGrouping("SubSpout").allGrouping("EventSpout");//
 //        builder.setBolt("SMBolt", new SimpleMatchBolt("SimpleMatchBolt2"), 4).allGrouping("SubSpout").shuffleGrouping("EventSpout");
 

@@ -175,9 +175,9 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                 }
                 case TypeConstant.Event_Match_Subscription: {
 
-//                    Integer eventPacketID=(Integer)tuple.getValue(1);
-//                    if(eventPacketID%boltIDAllocator!=executorID)
-//                        break;
+                    Integer eventPacketID=(Integer)tuple.getValue(1);
+                    if(eventPacketID%boltIDAllocator!=executorID)
+                        break;
 
 //                    startTime = System.nanoTime();
                     numEventPacket++;
@@ -192,8 +192,8 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                     ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
                     for (int i = 0; i < eventPacket.size(); i++) {
                         int eventID = eventPacket.get(i).getEventID();
-                        if(eventID%boltIDAllocator!=executorID)
-                            continue;
+//                        if(eventID%boltIDAllocator!=executorID)
+//                            continue;
                         matchResult = new StringBuilder(boltName);
                         matchResult.append(" Thread ");
                         matchResult.append(executorID);
