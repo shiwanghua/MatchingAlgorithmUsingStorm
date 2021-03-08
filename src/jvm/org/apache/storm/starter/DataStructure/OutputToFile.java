@@ -6,14 +6,19 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class OutputToFile {
-    private static final String logFilePath = "/home/swhua/log";
-    private static final String matchResultFilePath = "/home/swhua/MatchResult";
-    private static final String speedFilePath = "/home/swhua/speed";
-    private static final String otherInfoFilePath = "/home/swhua/otherInfo";
-    private static final String errorLogFilePath="/home/swhua/errorLog";
+    private static final String baseFilePath = "/home/swhua/";
+    private static String logFilePath;
+    private static String matchResultFilePath;
+    private static String speedFilePath;
+    private static String otherInfoFilePath;
+    private static String errorLogFilePath;
 
-    public OutputToFile(){
-
+    public OutputToFile() {
+        logFilePath = baseFilePath + "log";
+        matchResultFilePath = baseFilePath + "MatchResult";
+        speedFilePath = baseFilePath + "speed";
+        otherInfoFilePath = baseFilePath + "otherInfo";
+        errorLogFilePath = baseFilePath + "errorLog";
     }
 
     public static void writeToLogFile(String content) throws IOException {
@@ -45,7 +50,7 @@ public class OutputToFile {
         bw.close();
     }
 
-    public static void recordSpeed(String content) throws IOException{
+    public static void recordSpeed(String content) throws IOException {
         File file = new File(speedFilePath);
         if (!file.exists()) {
             file.createNewFile();
@@ -58,7 +63,7 @@ public class OutputToFile {
         bw.close();
     }
 
-    public static void otherInfo(String content) throws IOException{
+    public static void otherInfo(String content) throws IOException {
         File file = new File(otherInfoFilePath);
         if (!file.exists()) {
             file.createNewFile();
@@ -71,7 +76,7 @@ public class OutputToFile {
         bw.close();
     }
 
-    public static void errorLog(String content) throws IOException{
+    public static void errorLog(String content) throws IOException {
         File file = new File(errorLogFilePath);
         if (!file.exists()) {
             file.createNewFile();

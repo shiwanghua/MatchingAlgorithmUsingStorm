@@ -35,8 +35,8 @@ public class SubscriptionSpout extends BaseRichSpout {
 
     public SubscriptionSpout() {
         maxNumSubscription = 100;
-        maxNumAttribute = 30;
-        subSetSize = 100000;
+        maxNumAttribute = 10;
+        subSetSize = 200000;
     }
 
     @Override

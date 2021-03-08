@@ -23,10 +23,10 @@ public class SimpleMatchTopology {
 
         builder.setSpout("SubSpout", new SubscriptionSpout(), 1);
         builder.setSpout("EventSpout", new EventSpout(), 1);
-        builder.setBolt("TDMBolt0", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
-        builder.setBolt("TDMBolt1", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
-        builder.setBolt("TDMBolt2", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
-        builder.setBolt("TDMBolt3", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
+        builder.setBolt("TDMBolt0", new ThreadDivisionMatchBolt(),8).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
+//        builder.setBolt("TDMBolt1", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
+//        builder.setBolt("TDMBolt2", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
+//        builder.setBolt("TDMBolt3", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
 //        builder.setBolt("SMBolt", new SimpleMatchBolt("SimpleMatchBolt1"), 1).shuffleGrouping("SubSpout").allGrouping("EventSpout");//
 //        builder.setBolt("SMBolt", new SimpleMatchBolt("SimpleMatchBolt2"), 4).allGrouping("SubSpout").shuffleGrouping("EventSpout");
 
@@ -39,7 +39,7 @@ public class SimpleMatchTopology {
 
         conf.setDebug(false);
         conf.setNumWorkers(6);
-        conf.setMaxTaskParallelism(8);
+        conf.setMaxTaskParallelism(12);
         conf.put(Config.TOPOLOGY_ACKER_EXECUTORS, 12);// 设置acker的数量, default: 1
         conf.put(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS,180);
         conf.put(Config.TOPOLOGY_MAX_SPOUT_PENDING, 800);//设置一个spout task上面最多有多少个没有处理的tuple（没有ack/failed）回复，以防止tuple队列爆掉
