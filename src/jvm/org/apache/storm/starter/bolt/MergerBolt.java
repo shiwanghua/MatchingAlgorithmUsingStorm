@@ -8,6 +8,7 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
+import org.apache.storm.utils.Utils;
 
 
 import java.io.IOException;
@@ -24,11 +25,19 @@ public class MergerBolt extends BaseRichBolt {
     private Integer executorID;
     static private Integer numMatchExecutor;
     private Integer numEventMatched;
+    private long runTime;
+    private long speedTime;  // The time to calculate and record speed
+    final private long beginTime;
+    final private long intervalTime; // The interval between two calculations of speed
+
     private HashMap<Integer, HashSet<Integer>> matchResultMap;
     private HashMap<Integer, HashSet<Integer>> matchResultNum;
 
-    public MergerBolt() {
-        numMatchExecutor = ThreadDivisionMatchBolt.getNumExecutor();
+    public MergerBolt(Integer num_executor) {
+        numMatchExecutor=num_executor; // receive a eventID from this number of matchBolts then the event is fully matched
+        beginTime = System.nanoTime();
+        intervalTime = 60000000000L;  // 1 minute
+//        numMatchExecutor = ThreadDivisionMatchBolt.getNumExecutor(); // This function may not return the final right number. MergerBolt may be initialized before matchBolt!
     }
 
     @Override
@@ -41,7 +50,10 @@ public class MergerBolt extends BaseRichBolt {
         log = new StringBuilder();
         matchResultBuilder = new StringBuilder();
         matchResultMap = new HashMap<>();
-        numEventMatched = 0;
+        matchResultNum = new HashMap<>();
+        numEventMatched = 1;
+        runTime = 1;
+        speedTime = System.nanoTime() + intervalTime;
 
         try {
             log = new StringBuilder(boltName);
@@ -57,7 +69,7 @@ public class MergerBolt extends BaseRichBolt {
             log.append("\nThisTaskId: ");
             log.append(executorID);
             log.append("; NumberOfMatchExecutor: ");
-            log.append(numMatchExecutor);
+            log.append(numMatchExecutor); // need to be checked carefully
             log.append("\n\n");
             output.otherInfo(log.toString());
         } catch (IOException e) {
@@ -67,44 +79,64 @@ public class MergerBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
-        collector.ack(tuple);
-        return;
-//        Integer eventID = tuple.getInteger(1);
-//        ArrayList<Integer> subIDs = (ArrayList<Integer>) tuple.getValueByField("subIDs");
-//        if (!matchResultNum.containsKey(eventID)) {
-//            matchResultNum.put(eventID, new HashSet<>());
-//            matchResultMap.put(eventID, new HashSet<>());
-//        }
-//        HashSet<Integer> resultSet = matchResultMap.get(eventID);
-//        for (int i = 0; i < subIDs.size(); i++)
-//            resultSet.add(subIDs.get(i));
-//        matchResultNum.get(eventID).add(tuple.getInteger(0));
-//        if (matchResultNum.get(eventID).size() == numMatchExecutor) {
-//            matchResultBuilder = new StringBuilder(boltName);
-//            matchResultBuilder.append(" Thread ");
-//            matchResultBuilder.append(executorID);
-//            matchResultBuilder.append(" - EventID: ");
-//            matchResultBuilder.append(eventID);
-//            matchResultBuilder.append("; MatchedSubNum: ");
-//            matchResultBuilder.append(resultSet.size());
-//            matchResultBuilder.append("; SubID:");
-//
-//            Iterator<Integer> setIterator = resultSet.iterator();
-//            while (setIterator.hasNext()) {
-//                matchResultBuilder.append(" ");
-//                matchResultBuilder.append(setIterator.next());
-//            }
-//            matchResultBuilder.append(".\n");
-//            try {
-//                output.saveMatchResult(matchResultBuilder.toString());
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//
-//            matchResultNum.remove(eventID);
-//            matchResultMap.remove(eventID);
-//        }
 //        collector.ack(tuple);
+//        return;
+        Integer eventID = tuple.getInteger(1);
+        ArrayList<Integer> subIDs = (ArrayList<Integer>) tuple.getValueByField("subIDs");
+        if (!matchResultNum.containsKey(eventID)) {
+            matchResultNum.put(eventID, new HashSet<>());
+            matchResultMap.put(eventID, new HashSet<>());
+        }
+        HashSet<Integer> resultSet = matchResultMap.get(eventID);  // This is an reference.
+        for (int i = 0; i < subIDs.size(); i++)
+            resultSet.add(subIDs.get(i));
+        matchResultNum.get(eventID).add(tuple.getInteger(0));
+        if (matchResultNum.get(eventID).size() == numMatchExecutor) {
+            matchResultBuilder = new StringBuilder(boltName);
+            matchResultBuilder.append(" Thread ");
+            matchResultBuilder.append(executorID);
+            matchResultBuilder.append(" - EventID: ");
+            matchResultBuilder.append(eventID);
+            matchResultBuilder.append("; MatchedSubNum: ");
+            matchResultBuilder.append(resultSet.size());
+            matchResultBuilder.append("; SubID:");
+
+            Iterator<Integer> setIterator = resultSet.iterator();
+            while (setIterator.hasNext()) {
+                matchResultBuilder.append(" ");
+                matchResultBuilder.append(setIterator.next());
+            }
+            matchResultBuilder.append(".\n");
+            try {
+                output.saveMatchResult(matchResultBuilder.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            numEventMatched++;
+            matchResultNum.remove(eventID);
+            matchResultMap.remove(eventID);
+        }
+        collector.ack(tuple);
+
+        if (System.nanoTime() > speedTime) {
+            runTime = System.nanoTime() - beginTime;
+            StringBuilder speedReport = new StringBuilder(boltName);
+            speedReport.append(" Thread ");
+            speedReport.append(executorID);
+            speedReport.append(" - RunTime: ");
+            speedReport.append(runTime / intervalTime);
+            speedReport.append("min. numEventMatched: ");
+            speedReport.append(numEventMatched);
+            speedReport.append("; MatchSpeed: ");
+            speedReport.append(runTime / numEventMatched / 1000); // us/per
+            speedReport.append(".\n");
+            try {
+                output.recordSpeed(speedReport.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            speedTime = System.nanoTime() + intervalTime;
+        }
     }
 
     @Override

@@ -33,8 +33,8 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
     private Integer numSubPacket;
     private Integer numEventPacket;
     private Integer numSubInserted;
-    static private Integer numEventMatched;
-//    static private Integer numExecutor;   // use boltIDAllocator instead.
+    private Integer numEventMatched;
+    final private Integer numExecutor;
     private Integer executorID;
     static private Integer boltIDAllocator;
     //    static private Integer beginExecutorID;
@@ -42,18 +42,20 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
     //    private long matchEventTime;
     //    private long startTime;  // a temp variable
     private long runTime;
+    private long speedTime;  // The time to calculate and record speed
     final private long beginTime;
     final private long intervalTime; // The interval between two calculations of speed
-    private long speedTime;  // The time to calculate and record speed
 
-    public ThreadDivisionMatchBolt() {   // only execute one time for all executors!
+    public ThreadDivisionMatchBolt(Integer num_executor) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
         intervalTime = 60000000000L;  // 1 minute
         boltIDAllocator=0;
+        numExecutor=num_executor;
     }
 
     @Override
     public void prepare(Map<String, Object> map, TopologyContext topologyContext, OutputCollector outputCollector) { // execute one time for every executor!
+        //beginTime = System.nanoTime();
         numSubPacket = 0;
         numEventPacket = 0;
         numSubInserted = 1;
@@ -124,9 +126,12 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
             switch (type) {
                 case TypeConstant.Insert_Subscription: {
 
-//                    Integer subPacketID=tuple.getInteger(1);
+                    Integer subPacketID=tuple.getInteger(1);
 //                    if(subPacketID%boltIDAllocator!=executorID)
+//                    {
+//                        collector.ack(tuple);
 //                        break;
+//                    }
 
 //                    startTime = System.nanoTime();
                     int subID;
@@ -143,8 +148,8 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                     ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
                     for (int i = 0; i < subPacket.size(); i++) {
                         subID = subPacket.get(i).getSubID();
-//                        if (subID % boltIDAllocator != executorID)
-//                            continue;
+                        if (subID % boltIDAllocator != executorID)
+                            continue;
                         mapIDtoSub.put(subID, subPacket.get(i));
                         numSubInserted++;
 //                        System.out.println("\n\n\nSubscription " + String.valueOf(subID) + " is inserted." + "\n\n\n");
@@ -175,9 +180,11 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                 }
                 case TypeConstant.Event_Match_Subscription: {
 
-                    Integer eventPacketID=(Integer)tuple.getValue(1);
-                    if(eventPacketID%boltIDAllocator!=executorID)
-                        break;
+//                    Integer eventPacketID=(Integer)tuple.getValue(1);
+//                    if(eventPacketID%boltIDAllocator!=executorID) {
+//                        collector.ack(tuple);
+//                        break;
+//                    }
 
 //                    startTime = System.nanoTime();
                     numEventPacket++;
@@ -194,15 +201,14 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                         int eventID = eventPacket.get(i).getEventID();
 //                        if(eventID%boltIDAllocator!=executorID)
 //                            continue;
-                        matchResult = new StringBuilder(boltName);
-                        matchResult.append(" Thread ");
-                        matchResult.append(executorID);
-                        matchResult.append(" - EventID: ");
-                        matchResult.append(eventID);
-                        matchResult.append("; SubNum:");
-                        matchResult.append(mapIDtoSub.size());
-                        matchResult.append("; SubID:");
-//                        String matchResult = boltName + " - EventID: " + String.valueOf(eventID) + "; SubNum:" + String.valueOf(mapIDtoSub.size()) + "; SubID:";
+//                        matchResult = new StringBuilder(boltName);
+//                        matchResult.append(" Thread ");
+//                        matchResult.append(executorID);
+//                        matchResult.append(" - EventID: ");
+//                        matchResult.append(eventID);
+//                        matchResult.append("; SubNum:");
+//                        matchResult.append(mapIDtoSub.size());
+//                        matchResult.append("; SubID:");
 
                         if (mapIDtoSub.size() == 0) {
                             log = new StringBuilder(boltName);
@@ -212,13 +218,11 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                             log.append(eventID);
                             log.append(" matching task is done.\n");
                             output.writeToLogFile(log.toString());
-//                            output.writeToLogFile(boltName + ": Event " + String.valueOf(eventID) + " matching task is done.\n");
-                            matchResult.append(" ; MatchedSubNum: 0.\n");
-                            output.saveMatchResult(matchResult.toString());
-//                            output.saveMatchResult(matchResult + " ; MatchedSubNum: 0.\n");
+//                            matchResult.append(" ; MatchedSubNum: 0.\n");
+//                            output.saveMatchResult(matchResult.toString());
+                            collector.emit(new Values(executorID, eventID, new ArrayList<>()));
                             continue;
                         }
-//                        System.out.println("\n\n\n" + String.valueOf(eventID) + " begins to match." + "\n\n\n");
 
                         ArrayList<Integer> matchedSubIDList = new ArrayList<Integer>();
                         HashMap<String, Double> eventAttributeNameToValue = eventPacket.get(i).getMap();
@@ -247,9 +251,8 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                                 }
                             }
                             if (matched) {   // Save this subID to MatchResult
-                                matchResult.append(" ");
-                                matchResult.append(subID);
-//                                matchResult += " " + String.valueOf(subID);
+//                                matchResult.append(" ");
+//                                matchResult.append(subID);
                                 matchedSubIDList.add(subID);
                             }
                         }
@@ -261,11 +264,10 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                         log.append(" matching task is done.\n");
                         output.writeToLogFile(log.toString());
 //                        output.writeToLogFile(boltName + ": Event " + String.valueOf(eventID) + " matching task is done.\n");
-                        matchResult.append("; MatchedSubNum: ");
-                        matchResult.append(matchedSubIDList.size());
-                        matchResult.append(".\n");
-                        output.saveMatchResult(matchResult.toString());
-//                        output.saveMatchResult(matchResult + "; MatchedSubNum: " + String.valueOf(matchNum) + ".\n");
+//                        matchResult.append("; MatchedSubNum: ");
+//                        matchResult.append(matchedSubIDList.size());
+//                        matchResult.append(".\n");
+//                        output.saveMatchResult(matchResult.toString());
                         collector.emit(new Values(executorID, eventID, matchedSubIDList));
                     }
                     collector.ack(tuple);
@@ -317,7 +319,8 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
         outputFieldsDeclarer.declare(new Fields("executorID", "eventID","subIDs"));
     }
 
-    public static Integer getNumExecutor(){
-        return boltIDAllocator;
+    public Integer getNumExecutor(){
+        return numExecutor;
+//        return boltIDAllocator;   //  this variable may not be the last executor number.
     }
 }

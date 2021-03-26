@@ -7,6 +7,7 @@ import org.apache.storm.starter.DataStructure.Event;
 import org.apache.storm.starter.DataStructure.OutputToFile;
 import org.apache.storm.starter.DataStructure.Pair;
 import org.apache.storm.starter.DataStructure.Subscription;
+import org.apache.storm.starter.bolt.MergerBolt;
 import org.apache.storm.starter.bolt.SimpleMatchBolt;
 import org.apache.storm.starter.bolt.ThreadDivisionMatchBolt;
 import org.apache.storm.starter.spout.EventSpout;
@@ -19,14 +20,17 @@ import org.apache.storm.utils.Utils;
 public class SimpleMatchTopology {
     public static void main(String[] args) throws Exception {
 
+        Integer numExecutorsInAMatchBolt=4;
+
         TopologyBuilder builder = new TopologyBuilder();
 
         builder.setSpout("SubSpout", new SubscriptionSpout(), 1);
         builder.setSpout("EventSpout", new EventSpout(), 1);
-        builder.setBolt("TDMBolt0", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
-        builder.setBolt("TDMBolt1", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
-        builder.setBolt("TDMBolt2", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
-        builder.setBolt("TDMBolt3", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
+        builder.setBolt("TDMBolt0", new ThreadDivisionMatchBolt(numExecutorsInAMatchBolt),numExecutorsInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
+        builder.setBolt("MergerBolt",new MergerBolt(numExecutorsInAMatchBolt),1).allGrouping("TDMBolt0");
+//        builder.setBolt("TDMBolt1", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
+//        builder.setBolt("TDMBolt2", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
+//        builder.setBolt("TDMBolt3", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
 //        builder.setBolt("SMBolt", new SimpleMatchBolt("SimpleMatchBolt1"), 1).shuffleGrouping("SubSpout").allGrouping("EventSpout");//
 //        builder.setBolt("SMBolt", new SimpleMatchBolt("SimpleMatchBolt2"), 4).allGrouping("SubSpout").shuffleGrouping("EventSpout");
 

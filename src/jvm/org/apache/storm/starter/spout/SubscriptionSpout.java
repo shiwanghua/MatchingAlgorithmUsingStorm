@@ -25,6 +25,7 @@ public class SubscriptionSpout extends BaseRichSpout {
     private Integer numSubPacket;
     final int maxNumSubscription;           //  Maximum number of subscription emitted per time
     final int maxNumAttribute;              //  Maxinum number of attributes in a subscription
+    final int numAttribute;                 //  Type number of attributes
     final Integer subSetSize;
     private Random valueGenerator;          //  Generate the interval value and index of attribute name
     private int[] randomArray;              //  To get the attribute name
@@ -36,6 +37,7 @@ public class SubscriptionSpout extends BaseRichSpout {
     public SubscriptionSpout() {
         maxNumSubscription = 100;
         maxNumAttribute = 30;
+        numAttribute = 30;
         subSetSize = 100000;
     }
 
@@ -44,8 +46,8 @@ public class SubscriptionSpout extends BaseRichSpout {
         subID = 1;
         numSubPacket = 0;
         valueGenerator = new Random();
-        randomArray = new int[maxNumAttribute];
-        for (int i = 0; i < maxNumAttribute; i++)
+        randomArray = new int[numAttribute];
+        for (int i = 0; i < numAttribute; i++)
             randomArray[i] = i;
         subSpoutTopologyContext = topologyContext;
         spoutName=subSpoutTopologyContext.getThisComponentId();
