@@ -53,9 +53,11 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
         numExecutor=num_executor;
     }
 
+    public synchronized void allocateID(){
+        executorID = boltIDAllocator++;//boltContext.getThisTaskId(); // Get the current thread number
+    }
     @Override
     public void prepare(Map<String, Object> map, TopologyContext topologyContext, OutputCollector outputCollector) { // execute one time for every executor!
-        //beginTime = System.nanoTime();
         numSubPacket = 0;
         numEventPacket = 0;
         numSubInserted = 1;
@@ -69,7 +71,9 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
         boltContext = topologyContext;
         collector = outputCollector;
         boltName = boltContext.getThisComponentId();
-        executorID = boltIDAllocator++;//boltContext.getThisTaskId(); // Get the current thread number
+
+        allocateID();  // boltIDAllocator need to keep synchronized
+
         output = new OutputToFile();
         mapIDtoSub = new HashMap<>();
         log = new StringBuilder();
@@ -143,7 +147,6 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                     log.append(numSubPacket);
                     log.append(" is received.\n");
                     output.writeToLogFile(log.toString());
-//                    output.writeToLogFile(boltName + ": SubPacket" + String.valueOf(numSubPacket) + " is received.\n");
 
                     ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
                     for (int i = 0; i < subPacket.size(); i++) {
@@ -152,7 +155,6 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                             continue;
                         mapIDtoSub.put(subID, subPacket.get(i));
                         numSubInserted++;
-//                        System.out.println("\n\n\nSubscription " + String.valueOf(subID) + " is inserted." + "\n\n\n");
                         log = new StringBuilder(boltName);
                         log.append(" Thread ");
                         log.append(executorID);
@@ -160,7 +162,6 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                         log.append(subID);
                         log.append(" is inserted.\n");
                         output.writeToLogFile(log.toString());
-//                        output.writeToLogFile(boltName + ": Subscription " + String.valueOf(subID) + " is inserted.\n");
                     }
                     collector.ack(tuple);
 //                    insertSubTime += System.nanoTime() - startTime;
@@ -195,7 +196,6 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                     log.append(numEventPacket);
                     log.append(" is received.\n");
                     output.writeToLogFile(log.toString());
-//                    output.writeToLogFile(boltName + ": EventPacket" + String.valueOf(numEventPacket) + " is received.\n");
                     ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
                     for (int i = 0; i < eventPacket.size(); i++) {
                         int eventID = eventPacket.get(i).getEventID();
@@ -263,7 +263,6 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                         log.append(eventID);
                         log.append(" matching task is done.\n");
                         output.writeToLogFile(log.toString());
-//                        output.writeToLogFile(boltName + ": Event " + String.valueOf(eventID) + " matching task is done.\n");
 //                        matchResult.append("; MatchedSubNum: ");
 //                        matchResult.append(matchedSubIDList.size());
 //                        matchResult.append(".\n");
@@ -282,7 +281,6 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                     log.append(executorID);
                     log.append(": Wrong operation type is detected.\n");
                     output.writeToLogFile(log.toString());
-//                    output.writeToLogFile(boltName + ": Wrong operation type is detected.\n");
             }
         } catch (IOException e) {
             e.printStackTrace();

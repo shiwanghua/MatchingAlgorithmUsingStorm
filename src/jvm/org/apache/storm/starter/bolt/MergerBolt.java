@@ -68,7 +68,7 @@ public class MergerBolt extends BaseRichBolt {
             }
             log.append("\nThisTaskId: ");
             log.append(executorID);
-            log.append("; NumberOfMatchExecutor: ");
+            log.append(";\nNumberOfMatchExecutor: ");
             log.append(numMatchExecutor); // need to be checked carefully
             log.append("\n\n");
             output.otherInfo(log.toString());

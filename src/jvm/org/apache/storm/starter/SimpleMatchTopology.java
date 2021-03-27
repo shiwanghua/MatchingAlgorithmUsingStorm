@@ -26,7 +26,7 @@ public class SimpleMatchTopology {
 
         builder.setSpout("SubSpout", new SubscriptionSpout(), 1);
         builder.setSpout("EventSpout", new EventSpout(), 1);
-        builder.setBolt("TDMBolt0", new ThreadDivisionMatchBolt(numExecutorsInAMatchBolt),numExecutorsInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
+        builder.setBolt("TDMBolt0", new ThreadDivisionMatchBolt(numExecutorsInAMatchBolt),16).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
         builder.setBolt("MergerBolt",new MergerBolt(numExecutorsInAMatchBolt),1).allGrouping("TDMBolt0");
 //        builder.setBolt("TDMBolt1", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
 //        builder.setBolt("TDMBolt2", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
@@ -58,7 +58,7 @@ public class SimpleMatchTopology {
         LocalCluster localCluster=new LocalCluster();
         localCluster.submitTopology(topoName,conf,builder.createTopology());
 //        StormSubmitter.submitTopologyWithProgressBar(topoName, conf, builder.createTopology());
-        Utils.sleep(660000);
+        Utils.sleep(720000);
         localCluster.killTopology(topoName);
         localCluster.shutdown();
     }
