@@ -25,7 +25,7 @@ public class SubscriptionSpout extends BaseRichSpout {
     private Integer numSubPacket;
     final int maxNumSubscription;           //  Maximum number of subscription emitted per time
     final int maxNumAttribute;              //  Maxinum number of attributes in a subscription
-    final int numAttribute;                 //  Type number of attributes
+    final int numAttributeType;             //  Type number of attributes
     final Integer subSetSize;
     private Random valueGenerator;          //  Generate the interval value and index of attribute name
     private int[] randomArray;              //  To get the attribute name
@@ -36,9 +36,9 @@ public class SubscriptionSpout extends BaseRichSpout {
 
     public SubscriptionSpout() {
         maxNumSubscription = 100;
-        maxNumAttribute = 30;
-        numAttribute = 30;
-        subSetSize = 100000;
+        maxNumAttribute = 10;
+        numAttributeType = 30;
+        subSetSize = 200000;
     }
 
     @Override
@@ -46,8 +46,8 @@ public class SubscriptionSpout extends BaseRichSpout {
         subID = 1;
         numSubPacket = 0;
         valueGenerator = new Random();
-        randomArray = new int[numAttribute];
-        for (int i = 0; i < numAttribute; i++)
+        randomArray = new int[numAttributeType];
+        for (int i = 0; i < numAttributeType; i++)
             randomArray[i] = i;
         subSpoutTopologyContext = topologyContext;
         spoutName=subSpoutTopologyContext.getThisComponentId();
@@ -109,7 +109,7 @@ public class SubscriptionSpout extends BaseRichSpout {
             int numAttribute = new Random().nextInt(maxNumAttribute + 1); // Generate the number of attribute in this subscription: 0~maxNumAttribute
 
             for (int j = 0; j < numAttribute; j++) { // Use the first #numAttribute values of randomArray to create the attribute name
-                int index = valueGenerator.nextInt(maxNumAttribute - j) + j;
+                int index = valueGenerator.nextInt(numAttributeType - j) + j;
                 int temp = randomArray[j];
                 randomArray[j] = randomArray[index];
                 randomArray[index] = temp;

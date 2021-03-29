@@ -22,7 +22,8 @@ public class EventSpout extends BaseRichSpout {
     private Integer numEventPacket;
     final int maxNumEvent;            //  Maximum number of event emitted per time
     final int maxNumAttribute;        //  Maxinum number of attributes in a event
-    private int[] randomArray;       // To get the attribute name
+    final int numAttributeType;       //  Type number of attributes
+    private int[] randomPermutation;  //  To get the attribute name
     private OutputToFile output;
     private StringBuilder log;
     private StringBuilder errorLog;
@@ -31,7 +32,8 @@ public class EventSpout extends BaseRichSpout {
 
     public EventSpout() {
         maxNumEvent = 20;
-        maxNumAttribute = 30;
+        maxNumAttribute = 10;
+        numAttributeType=30;
     }
 
     @Override
@@ -39,9 +41,9 @@ public class EventSpout extends BaseRichSpout {
         valueGenerator = new Random();
         eventID = 1;
         numEventPacket = 0;  // messageID
-        randomArray = new int[maxNumAttribute];
-        for (int i = 0; i < maxNumAttribute; i++)
-            randomArray[i] = i;
+        randomPermutation = new int[numAttributeType];
+        for (int i = 0; i < numAttributeType; i++)
+            randomPermutation[i] = i;
 
         eventSpoutTopologyContext = topologyContext;
         spoutName = eventSpoutTopologyContext.getThisComponentId();
@@ -105,16 +107,16 @@ public class EventSpout extends BaseRichSpout {
             String attributeName = "attributeName";
 
             for (int j = 0; j < numAttribute; j++) { // Use the first #numAttribute values of randomArray to create the attribute name
-                int index = valueGenerator.nextInt(maxNumAttribute - j) + j;
-                int temp = randomArray[j];
-                randomArray[j] = randomArray[index];
-                randomArray[index] = temp;
+                int index = valueGenerator.nextInt(numAttributeType - j) + j;
+                int temp = randomPermutation[j];
+                randomPermutation[j] = randomPermutation[index];
+                randomPermutation[index] = temp;
             }
 
             HashMap<String, Double> mapNameToValue = new HashMap<>();
             for (int j = 0; j < numAttribute; j++) {
                 eventValue = valueGenerator.nextDouble();
-                mapNameToValue.put(attributeName + String.valueOf(randomArray[j]), eventValue);
+                mapNameToValue.put(attributeName + String.valueOf(randomPermutation[j]), eventValue);
             }
             try {
                 events.add(new Event(eventID, numAttribute, mapNameToValue));

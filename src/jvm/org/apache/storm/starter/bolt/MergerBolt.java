@@ -79,14 +79,17 @@ public class MergerBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
-//        collector.ack(tuple);
-//        return;
         Integer eventID = tuple.getInteger(1);
-        ArrayList<Integer> subIDs = (ArrayList<Integer>) tuple.getValueByField("subIDs");
         if (!matchResultNum.containsKey(eventID)) {
             matchResultNum.put(eventID, new HashSet<>());
             matchResultMap.put(eventID, new HashSet<>());
         }
+        else if (matchResultNum.get(eventID).size() == numMatchExecutor) {
+            collector.ack(tuple);
+            return;
+        }
+        ArrayList<Integer> subIDs = (ArrayList<Integer>) tuple.getValueByField("subIDs");
+
         HashSet<Integer> resultSet = matchResultMap.get(eventID);  // This is an reference.
         for (int i = 0; i < subIDs.size(); i++)
             resultSet.add(subIDs.get(i));
@@ -113,7 +116,6 @@ public class MergerBolt extends BaseRichBolt {
                 e.printStackTrace();
             }
             numEventMatched++;
-            matchResultNum.remove(eventID);
             matchResultMap.remove(eventID);
         }
         collector.ack(tuple);

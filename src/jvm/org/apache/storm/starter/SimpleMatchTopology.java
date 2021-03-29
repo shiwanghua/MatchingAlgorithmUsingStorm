@@ -8,6 +8,7 @@ import org.apache.storm.starter.DataStructure.OutputToFile;
 import org.apache.storm.starter.DataStructure.Pair;
 import org.apache.storm.starter.DataStructure.Subscription;
 import org.apache.storm.starter.bolt.MergerBolt;
+import org.apache.storm.starter.bolt.MultiPartitionMatchBolt;
 import org.apache.storm.starter.bolt.SimpleMatchBolt;
 import org.apache.storm.starter.bolt.ThreadDivisionMatchBolt;
 import org.apache.storm.starter.spout.EventSpout;
@@ -20,14 +21,16 @@ import org.apache.storm.utils.Utils;
 public class SimpleMatchTopology {
     public static void main(String[] args) throws Exception {
 
-        Integer numExecutorsInAMatchBolt=4;
+        Integer numExecutorsInAMatchBolt=6;
+        Integer redundancy=3;
 
         TopologyBuilder builder = new TopologyBuilder();
 
         builder.setSpout("SubSpout", new SubscriptionSpout(), 1);
         builder.setSpout("EventSpout", new EventSpout(), 1);
-        builder.setBolt("TDMBolt0", new ThreadDivisionMatchBolt(numExecutorsInAMatchBolt),16).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
-        builder.setBolt("MergerBolt",new MergerBolt(numExecutorsInAMatchBolt),1).allGrouping("TDMBolt0");
+        builder.setBolt("MPMBolt0", new MultiPartitionMatchBolt(numExecutorsInAMatchBolt,redundancy),numExecutorsInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
+        builder.setBolt("MergerBolt",new MergerBolt(numExecutorsInAMatchBolt),1).allGrouping("MPMBolt0");
+//        builder.setBolt("TDMBolt0", new ThreadDivisionMatchBolt(numExecutorsInAMatchBolt),4).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
 //        builder.setBolt("TDMBolt1", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
 //        builder.setBolt("TDMBolt2", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
 //        builder.setBolt("TDMBolt3", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
@@ -42,7 +45,7 @@ public class SimpleMatchTopology {
         conf.registerSerialization(Subscription.class);
 
         conf.setDebug(false);
-        conf.setNumWorkers(6);
+        conf.setNumWorkers(9);
         conf.setMaxTaskParallelism(12);
         conf.put(Config.TOPOLOGY_ACKER_EXECUTORS, 12);// 设置acker的数量, default: 1
         conf.put(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS,180);
