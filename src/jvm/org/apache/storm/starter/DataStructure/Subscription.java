@@ -6,13 +6,13 @@ import java.util.HashMap;
 
 public class Subscription {
 
-    private int numAttributes;
+    private int maxNumAttributes;
     private Integer subID;
     private OutputToFile out;
     private HashMap<String, Pair<Double, Double>> attributeNameToPair;
 
     public Subscription() {
-        numAttributes = 0;
+        maxNumAttributes = 10;
         subID = -1;
         out = new OutputToFile();
         attributeNameToPair = new HashMap<>();
@@ -20,12 +20,13 @@ public class Subscription {
 
     public Subscription(final Integer ID, int num_attributes, ArrayList<String> attributeName, ArrayList<Pair<Double, Double>> pairs) throws IOException {
         subID = ID;
-        numAttributes = num_attributes;
+        maxNumAttributes = num_attributes;
+        out = new OutputToFile();
         if (num_attributes < pairs.size()) {
             out.writeToLogFile("The number of pair is larger than the number of attributes, subscription construct failed.\n");
             return;
         }
-        if (attributeName.size() < pairs.size()) {
+        if (attributeName.size() != pairs.size()) {
             out.writeToLogFile("The number of pair is not equal to the number of attributeName(ArrayList), subscription construct failed.\n");
             return;
         }
@@ -44,14 +45,14 @@ public class Subscription {
 
     public Subscription(final Integer ID, int num_attributes, HashMap<String, Pair<Double, Double>> mapNameToPair) throws IOException {
         subID = ID;
-        numAttributes = num_attributes;
-
-        for (Pair<Double, Double> value : mapNameToPair.values()) {
-            if (value.getFirst() > value.getSecond()) {
-                out.writeToLogFile("Wrong interval pair, subscription construct failed.");
-                return;
-            }
-        }
+        maxNumAttributes = num_attributes;
+        out = new OutputToFile();
+//        for (Pair<Double, Double> value : mapNameToPair.values()) {
+//            if (value.getFirst() > value.getSecond()) {
+//                out.writeToLogFile("Wrong interval pair, subscription construct failed.");
+//                return;
+//            }
+//        }
         attributeNameToPair = mapNameToPair;
     }
 
@@ -74,7 +75,7 @@ public class Subscription {
             out.writeToLogFile("Already exists such a attribute name, subscription insert failed.\n");
             return false;
         }
-        if (numAttributes == attributeNameToPair.size()) {
+        if (maxNumAttributes == attributeNameToPair.size()) {
             out.writeToLogFile("Number of attributes is full, subscription insert failed.\n");
             return false;
         }

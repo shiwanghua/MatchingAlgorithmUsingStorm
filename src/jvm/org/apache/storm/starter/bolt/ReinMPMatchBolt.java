@@ -19,11 +19,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class MultiPartitionMatchBolt extends BaseRichBolt {
+public class ReinMPMatchBolt extends BaseRichBolt {
     private OutputToFile output;
     private OutputCollector collector;
     private TopologyContext boltContext;
-    private HashMap<Integer, Subscription> mapIDtoSub;
+    private Rein rein;
     static private ArrayList<String> VSSIDtoExecutorID;
 
     private StringBuilder log;
@@ -37,17 +37,17 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
     final private Integer numVisualSubSet;
     final private Integer numExecutor;
     private Integer executorID;
-    private IDAllocator executorIDAllocator;
+    static private IDAllocator executorIDAllocator;
     static private Integer redundancy;
-    //    static private Integer beginExecutorID;
     private long runTime;
     private long speedTime;  // The time to calculate and record speed
     final private long beginTime;
     final private long intervalTime; // The interval between two calculations of speed
 
-    public MultiPartitionMatchBolt(Integer num_executor,Integer redundancy_degree) {   // only execute one time for all executors!
+    public ReinMPMatchBolt(Integer num_executor,Integer redundancy_degree) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
         intervalTime = 60000000000L;  // 1 minute
+        executorIDAllocator=new IDAllocator();
         numSubPacket = 0;
         numEventPacket = 0;
         numSubInserted = 1;
@@ -74,9 +74,9 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
         mpv=null;  //  Now is not needed.
     }
 
-    public synchronized void allocateID(){
-        executorID = executorIDAllocator.allocateID();//boltContext.getThisTaskId(); // Get the current thread number
-    }
+//    public synchronized void allocateID(){
+//        executorID = executorIDAllocator.allocateID();//boltContext.getThisTaskId(); // Get the current thread number
+//    }
 
     static private HashMap<Pair<Integer, Integer>, ArrayList<String>> mpv;
 
@@ -104,11 +104,10 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
         boltContext = topologyContext;
         collector = outputCollector;
         boltName = boltContext.getThisComponentId();
-        executorIDAllocator=new IDAllocator();
-//        executorID=executorIDAllocator.allocateID();
-        allocateID();  // boltIDAllocator need to keep synchronized
+        executorID=executorIDAllocator.allocateID();
+//        allocateID();  // boltIDAllocator need to keep synchronized
+        rein=new Rein(10);
         output = new OutputToFile();
-        mapIDtoSub = new HashMap<>();
 
         if(executorID==0){
             log=new StringBuilder(boltName);
@@ -135,13 +134,10 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
             log = new StringBuilder(boltName);
             log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + boltName + ":");
             List<Integer> taskIds = boltContext.getComponentTasks(boltContext.getThisComponentId());
-//            numExecutor = taskIds.size();
             Iterator taskIdsIter = taskIds.iterator();
             int taskID;
-//            beginExecutorID = 3;//=Integer.MAX_VALUE;
             while (taskIdsIter.hasNext()) {
                 taskID = (Integer) taskIdsIter.next();
-//                beginExecutorID = Math.min(taskID, beginExecutorID);
                 log.append(" ");
                 log.append(taskID);
             }
@@ -152,45 +148,18 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
     public void execute(Tuple tuple) {
-// Solution A: catch Exception to find whether the tuple is a subPacket or a eventPacket
-//        try {
-//            ArrayList<Subscription> subPacket=(ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
-//        }
-//        catch (IllegalArgumentException e) {
-//        }
-//        try {
-//         ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
-//        }
-//        catch (IllegalArgumentException e){
-//        }
 
-        //        final String threadName = Thread.currentThread().getName();
-//        char singleDigit = threadName.charAt(threadName.length() - 2);
-//        char tensDigit = threadName.charAt(threadName.length() - 3);
-//        Integer threadNumber = (int)singleDigit - 0;
-//        if(Character.isDigit(tensDigit))
-//            threadNumber+= 10*(int)tensDigit;
-
-        // Solution B: get the operation type to find what the tuple is
-//        int type = (int) tuple.getValue(0);
         int type=tuple.getInteger(0);
         try {
             switch (type) {
                 case TypeConstant.Insert_Subscription: {
 
                     Integer subPacketID=tuple.getInteger(1);
-//                    if(subPacketID%executorIDAllocator.getIDNum()!=executorID)
-//                    {
-//                        collector.ack(tuple);
-//                        break;
-//                    }
 
-//                    startTime = System.nanoTime();
                     int subID;
                     numSubPacket++;
                     log = new StringBuilder(boltName);
@@ -206,7 +175,8 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
                         subID = subPacket.get(i).getSubID();
                         if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID)=='0')
                             continue;
-                        mapIDtoSub.put(subID, subPacket.get(i));
+                        rein.insert(subPacket.get(i));
+//                        mapIDtoSub.put(subID, subPacket.get(i));
                         numSubInserted++;
                         log = new StringBuilder(boltName);
                         log.append(" Thread ");
@@ -233,14 +203,6 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
                     break;
                 }
                 case TypeConstant.Event_Match_Subscription: {
-
-//                    Integer eventPacketID=(Integer)tuple.getValue(1);
-//                    if(eventPacketID%executorIDAllocator.getIDNum()!=executorID) {
-//                        collector.ack(tuple);
-//                        break;
-//                    }
-
-//                    startTime = System.nanoTime();
                     numEventPacket++;
                     log = new StringBuilder(boltName);
                     log.append(" Thread ");
@@ -251,79 +213,18 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
                     output.writeToLogFile(log.toString());
                     ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
                     for (int i = 0; i < eventPacket.size(); i++) {
-                        int eventID = eventPacket.get(i).getEventID();
-
-//                        matchResult = new StringBuilder(boltName);
-//                        matchResult.append(" Thread ");
-//                        matchResult.append(executorID);
-//                        matchResult.append(" - EventID: ");
-//                        matchResult.append(eventID);
-//                        matchResult.append("; SubNum:");
-//                        matchResult.append(mapIDtoSub.size());
-//                        matchResult.append("; SubID:");
-
-                        if (mapIDtoSub.size() == 0) {
-                            log = new StringBuilder(boltName);
-                            log.append(" Thread ");
-                            log.append(executorID);
-                            log.append(": EventID ");
-                            log.append(eventID);
-                            log.append(" matching task is done.\n");
-                            output.writeToLogFile(log.toString());
-//                            matchResult.append(" ; MatchedSubNum: 0.\n");
-//                            output.saveMatchResult(matchResult.toString());
-                            collector.emit(new Values(executorID, eventID, new ArrayList<>()));
-                            continue;
-                        }
-
-                        ArrayList<Integer> matchedSubIDList = new ArrayList<Integer>();
-                        HashMap<String, Double> eventAttributeNameToValue = eventPacket.get(i).getMap();
-                        Iterator<HashMap.Entry<Integer, Subscription>> subIterator = mapIDtoSub.entrySet().iterator();
-
-                        while (subIterator.hasNext()) {
-                            HashMap.Entry<Integer, Subscription> subEntry = subIterator.next();
-                            Integer subID = subEntry.getKey();
-                            Iterator<HashMap.Entry<String, Pair<Double, Double>>> subAttributeIterator = subEntry.getValue().getMap().entrySet().iterator();
-
-                            Boolean matched = true;
-                            while (subAttributeIterator.hasNext()) {
-                                HashMap.Entry<String, Pair<Double, Double>> subAttributeEntry = subAttributeIterator.next();
-                                String subAttributeName = subAttributeEntry.getKey();
-                                if (!eventAttributeNameToValue.containsKey(subAttributeName)) {
-                                    matched = false;
-                                    break;
-                                }
-
-                                Double low = subAttributeEntry.getValue().getFirst();
-                                Double high = subAttributeEntry.getValue().getSecond();
-                                Double eventValue = eventAttributeNameToValue.get(subAttributeName);
-                                if (eventValue < low || eventValue > high) {
-                                    matched = false;
-                                    break;
-                                }
-                            }
-                            if (matched) {   // Save this subID to MatchResult
-//                                matchResult.append(" ");
-//                                matchResult.append(subID);
-                                matchedSubIDList.add(subID);
-                            }
-                        }
+                        ArrayList<Integer> matchedSubIDList = rein.match(eventPacket.get(i));
                         log = new StringBuilder(boltName);
                         log.append(" Thread ");
                         log.append(executorID);
                         log.append(": EventID ");
-                        log.append(eventID);
+                        log.append(eventPacket.get(i).getEventID());
                         log.append(" matching task is done.\n");
                         output.writeToLogFile(log.toString());
-//                        matchResult.append("; MatchedSubNum: ");
-//                        matchResult.append(matchedSubIDList.size());
-//                        matchResult.append(".\n");
-//                        output.saveMatchResult(matchResult.toString());
-                        collector.emit(new Values(executorID, eventID, matchedSubIDList));
+                        collector.emit(new Values(executorID, eventPacket.get(i).getEventID(), matchedSubIDList));
                     }
                     collector.ack(tuple);
                     numEventMatched += eventPacket.size();
-//                    matchEventTime += System.nanoTime() - startTime;
                     break;
                 }
                 default:

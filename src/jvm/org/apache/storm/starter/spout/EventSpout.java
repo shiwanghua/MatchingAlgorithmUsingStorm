@@ -31,9 +31,9 @@ public class EventSpout extends BaseRichSpout {
     TopologyContext eventSpoutTopologyContext;
 
     public EventSpout() {
-        maxNumEvent = 20;
-        maxNumAttribute = 10;
-        numAttributeType=30;
+        maxNumEvent = TypeConstant.maxNumEventPerPacket;
+        maxNumAttribute = TypeConstant.maxNumAttributePerEvent;
+        numAttributeType=TypeConstant.numAttributeType;
     }
 
     @Override

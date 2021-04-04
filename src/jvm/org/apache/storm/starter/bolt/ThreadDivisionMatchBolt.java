@@ -36,7 +36,8 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
     private Integer numEventMatched;
     final private Integer numExecutor;
     private Integer executorID;
-    static private Integer boltIDAllocator;
+    //static private Integer executorIDAllocator;  // Solution A
+    private IDAllocator executorIDAllocator;     // Solution B
     //    static private Integer beginExecutorID;
     //    private long insertSubTime;
     //    private long matchEventTime;
@@ -49,13 +50,13 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
     public ThreadDivisionMatchBolt(Integer num_executor) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
         intervalTime = 60000000000L;  // 1 minute
-        boltIDAllocator=0;
+        executorIDAllocator=new IDAllocator();
         numExecutor=num_executor;
     }
 
-    public synchronized void allocateID(){
-        executorID = boltIDAllocator++;//boltContext.getThisTaskId(); // Get the current thread number
-    }
+//    public synchronized void allocateID(){
+//        executorID = executorIDAllocator.allocateID();//boltContext.getThisTaskId(); // Get the current thread number
+//    }
     @Override
     public void prepare(Map<String, Object> map, TopologyContext topologyContext, OutputCollector outputCollector) { // execute one time for every executor!
         numSubPacket = 0;
@@ -71,8 +72,8 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
         boltContext = topologyContext;
         collector = outputCollector;
         boltName = boltContext.getThisComponentId();
-
-        allocateID();  // boltIDAllocator need to keep synchronized
+        executorID=executorIDAllocator.allocateID();
+//        allocateID();  // boltIDAllocator need to keep synchronized
 
         output = new OutputToFile();
         mapIDtoSub = new HashMap<>();
@@ -131,7 +132,7 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                 case TypeConstant.Insert_Subscription: {
 
                     Integer subPacketID=tuple.getInteger(1);
-//                    if(subPacketID%boltIDAllocator!=executorID)
+//                    if(subPacketID%executorIDAllocator.getIDNum()!=executorID)
 //                    {
 //                        collector.ack(tuple);
 //                        break;
@@ -151,7 +152,7 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                     ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
                     for (int i = 0; i < subPacket.size(); i++) {
                         subID = subPacket.get(i).getSubID();
-                        if (subID % boltIDAllocator != executorID)
+                        if (subID % executorIDAllocator.getIDNum() != executorID)
                             continue;
                         mapIDtoSub.put(subID, subPacket.get(i));
                         numSubInserted++;
@@ -182,7 +183,7 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                 case TypeConstant.Event_Match_Subscription: {
 
 //                    Integer eventPacketID=(Integer)tuple.getValue(1);
-//                    if(eventPacketID%boltIDAllocator!=executorID) {
+//                    if(eventPacketID%executorIDAllocator.getIDNum()!=executorID) {
 //                        collector.ack(tuple);
 //                        break;
 //                    }
@@ -199,7 +200,7 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                     ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
                     for (int i = 0; i < eventPacket.size(); i++) {
                         int eventID = eventPacket.get(i).getEventID();
-//                        if(eventID%boltIDAllocator!=executorID)
+//                        if(eventID%executorIDAllocator.getIDNum()!=executorID)
 //                            continue;
 //                        matchResult = new StringBuilder(boltName);
 //                        matchResult.append(" Thread ");

@@ -7,10 +7,7 @@ import org.apache.storm.starter.DataStructure.Event;
 import org.apache.storm.starter.DataStructure.OutputToFile;
 import org.apache.storm.starter.DataStructure.Pair;
 import org.apache.storm.starter.DataStructure.Subscription;
-import org.apache.storm.starter.bolt.MergerBolt;
-import org.apache.storm.starter.bolt.MultiPartitionMatchBolt;
-import org.apache.storm.starter.bolt.SimpleMatchBolt;
-import org.apache.storm.starter.bolt.ThreadDivisionMatchBolt;
+import org.apache.storm.starter.bolt.*;
 import org.apache.storm.starter.spout.EventSpout;
 import org.apache.storm.starter.spout.SubscriptionSpout;
 import org.apache.storm.topology.TopologyBuilder;
@@ -21,15 +18,17 @@ import org.apache.storm.utils.Utils;
 public class SimpleMatchTopology {
     public static void main(String[] args) throws Exception {
 
-        Integer numExecutorsInAMatchBolt=6;
+        Integer numExecutorInAMatchBolt=6;
         Integer redundancy=3;
 
         TopologyBuilder builder = new TopologyBuilder();
 
         builder.setSpout("SubSpout", new SubscriptionSpout(), 1);
         builder.setSpout("EventSpout", new EventSpout(), 1);
-        builder.setBolt("MPMBolt0", new MultiPartitionMatchBolt(numExecutorsInAMatchBolt,redundancy),numExecutorsInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
-        builder.setBolt("MergerBolt",new MergerBolt(numExecutorsInAMatchBolt),1).allGrouping("MPMBolt0");
+        builder.setBolt("ReinMPMBolt0", new ReinMPMatchBolt(numExecutorInAMatchBolt,redundancy),numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
+//        builder.setBolt("MPMBolt1", new MultiPartitionMatchBolt(numExecutorInAMatchBolt,redundancy),numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
+        builder.setBolt("MergerBolt0",new MergerBolt(numExecutorInAMatchBolt),1).allGrouping("ReinMPMBolt0");
+//        builder.setBolt("MergerBolt1",new MergerBolt(numExecutorInAMatchBolt),1).allGrouping("MPMBolt1");
 //        builder.setBolt("TDMBolt0", new ThreadDivisionMatchBolt(numExecutorsInAMatchBolt),4).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
 //        builder.setBolt("TDMBolt1", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
 //        builder.setBolt("TDMBolt2", new ThreadDivisionMatchBolt(),1).allGrouping("SubSpout").allGrouping("EventSpout");
@@ -43,6 +42,7 @@ public class SimpleMatchTopology {
         conf.registerSerialization(Pair.class);
         conf.registerSerialization(Event.class);
         conf.registerSerialization(Subscription.class);
+        conf.registerSerialization(Double.class);
 
         conf.setDebug(false);
         conf.setNumWorkers(9);

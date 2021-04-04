@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Event {
-    private int numAttributes;
+    private int maxNumAttributes;
     private Integer eventID;
     private OutputToFile output;
     private HashMap<String, Double> attributeNameToValue;
 
     public Event(){
-        numAttributes = 0;
+        maxNumAttributes = 0;
         eventID=-1;
         output=new OutputToFile();
         attributeNameToValue=new HashMap<>();
@@ -19,7 +19,8 @@ public class Event {
 
     public Event(final Integer ID, int num_attributes, ArrayList<String> attributeName, ArrayList<Double> values) throws IOException {
         eventID = ID;
-        numAttributes = num_attributes;
+        maxNumAttributes = num_attributes;
+        output=new OutputToFile();
         if (attributeName.size() < values.size()) {
             output.writeToLogFile("The number of value is larger than the number of attributes, event construct failed.\n");
             return;
@@ -36,15 +37,16 @@ public class Event {
 
     public Event(final Integer ID, int num_attributes, HashMap<String, Double> mapNameToValue) throws IOException {
         eventID = ID;
+        output=new OutputToFile();
         if (num_attributes < mapNameToValue.size()) {
-            output.writeToLogFile("The number of values is larger than the number of attributes, event construct failed.\n");
+            output.writeToLogFile("The number of values is larger than the max number of attributes, event construct failed.\n");
             return;
         }
-        numAttributes = num_attributes;
+        maxNumAttributes = num_attributes;
         attributeNameToValue = mapNameToValue;
     }
 
-    public Double getValue(String attributeName) {
+    public Double getAttributeValue(String attributeName) {
         return attributeNameToValue.get(attributeName);
     }
 
@@ -59,7 +61,7 @@ public class Event {
             output.writeToLogFile("Already exists such a attribute name, event insert failed.\n");
             return false;
         }
-        if (numAttributes == attributeNameToValue.size()) {
+        if (maxNumAttributes == attributeNameToValue.size()) {
             output.writeToLogFile("Number of attributes is full, event insert failed.\n");
             return false;
         }

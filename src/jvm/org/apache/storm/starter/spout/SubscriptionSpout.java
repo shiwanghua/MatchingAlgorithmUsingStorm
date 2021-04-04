@@ -28,17 +28,17 @@ public class SubscriptionSpout extends BaseRichSpout {
     final int numAttributeType;             //  Type number of attributes
     final Integer subSetSize;
     private Random valueGenerator;          //  Generate the interval value and index of attribute name
-    private int[] randomArray;              //  To get the attribute name
+    private int[] randomPermutation;              //  To get the attribute name
     private OutputToFile output;
     private StringBuilder log;
     private StringBuilder errorLog;
     private String spoutName;
 
     public SubscriptionSpout() {
-        maxNumSubscription = 100;
-        maxNumAttribute = 10;
-        numAttributeType = 30;
-        subSetSize = 200000;
+        maxNumSubscription = TypeConstant.maxNumSubscriptionPerPacket;
+        maxNumAttribute = TypeConstant.maxNumAttributePerSubscription;
+        numAttributeType = TypeConstant.numAttributeType;
+        subSetSize = TypeConstant.subSetSize;
     }
 
     @Override
@@ -46,9 +46,9 @@ public class SubscriptionSpout extends BaseRichSpout {
         subID = 1;
         numSubPacket = 0;
         valueGenerator = new Random();
-        randomArray = new int[numAttributeType];
+        randomPermutation = new int[numAttributeType];
         for (int i = 0; i < numAttributeType; i++)
-            randomArray[i] = i;
+            randomPermutation[i] = i;
         subSpoutTopologyContext = topologyContext;
         spoutName=subSpoutTopologyContext.getThisComponentId();
         collector = spoutOutputCollector;
@@ -110,9 +110,9 @@ public class SubscriptionSpout extends BaseRichSpout {
 
             for (int j = 0; j < numAttribute; j++) { // Use the first #numAttribute values of randomArray to create the attribute name
                 int index = valueGenerator.nextInt(numAttributeType - j) + j;
-                int temp = randomArray[j];
-                randomArray[j] = randomArray[index];
-                randomArray[index] = temp;
+                int temp = randomPermutation[j];
+                randomPermutation[j] = randomPermutation[index];
+                randomPermutation[index] = temp;
             }
 
             Double low, high;
@@ -122,7 +122,7 @@ public class SubscriptionSpout extends BaseRichSpout {
             for (int j = 0; j < numAttribute; j++) {
                 low = valueGenerator.nextDouble();
                 high = low + (1.0 - low) * valueGenerator.nextDouble();
-                mapNameToPair.put(attributeName + String.valueOf(randomArray[j]), Pair.of(low, high));
+                mapNameToPair.put(attributeName + String.valueOf(randomPermutation[j]), Pair.of(low, high));
             }
             try {
                 sub.add(new Subscription(subID, numAttribute, mapNameToPair));
