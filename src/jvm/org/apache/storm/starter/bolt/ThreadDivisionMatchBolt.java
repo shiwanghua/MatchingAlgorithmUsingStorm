@@ -36,8 +36,7 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
     private Integer numEventMatched;
     final private Integer numExecutor;
     private Integer executorID;
-    //static private Integer executorIDAllocator;  // Solution A
-    private IDAllocator executorIDAllocator;     // Solution B
+    static private Integer executorIDAllocator;
     //    static private Integer beginExecutorID;
     //    private long insertSubTime;
     //    private long matchEventTime;
@@ -50,13 +49,13 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
     public ThreadDivisionMatchBolt(Integer num_executor) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
         intervalTime = 60000000000L;  // 1 minute
-//        executorIDAllocator=new IDAllocator();
-        numExecutor=num_executor;
+        numExecutor = num_executor;
+        executorIDAllocator=0;
     }
 
-//    public synchronized void allocateID(){
-//        executorID = executorIDAllocator.allocateID();//boltContext.getThisTaskId(); // Get the current thread number
-//    }
+    public synchronized void allocateID() {
+        executorID = executorIDAllocator++;//boltContext.getThisTaskId(); // Get the current thread number
+    }
     @Override
     public void prepare(Map<String, Object> map, TopologyContext topologyContext, OutputCollector outputCollector) { // execute one time for every executor!
         numSubPacket = 0;
@@ -72,9 +71,7 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
         boltContext = topologyContext;
         collector = outputCollector;
         boltName = boltContext.getThisComponentId();
-        executorIDAllocator=new IDAllocator();
-  	executorID=executorIDAllocator.allocateID();
-//        allocateID();  // boltIDAllocator need to keep synchronized
+        allocateID();  // boltIDAllocator need to keep synchronized
 
         output = new OutputToFile();
         mapIDtoSub = new HashMap<>();
@@ -127,12 +124,12 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
 
         // Solution B: get the operation type to find what the tuple is
 //        int type = (int) tuple.getValue(0);
-        int type=tuple.getInteger(0);
+        int type = tuple.getInteger(0);
         try {
             switch (type) {
                 case TypeConstant.Insert_Subscription: {
 
-                    Integer subPacketID=tuple.getInteger(1);
+                    Integer subPacketID = tuple.getInteger(1);
 //                    if(subPacketID%executorIDAllocator.getIDNum()!=executorID)
 //                    {
 //                        collector.ack(tuple);
@@ -153,7 +150,7 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                     ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
                     for (int i = 0; i < subPacket.size(); i++) {
                         subID = subPacket.get(i).getSubID();
-                        if (subID % executorIDAllocator.getIDNum() != executorID)
+                        if (subID % executorIDAllocator != executorID)
                             continue;
                         mapIDtoSub.put(subID, subPacket.get(i));
                         numSubInserted++;
@@ -316,10 +313,10 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("executorID", "eventID","subIDs"));
+        outputFieldsDeclarer.declare(new Fields("executorID", "eventID", "subIDs"));
     }
 
-    public Integer getNumExecutor(){
+    public Integer getNumExecutor() {
         return numExecutor;
 //        return boltIDAllocator;   //  this variable may not be the last executor number.
     }

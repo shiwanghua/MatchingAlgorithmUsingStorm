@@ -9,10 +9,10 @@ public class Rein {
     private HashMap<String, ArrayList<LinkedList<Pair<Integer, Double>>>> infBuckets; // Attribute name -> bucket id -> a bucket list -> (subID,subVlue)
     private HashMap<String, ArrayList<LinkedList<Pair<Integer, Double>>>> supBuckets;
 
-    public Rein(Integer num_bucket) {
+    public Rein() {
         numSub = 0;
-        numBucket = num_bucket;
-        bucketSpan = 1.0 / num_bucket;
+        numBucket = TypeConstant.numBucket;
+        bucketSpan = 1.0 / numBucket;
         mapToSubID=new ArrayList<>();
         infBuckets = new HashMap<>();
         supBuckets = new HashMap<>();

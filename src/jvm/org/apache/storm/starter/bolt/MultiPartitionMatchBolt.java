@@ -37,7 +37,8 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
     final private Integer numVisualSubSet;
     final private Integer numExecutor;
     private Integer executorID;
-    private IDAllocator executorIDAllocator;
+    static private Integer executorIDAllocator;
+//    private IDAllocator executorIDAllocator;
     static private Integer redundancy;
     //    static private Integer beginExecutorID;
     private long runTime;
@@ -75,7 +76,7 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
     }
 
     public synchronized void allocateID(){
-        executorID = executorIDAllocator.allocateID();//boltContext.getThisTaskId(); // Get the current thread number
+        executorID = executorIDAllocator++;//boltContext.getThisTaskId(); // Get the current thread number
     }
 
     static private HashMap<Pair<Integer, Integer>, ArrayList<String>> mpv;
@@ -104,7 +105,6 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
         boltContext = topologyContext;
         collector = outputCollector;
         boltName = boltContext.getThisComponentId();
-        executorIDAllocator=new IDAllocator();
 //        executorID=executorIDAllocator.allocateID();
         allocateID();  // boltIDAllocator need to keep synchronized
         output = new OutputToFile();

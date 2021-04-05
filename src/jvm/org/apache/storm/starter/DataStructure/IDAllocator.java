@@ -5,10 +5,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class IDAllocator {
     private AtomicInteger allocator;
     public IDAllocator(){
-        allocator=new AtomicInteger(-1);
+        allocator=new AtomicInteger(0);
     }
     public Integer allocateID(){
-        return (Integer) allocator.incrementAndGet();
+        return (Integer) allocator.getAndIncrement();
     }
 
     public Integer getIDNum(){
