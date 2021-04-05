@@ -50,7 +50,7 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
     public ThreadDivisionMatchBolt(Integer num_executor) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
         intervalTime = 60000000000L;  // 1 minute
-        executorIDAllocator=new IDAllocator();
+//        executorIDAllocator=new IDAllocator();
         numExecutor=num_executor;
     }
 
@@ -72,7 +72,8 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
         boltContext = topologyContext;
         collector = outputCollector;
         boltName = boltContext.getThisComponentId();
-        executorID=executorIDAllocator.allocateID();
+        executorIDAllocator=new IDAllocator();
+  	executorID=executorIDAllocator.allocateID();
 //        allocateID();  // boltIDAllocator need to keep synchronized
 
         output = new OutputToFile();

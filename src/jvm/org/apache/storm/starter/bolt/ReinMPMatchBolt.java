@@ -106,7 +106,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         boltName = boltContext.getThisComponentId();
         executorID=executorIDAllocator.allocateID();
 //        allocateID();  // boltIDAllocator need to keep synchronized
-        rein=new Rein(10);
+        rein=new Rein(5);
         output = new OutputToFile();
 
         if(executorID==0){
