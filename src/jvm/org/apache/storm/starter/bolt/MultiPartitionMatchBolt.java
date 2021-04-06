@@ -50,11 +50,12 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
         beginTime = System.nanoTime();
         intervalTime = 60000000000L;  // 1 minute
         numSubPacket = 0;
-        numEventPacket = 0;
+	numEventPacket = 0;
         numSubInserted = 1;
         numEventMatched = 1;
         runTime = 1;
-        numExecutor=num_executor;
+        executorIDAllocator=0;
+	numExecutor=num_executor;
         redundancy=redundancy_degree;
 
         log = new StringBuilder();

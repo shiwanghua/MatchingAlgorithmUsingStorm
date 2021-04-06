@@ -37,7 +37,8 @@ public class ReinMPMatchBolt extends BaseRichBolt {
     final private Integer numVisualSubSet;
     final private Integer numExecutor;
     private Integer executorID;
-    static private IDAllocator executorIDAllocator;
+    static private Integer executorIDAllocator;
+    //    static private IDAllocator executorIDAllocator;
     static private Integer redundancy;
     private long runTime;
     private long speedTime;  // The time to calculate and record speed
@@ -47,7 +48,8 @@ public class ReinMPMatchBolt extends BaseRichBolt {
     public ReinMPMatchBolt(Integer num_executor,Integer redundancy_degree) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
         intervalTime = 60000000000L;  // 1 minute
-        executorIDAllocator=new IDAllocator();
+        executorIDAllocator=0;
+	//executorIDAllocator=new IDAllocator();
         numSubPacket = 0;
         numEventPacket = 0;
         numSubInserted = 1;
@@ -74,9 +76,9 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         mpv=null;  //  Now is not needed.
     }
 
-//    public synchronized void allocateID(){
-//        executorID = executorIDAllocator.allocateID();//boltContext.getThisTaskId(); // Get the current thread number
-//    }
+    private synchronized void allocateID(){
+        executorID = executorIDAllocator++;
+    }
 
     static private HashMap<Pair<Integer, Integer>, ArrayList<String>> mpv;
 
@@ -104,8 +106,8 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         boltContext = topologyContext;
         collector = outputCollector;
         boltName = boltContext.getThisComponentId();
-        executorID=executorIDAllocator.allocateID();
-//        allocateID();  // boltIDAllocator need to keep synchronized
+	//  executorID=executorIDAllocator.allocateID();
+        allocateID();  // boltIDAllocator need to keep synchronized
         rein=new Rein();
         output = new OutputToFile();
 
