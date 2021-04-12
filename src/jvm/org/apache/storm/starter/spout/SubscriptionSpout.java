@@ -50,7 +50,7 @@ public class SubscriptionSpout extends BaseRichSpout {
         for (int i = 0; i < numAttributeType; i++)
             randomPermutation[i] = i;
         subSpoutTopologyContext = topologyContext;
-        spoutName=subSpoutTopologyContext.getThisComponentId();
+        spoutName = subSpoutTopologyContext.getThisComponentId();
         collector = spoutOutputCollector;
         output = new OutputToFile();
         try {
@@ -61,7 +61,7 @@ public class SubscriptionSpout extends BaseRichSpout {
             while (taskIdsIter.hasNext())
                 log.append(" " + String.valueOf(taskIdsIter.next()));
             log.append("\nThisTaskId: ");
-            log.append(subSpoutTopologyContext.getThisTaskId()+"\n\n");  // Get the current thread number
+            log.append(subSpoutTopologyContext.getThisTaskId() + "\n\n");  // Get the current thread number
             output.otherInfo(log.toString());
         } catch (IOException e) {
             e.printStackTrace();
@@ -71,7 +71,7 @@ public class SubscriptionSpout extends BaseRichSpout {
     @Override
     public void ack(Object id) {
 //        LOG.debug("Got ACK for msgId : ");
-        log=new StringBuilder(spoutName);
+        log = new StringBuilder(spoutName);
         log.append(": SubTuple ");
         log.append(id);
         log.append(" is acked.\n");
@@ -84,7 +84,7 @@ public class SubscriptionSpout extends BaseRichSpout {
 
     @Override
     public void fail(Object id) {
-        errorLog=new StringBuilder(spoutName);
+        errorLog = new StringBuilder(spoutName);
         errorLog.append(": SubTuple ");
         errorLog.append(id);
         errorLog.append(" is failed.\n");
@@ -116,16 +116,16 @@ public class SubscriptionSpout extends BaseRichSpout {
             }
 
             Double low, high;
-            String attributeName = "attributeName";
-            HashMap<String, Pair<Double, Double>> mapNameToPair = new HashMap<>();
+//            String attributeName = "attributeName";
+            HashMap<Integer, Pair<Double, Double>> mapNameToPair = new HashMap<>();
 
             for (int j = 0; j < numAttribute; j++) {
                 low = valueGenerator.nextDouble();
                 high = low + (1.0 - low) * valueGenerator.nextDouble();
-                mapNameToPair.put(attributeName + String.valueOf(randomPermutation[j]), Pair.of(low, high));
+                mapNameToPair.put(randomPermutation[j], Pair.of(low, high));
             }
             try {
-                sub.add(new Subscription(subID, numAttribute, mapNameToPair));
+                sub.add(new Subscription(subID, mapNameToPair));
                 subID += 1;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -135,29 +135,29 @@ public class SubscriptionSpout extends BaseRichSpout {
         // for test
 //        try {
 //
-//            HashMap<String, Pair<Double, Double>> m0 = new HashMap<>();
-//            m0.put("name1", Pair.of(0.0, 0.1));
-//            m0.put("name2", Pair.of(0.1, 0.2));
+//            HashMap<Integer, Pair<Double, Double>> m0 = new HashMap<>();
+//            m0.put(1, Pair.of(0.0, 0.1));
+//            m0.put(2, Pair.of(0.1, 0.2));
 //            sub.add(new Subscription(0, 2, m0));
 //
-//            HashMap<String, Pair<Double, Double>> m1 = new HashMap<>();
-//            m1.put("name3", Pair.of(0.2, 0.3));
-//            m1.put("name4", Pair.of(0.3, 0.4));
+//            HashMap<Integer, Pair<Double, Double>> m1 = new HashMap<>();
+//            m1.put(3, Pair.of(0.2, 0.3));
+//            m1.put(4, Pair.of(0.3, 0.4));
 //            sub.add(new Subscription(1, 2, m1));
 //
-//            HashMap<String, Pair<Double, Double>> m2 = new HashMap<>();
-//            m2.put("name1", Pair.of(0.4, 0.5));
-//            m2.put("name2", Pair.of(0.5, 0.6));
+//            HashMap<Integer, Pair<Double, Double>> m2 = new HashMap<>();
+//            m2.put(5, Pair.of(0.4, 0.5));
+//            m2.put(2, Pair.of(0.5, 0.6));
 //            sub.add(new Subscription(2, 2, m2));
 //
-//            HashMap<String, Pair<Double, Double>> m3 = new HashMap<>();
-//            m3.put("name1", Pair.of(0.05, 0.95));
-//            m3.put("name3", Pair.of(0.09, 0.86));
+//            HashMap<Integer, Pair<Double, Double>> m3 = new HashMap<>();
+//            m3.put(1, Pair.of(0.05, 0.95));
+//            m3.put(3, Pair.of(0.09, 0.86));
 //            sub.add(new Subscription(3, 2, m3));
 //
-//            HashMap<String, Pair<Double, Double>> m4 = new HashMap<>();
-//            m4.put("name2", Pair.of(0.15, 0.55));
-//            m4.put("name4", Pair.of(0.35, 0.94));
+//            HashMap<Integer, Pair<Double, Double>> m4 = new HashMap<>();
+//            m4.put(2, Pair.of(0.15, 0.55));
+//            m4.put(4, Pair.of(0.35, 0.94));
 //            sub.add(new Subscription(4, 2, m4));
 //
 //        } catch (IOException e) {

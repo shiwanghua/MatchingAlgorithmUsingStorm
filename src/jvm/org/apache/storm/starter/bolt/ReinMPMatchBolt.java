@@ -13,21 +13,17 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class ReinMPMatchBolt extends BaseRichBolt {
     private OutputToFile output;
     private OutputCollector collector;
     private TopologyContext boltContext;
     private Rein rein;
-    static private ArrayList<String> VSSIDtoExecutorID;
+    private ArrayList<String> VSSIDtoExecutorID;
 
     private StringBuilder log;
-    private StringBuilder matchResult;
+//    private StringBuilder matchResult;
 
     private String boltName;
     private Integer numSubPacket;
@@ -39,64 +35,33 @@ public class ReinMPMatchBolt extends BaseRichBolt {
     private Integer executorID;
     static private Integer executorIDAllocator;
     //    static private IDAllocator executorIDAllocator;
-    static private Integer redundancy;
+    final private Integer redundancy;
     private long runTime;
     private long speedTime;  // The time to calculate and record speed
     final private long beginTime;
     final private long intervalTime; // The interval between two calculations of speed
 
-    public ReinMPMatchBolt(Integer num_executor,Integer redundancy_degree) {   // only execute one time for all executors!
+    public ReinMPMatchBolt(Integer num_executor, Integer redundancy_degree, Integer num_visual_subSet, ArrayList<String>VSSID_to_ExecutorID) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
         intervalTime = 60000000000L;  // 1 minute
-        executorIDAllocator=0;
-	//executorIDAllocator=new IDAllocator();
+        executorIDAllocator = 0;
+        //executorIDAllocator=new IDAllocator();
         numSubPacket = 0;
         numEventPacket = 0;
         numSubInserted = 1;
         numEventMatched = 1;
         runTime = 1;
-        numExecutor=num_executor;
-        redundancy=redundancy_degree;
+        numExecutor = num_executor;
+        redundancy = redundancy_degree;
+        numVisualSubSet = num_visual_subSet;
+        VSSIDtoExecutorID = VSSID_to_ExecutorID;
 
         log = new StringBuilder();
-        matchResult = new StringBuilder();
-
-        // calculate the number of visual subset
-        int n=1,m=1,nm=1;
-        for(int i=2; i<=numExecutor; i++) {
-            n *= i;
-            if (i == redundancy)
-                m = n;
-            if (i == (numExecutor - redundancy))
-                nm = n;
-        }
-        numVisualSubSet=n/m/nm;
-        mpv=new HashMap<>();
-        VSSIDtoExecutorID=SubsetCodeGeneration(redundancy,numExecutor);
-        mpv=null;  //  Now is not needed.
+//        matchResult = new StringBuilder();
     }
 
-    private synchronized void allocateID(){
+    private synchronized void allocateID() {
         executorID = executorIDAllocator++;
-    }
-
-    static private HashMap<Pair<Integer, Integer>, ArrayList<String>> mpv;
-
-    //  从K位里生成含k个1的字符串的集合
-    ArrayList<String> SubsetCodeGeneration(int k, int K) {
-        if (k == 0) return new ArrayList<String>(){{add(StringUtils.repeat("0", K));}};
-        if (mpv.containsKey(Pair.of(k, K))) return mpv.get(Pair.of(k, K));
-        ArrayList<String> strSet=new ArrayList<>();
-        for (int i = k; i <= K; i++)  //  只有前 i 位有1且第 i 位必须是1
-        {
-            String highStr = StringUtils.repeat("0",K - i) + "1";
-            //  从前i-1位里生成含k-1个1的字符串的集合
-            ArrayList<String> lowPart = SubsetCodeGeneration(k - 1, i - 1);
-            mpv.put(Pair.of(k - 1, i - 1),lowPart);
-            for (int j=0;j<lowPart.size();j++)
-                strSet.add(highStr + lowPart.get(j));
-        }
-        return strSet;
     }
 
     @Override
@@ -106,13 +71,13 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         boltContext = topologyContext;
         collector = outputCollector;
         boltName = boltContext.getThisComponentId();
-	//  executorID=executorIDAllocator.allocateID();
+        //  executorID=executorIDAllocator.allocateID();
         allocateID();  // boltIDAllocator need to keep synchronized
-        rein=new Rein();
+        rein = new Rein();
         output = new OutputToFile();
 
-        if(executorID==0){
-            log=new StringBuilder(boltName);
+        if (executorID == 0) {
+            log = new StringBuilder(boltName);
             log.append("MultiPartitionMatchBolt \nnumExecutor = ");
             log.append(numExecutor);
             log.append("\nredundancy = ");
@@ -120,7 +85,8 @@ public class ReinMPMatchBolt extends BaseRichBolt {
             log.append("\nnumVisualSubSet = ");
             log.append(numVisualSubSet);
             log.append("\nMap Table:\nID  ExecutorID");
-            for(int i=0;i<VSSIDtoExecutorID.size();i++){
+            int size=VSSIDtoExecutorID.size();
+            for (int i = 0; i < size; i++) {
                 log.append(String.format("\n%02d: ", i));
                 log.append(VSSIDtoExecutorID.get(i));
             }
@@ -155,12 +121,12 @@ public class ReinMPMatchBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple tuple) {
 
-        int type=tuple.getInteger(0);
+        int type = tuple.getInteger(0);
         try {
             switch (type) {
                 case TypeConstant.Insert_Subscription: {
 
-                    Integer subPacketID=tuple.getInteger(1);
+                    Integer subPacketID = tuple.getInteger(1);
 
                     int subID;
                     numSubPacket++;
@@ -173,13 +139,13 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                     output.writeToLogFile(log.toString());
 
                     ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
-                    for (int i = 0; i < subPacket.size(); i++) {
+                    int size=subPacket.size();
+                    for (int i = 0; i < size; i++) {
                         subID = subPacket.get(i).getSubID();
-                        if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID)=='0')
+                        if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID) == '0')
                             continue;
-                        rein.insert(subPacket.get(i));
-//                        mapIDtoSub.put(subID, subPacket.get(i));
-                        numSubInserted++;
+                        if (rein.insert(subPacket.get(i))) // no need to add if already exists
+                            numSubInserted++;
                         log = new StringBuilder(boltName);
                         log.append(" Thread ");
                         log.append(executorID);
@@ -214,16 +180,18 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                     log.append(" is received.\n");
                     output.writeToLogFile(log.toString());
                     ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
-                    for (int i = 0; i < eventPacket.size(); i++) {
+                    int size = eventPacket.size(),eventID;
+                    for (int i = 0; i < size; i++) {
                         ArrayList<Integer> matchedSubIDList = rein.match(eventPacket.get(i));
+                        eventID=eventPacket.get(i).getEventID();
                         log = new StringBuilder(boltName);
                         log.append(" Thread ");
                         log.append(executorID);
                         log.append(": EventID ");
-                        log.append(eventPacket.get(i).getEventID());
+                        log.append(eventID);
                         log.append(" matching task is done.\n");
                         output.writeToLogFile(log.toString());
-                        collector.emit(new Values(executorID, eventPacket.get(i).getEventID(), matchedSubIDList));
+                        collector.emit(new Values(executorID, eventID, matchedSubIDList));
                     }
                     collector.ack(tuple);
                     numEventMatched += eventPacket.size();
@@ -269,11 +237,133 @@ public class ReinMPMatchBolt extends BaseRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("executorID", "eventID","subIDs"));
+        outputFieldsDeclarer.declare(new Fields("executorID", "eventID", "subIDs"));
     }
 
-    public Integer getNumExecutor(){
+    public Integer getNumExecutor() {
         return numExecutor;
 //        return boltIDAllocator;   //  this variable may not be the last executor number.
+    }
+
+
+    class Rein {
+        private Integer numBucket, numSub, numAttributeType;
+        private double bucketSpan;
+        private ArrayList<Integer> mapToSubID;
+        private HashMap<Integer, Boolean> exist;
+        private ArrayList<ArrayList<LinkedList<Pair<Integer, Double>>>> infBuckets; // Attribute ID -> bucket id -> a bucket list -> (subID,subVlue)
+        private ArrayList<ArrayList<LinkedList<Pair<Integer, Double>>>> supBuckets;
+
+        public Rein() {
+            numSub = 0;
+            numBucket = TypeConstant.numBucket;
+            numAttributeType = TypeConstant.numAttributeType;
+            bucketSpan = 1.0 / numBucket;
+            mapToSubID = new ArrayList<>();
+            exist = new HashMap<>();
+            infBuckets = new ArrayList<>();
+            supBuckets = new ArrayList<>();
+            for (int i = 0; i < TypeConstant.numAttributeType; i++) {
+                infBuckets.add(new ArrayList<>());
+                supBuckets.add(new ArrayList<>());
+                for (int j = 0; j < numBucket; j++) {
+                    infBuckets.get(i).add(new LinkedList<>());
+                    supBuckets.get(i).add(new LinkedList<>());
+                }
+            }
+        }
+
+        public boolean insert(Subscription sub) {
+            Integer subID = sub.getSubID();
+            if (exist.get(subID)!=null&&exist.get(subID)==true)
+                return false;
+
+            Integer subAttributeID;
+            double low, high;
+            HashMap.Entry<Integer, Pair<Double, Double>> subAttributeEntry;
+            Iterator<HashMap.Entry<Integer, Pair<Double, Double>>> subAttributeIterator = sub.getMap().entrySet().iterator();
+            while (subAttributeIterator.hasNext()) {
+                subAttributeEntry = subAttributeIterator.next();
+                subAttributeID = subAttributeEntry.getKey();
+                low = subAttributeEntry.getValue().getFirst();
+                high = subAttributeEntry.getValue().getSecond();
+
+                infBuckets.get(subAttributeID).get((int) (low / bucketSpan)).add(Pair.of(numSub, low));
+                supBuckets.get(subAttributeID).get((int) (high / bucketSpan)).add(Pair.of(numSub, high));
+            }
+            mapToSubID.add(subID);  //  add this map to ensure the size of bits array int match() is right, since each executor will not get a successive subscription set
+            exist.put(subID, true);
+            numSub++;   //  after Deletion operation, numSub!=numSubInserted, so variable 'numSubInserted' is needed.
+            return true;
+        }
+
+        public ArrayList<Integer> match(Event e) {
+
+            boolean[] bits = new boolean[numSub];
+//        Integer eventAttributeID;
+            Double attributeValue;
+            int bucketID;
+
+            // Solution: each event has all attribute types i.e.: e.getMap().size()==numAttributeType
+//        HashMap.Entry<Integer, Double> eventAttributeEntry;
+//        Iterator<HashMap.Entry<Integer, Double>> eventAttributeIterator = e.getMap().entrySet().iterator();
+//        while (eventAttributeIterator.hasNext()) {
+//            eventAttributeEntry = eventAttributeIterator.next();
+//            eventAttributeID = eventAttributeEntry.getKey();
+//            attributeValue = eventAttributeEntry.getValue();
+//            bucketID = (int) (attributeValue / bucketSpan);
+//
+//            for (Pair<Integer, Double> subIDValue : infBuckets.get(eventAttributeID).get(bucketID))
+//                if (subIDValue.value2 > attributeValue)
+//                    bits[subIDValue.value1] = true;
+//            for (int i = bucketID + 1; i < numBucket; i++)
+//                for (Pair<Integer, Double> subIDValue : infBuckets.get(eventAttributeID).get(i))
+//                    bits[subIDValue.value1] = true;
+//
+//            for (Pair<Integer, Double> subIDValue : supBuckets.get(eventAttributeID).get(bucketID))
+//                if (subIDValue.value2 < attributeValue)
+//                    bits[subIDValue.value1] = true;
+//            for (int i = 0; i < bucketID; i++)
+//                for (Pair<Integer, Double> subIDValue : infBuckets.get(eventAttributeID).get(i))
+//                    bits[subIDValue.value1] = true;
+//        }
+
+//        HashMap<Integer,Double> attributeIDToValue=e.getMap();
+            for (int i = 0; i < numAttributeType; i++) {   // i: attributeID
+                attributeValue = e.getAttributeValue(i);
+                if (attributeValue == null) {  // all sub containing this attribute should be marked, only either sup or inf is enough.
+                    for (int j = 0; j < numBucket; j++) {  // j: BucketID
+                        for (Iterator<Pair<Integer, Double>> pairIterator = infBuckets.get(i).get(j).iterator(); pairIterator.hasNext(); ) {
+                            bits[pairIterator.next().getFirst()] = true;
+                        } // LinkedList
+                    } // Bucket ArrayList
+                } else {
+                    bucketID=(int)(attributeValue/bucketSpan);
+                    for (Pair<Integer, Double> subIDValue : infBuckets.get(i).get(bucketID))
+                        if (subIDValue.value2 > attributeValue)
+                            bits[subIDValue.value1] = true;
+                    for (int bi = bucketID + 1; bi < numBucket; bi++)
+                        for (Pair<Integer, Double> subIDValue : infBuckets.get(i).get(bi))
+                            bits[subIDValue.value1] = true;
+
+                    for (Pair<Integer, Double> subIDValue : supBuckets.get(i).get(bucketID))
+                        if (subIDValue.value2 < attributeValue)
+                            bits[subIDValue.value1] = true;
+                    for (int bi = 0; bi < bucketID; bi++)
+                        for (Pair<Integer, Double> subIDValue : infBuckets.get(i).get(bi))
+                            bits[subIDValue.value1] = true;
+                }
+            }
+
+            ArrayList<Integer> matchResult = new ArrayList<>();
+            for (int i = 0; i < numSub; i++)
+                if (!bits[i])
+                    matchResult.add(mapToSubID.get(i));
+            return matchResult;
+        }
+
+        public Integer getNumSub() {
+            return numSub;
+        }
     }
 }

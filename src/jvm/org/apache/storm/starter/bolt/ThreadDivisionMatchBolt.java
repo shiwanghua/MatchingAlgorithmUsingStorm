@@ -152,8 +152,9 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                         subID = subPacket.get(i).getSubID();
                         if (subID % executorIDAllocator != executorID)
                             continue;
+                        if(!mapIDtoSub.containsKey(subID))
+                            numSubInserted++;
                         mapIDtoSub.put(subID, subPacket.get(i));
-                        numSubInserted++;
                         log = new StringBuilder(boltName);
                         log.append(" Thread ");
                         log.append(executorID);
@@ -224,26 +225,26 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                         }
 
                         ArrayList<Integer> matchedSubIDList = new ArrayList<Integer>();
-                        HashMap<String, Double> eventAttributeNameToValue = eventPacket.get(i).getMap();
+                        HashMap<Integer, Double> eventAttributeIDToValue = eventPacket.get(i).getMap();
                         Iterator<HashMap.Entry<Integer, Subscription>> subIterator = mapIDtoSub.entrySet().iterator();
 
                         while (subIterator.hasNext()) {
                             HashMap.Entry<Integer, Subscription> subEntry = subIterator.next();
                             Integer subID = subEntry.getKey();
-                            Iterator<HashMap.Entry<String, Pair<Double, Double>>> subAttributeIterator = subEntry.getValue().getMap().entrySet().iterator();
+                            Iterator<HashMap.Entry<Integer, Pair<Double, Double>>> subAttributeIterator = subEntry.getValue().getMap().entrySet().iterator();
 
                             Boolean matched = true;
                             while (subAttributeIterator.hasNext()) {
-                                HashMap.Entry<String, Pair<Double, Double>> subAttributeEntry = subAttributeIterator.next();
-                                String subAttributeName = subAttributeEntry.getKey();
-                                if (!eventAttributeNameToValue.containsKey(subAttributeName)) {
+                                HashMap.Entry<Integer, Pair<Double, Double>> subAttributeEntry = subAttributeIterator.next();
+                                Integer subAttributeID = subAttributeEntry.getKey();
+                                if (!eventAttributeIDToValue.containsKey(subAttributeID)) {
                                     matched = false;
                                     break;
                                 }
 
                                 Double low = subAttributeEntry.getValue().getFirst();
                                 Double high = subAttributeEntry.getValue().getSecond();
-                                Double eventValue = eventAttributeNameToValue.get(subAttributeName);
+                                Double eventValue = eventAttributeIDToValue.get(subAttributeID);
                                 if (eventValue < low || eventValue > high) {
                                     matched = false;
                                     break;

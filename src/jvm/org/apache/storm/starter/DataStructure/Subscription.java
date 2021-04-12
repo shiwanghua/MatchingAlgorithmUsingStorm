@@ -9,16 +9,16 @@ public class Subscription {
     private int maxNumAttributes;
     private Integer subID;
     private OutputToFile out;
-    private HashMap<String, Pair<Double, Double>> attributeNameToPair;
+    private HashMap<Integer, Pair<Double, Double>> attributeIDToPair;
 
     public Subscription() {
         maxNumAttributes = 10;
         subID = -1;
         out = new OutputToFile();
-        attributeNameToPair = new HashMap<>();
+        attributeIDToPair = new HashMap<>();
     }
 
-    public Subscription(final Integer ID, int num_attributes, ArrayList<String> attributeName, ArrayList<Pair<Double, Double>> pairs) throws IOException {
+    public Subscription(final Integer ID, int num_attributes, ArrayList<Integer> attributeID, ArrayList<Pair<Double, Double>> pairs) throws IOException {
         subID = ID;
         maxNumAttributes = num_attributes;
         out = new OutputToFile();
@@ -26,12 +26,14 @@ public class Subscription {
             out.writeToLogFile("The number of pair is larger than the number of attributes, subscription construct failed.\n");
             return;
         }
-        if (attributeName.size() != pairs.size()) {
+        if (attributeID.size() != pairs.size()) {
             out.writeToLogFile("The number of pair is not equal to the number of attributeName(ArrayList), subscription construct failed.\n");
             return;
         }
-        for (int i = 0; i < attributeName.size(); i++) {
-            if (attributeNameToPair.containsKey(attributeName.get(i))) {
+
+        int size=attributeID.size();
+        for (int i = 0; i < size; i++) {
+            if (attributeIDToPair.containsKey(attributeID.get(i))) {
                 out.writeToLogFile("Attribte Name duplicate, subscription construct failed.\n");
                 //return;
             }
@@ -39,13 +41,13 @@ public class Subscription {
                 out.writeToLogFile("Wrong interval pair, subscription construct failed.\n");
                 return;
             }
-            attributeNameToPair.put(attributeName.get(i), pairs.get(i));
+            attributeIDToPair.put(attributeID.get(i), pairs.get(i));
         }
     }
 
-    public Subscription(final Integer ID, int num_attributes, HashMap<String, Pair<Double, Double>> mapNameToPair) throws IOException {
+    public Subscription(final Integer ID, HashMap<Integer, Pair<Double, Double>> mapIDToPair) throws IOException {
         subID = ID;
-        maxNumAttributes = num_attributes;
+        maxNumAttributes = mapIDToPair.size();
         out = new OutputToFile();
 //        for (Pair<Double, Double> value : mapNameToPair.values()) {
 //            if (value.getFirst() > value.getSecond()) {
@@ -53,52 +55,52 @@ public class Subscription {
 //                return;
 //            }
 //        }
-        attributeNameToPair = mapNameToPair;
+        attributeIDToPair = mapIDToPair;
     }
 
-    public Pair<Double, Double> getPair(String attributeName) {
-        return attributeNameToPair.get(attributeName);
+    public Pair<Double, Double> getPair(Integer attributeID) {
+        return attributeIDToPair.get(attributeID);
     }
 
     public int getSubID() {
         return subID;
     }
 
-    public HashMap<String, Pair<Double, Double>> getMap(){return attributeNameToPair;}
+    public HashMap<Integer, Pair<Double, Double>> getMap(){return attributeIDToPair;}
 
-    public Boolean insertAttribute(String attributeName, Pair<Double, Double> p) throws IOException {
+    public Boolean insertAttribute(Integer attributeID, Pair<Double, Double> p) throws IOException {
         if (p.getFirst() > p.getSecond()) {
             out.writeToLogFile("Wrong interval pair, subscription insert failed.\n");
             return false;
         }
-        if (attributeNameToPair.containsKey(attributeName)) {
+        if (attributeIDToPair.containsKey(attributeID)) {
             out.writeToLogFile("Already exists such a attribute name, subscription insert failed.\n");
             return false;
         }
-        if (maxNumAttributes == attributeNameToPair.size()) {
+        if (maxNumAttributes == attributeIDToPair.size()) {
             out.writeToLogFile("Number of attributes is full, subscription insert failed.\n");
             return false;
         }
-        attributeNameToPair.put(attributeName, p);
+        attributeIDToPair.put(attributeID, p);
         return true;
     }
 
-    public Boolean deleteAttribute(String attributeName) throws IOException {
-        if (attributeNameToPair.containsKey(attributeName)) {
-            attributeNameToPair.remove(attributeName);
+    public Boolean deleteAttribute(Integer attributeID) throws IOException {
+        if (attributeIDToPair.containsKey(attributeID)) {
+            attributeIDToPair.remove(attributeID);
             return true;
         }
         out.writeToLogFile("No such an attribute name, subscription delete failed.\n");
         return false;
     }
 
-    public Boolean updateAttribute(String attributeName, Pair<Double, Double> p) throws IOException {
+    public Boolean updateAttribute(Integer attributeID, Pair<Double, Double> p) throws IOException {
         if (p.getFirst() > p.getSecond()) {
             out.writeToLogFile("Wrong interval pair, subscription update failed.\n");
             return false;
         }
-        if (attributeNameToPair.containsKey(attributeName)) {
-            attributeNameToPair.put(attributeName, p);
+        if (attributeIDToPair.containsKey(attributeID)) {
+            attributeIDToPair.put(attributeID, p);
             return true;
         }
         out.writeToLogFile("No such a attribute name, subscription update failed.\n");

@@ -23,7 +23,8 @@ public class MergerBolt extends BaseRichBolt {
     private StringBuilder matchResultBuilder;
     private String boltName;
     private Integer executorID;
-    static private Integer numMatchExecutor;
+    private Integer numMatchExecutor;
+    private Integer redundancy;
     private Integer numEventMatched;
     private long runTime;
     private long speedTime;  // The time to calculate and record speed
@@ -32,9 +33,12 @@ public class MergerBolt extends BaseRichBolt {
 
     private HashMap<Integer, HashSet<Integer>> matchResultMap;
     private HashMap<Integer, HashSet<Integer>> matchResultNum;
+    private Boolean[] executorCombination;
 
-    public MergerBolt(Integer num_executor) {
+    public MergerBolt(Integer num_executor,Integer redundancy_degree,Boolean[] executor_combination) {
         numMatchExecutor=num_executor; // receive a eventID from this number of matchBolts then the event is fully matched
+        redundancy=redundancy_degree;
+        executorCombination=executor_combination;
         beginTime = System.nanoTime();
         intervalTime = 60000000000L;  // 1 minute
 //        numMatchExecutor = ThreadDivisionMatchBolt.getNumExecutor(); // This function may not return the final right number. MergerBolt may be initialized before matchBolt!
@@ -70,7 +74,14 @@ public class MergerBolt extends BaseRichBolt {
             log.append(executorID);
             log.append(";\nNumberOfMatchExecutor: ");
             log.append(numMatchExecutor); // need to be checked carefully
-            log.append("\n\n");
+            log.append("\n\nComplete Executor Combination:\n");
+            for(int i=0;i<executorCombination.length;i++)
+            {
+                if(executorCombination[i]==true){
+                    log.append(i);
+                    log.append(" ");
+                }
+            }
             output.otherInfo(log.toString());
         } catch (IOException e) {
             e.printStackTrace();
@@ -84,7 +95,7 @@ public class MergerBolt extends BaseRichBolt {
             matchResultNum.put(eventID, new HashSet<>());
             matchResultMap.put(eventID, new HashSet<>());
         }
-        else if (matchResultNum.get(eventID).size() == numMatchExecutor) {
+        else if (matchResultNum.get(eventID).size() == redundancy) {
             collector.ack(tuple);
             return;
         }
@@ -94,7 +105,7 @@ public class MergerBolt extends BaseRichBolt {
         for (int i = 0; i < subIDs.size(); i++)
             resultSet.add(subIDs.get(i));
         matchResultNum.get(eventID).add(tuple.getInteger(0));
-        if (matchResultNum.get(eventID).size() == numMatchExecutor) {
+        if (matchResultNum.get(eventID).size() == redundancy) {
             matchResultBuilder = new StringBuilder(boltName);
             matchResultBuilder.append(" Thread ");
             matchResultBuilder.append(executorID);
@@ -116,6 +127,7 @@ public class MergerBolt extends BaseRichBolt {
                 e.printStackTrace();
             }
             numEventMatched++;
+            matchResultMap.put(eventID,null);
             matchResultMap.remove(eventID);
         }
         collector.ack(tuple);

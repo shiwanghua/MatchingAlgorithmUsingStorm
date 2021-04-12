@@ -38,7 +38,7 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
     final private Integer numExecutor;
     private Integer executorID;
     static private Integer executorIDAllocator;
-//    private IDAllocator executorIDAllocator;
+    //    private IDAllocator executorIDAllocator;
     static private Integer redundancy;
     //    static private Integer beginExecutorID;
     private long runTime;
@@ -46,37 +46,37 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
     final private long beginTime;
     final private long intervalTime; // The interval between two calculations of speed
 
-    public MultiPartitionMatchBolt(Integer num_executor,Integer redundancy_degree) {   // only execute one time for all executors!
+    public MultiPartitionMatchBolt(Integer num_executor, Integer redundancy_degree) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
         intervalTime = 60000000000L;  // 1 minute
         numSubPacket = 0;
-	numEventPacket = 0;
+        numEventPacket = 0;
         numSubInserted = 1;
         numEventMatched = 1;
         runTime = 1;
-        executorIDAllocator=0;
-	numExecutor=num_executor;
-        redundancy=redundancy_degree;
+        executorIDAllocator = 0;
+        numExecutor = num_executor;
+        redundancy = redundancy_degree;
 
         log = new StringBuilder();
         matchResult = new StringBuilder();
 
         // calculate the number of visual subset
-        int n=1,m=1,nm=1;
-        for(int i=2; i<=numExecutor; i++) {
+        int n = 1, m = 1, nm = 1;
+        for (int i = 2; i <= numExecutor; i++) {
             n *= i;
             if (i == redundancy)
                 m = n;
             if (i == (numExecutor - redundancy))
                 nm = n;
         }
-        numVisualSubSet=n/m/nm;
-        mpv=new HashMap<>();
-        VSSIDtoExecutorID=SubsetCodeGeneration(redundancy,numExecutor);
-        mpv=null;  //  Now is not needed.
+        numVisualSubSet = n / m / nm;
+        mpv = new HashMap<>();
+        VSSIDtoExecutorID = SubsetCodeGeneration(redundancy, numExecutor);
+        mpv = null;  //  Now is not needed.
     }
 
-    public synchronized void allocateID(){
+    public synchronized void allocateID() {
         executorID = executorIDAllocator++;//boltContext.getThisTaskId(); // Get the current thread number
     }
 
@@ -84,16 +84,18 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
 
     //  从K位里生成含k个1的字符串的集合
     ArrayList<String> SubsetCodeGeneration(int k, int K) {
-        if (k == 0) return new ArrayList<String>(){{add(StringUtils.repeat("0", K));}};
+        if (k == 0) return new ArrayList<String>() {{
+            add(StringUtils.repeat("0", K));
+        }};
         if (mpv.containsKey(Pair.of(k, K))) return mpv.get(Pair.of(k, K));
-        ArrayList<String> strSet=new ArrayList<>();
+        ArrayList<String> strSet = new ArrayList<>();
         for (int i = k; i <= K; i++)  //  只有前 i 位有1且第 i 位必须是1
         {
-            String highStr = StringUtils.repeat("0",K - i) + "1";
+            String highStr = StringUtils.repeat("0", K - i) + "1";
             //  从前i-1位里生成含k-1个1的字符串的集合
             ArrayList<String> lowPart = SubsetCodeGeneration(k - 1, i - 1);
-            mpv.put(Pair.of(k - 1, i - 1),lowPart);
-            for (int j=0;j<lowPart.size();j++)
+            mpv.put(Pair.of(k - 1, i - 1), lowPart);
+            for (int j = 0; j < lowPart.size(); j++)
                 strSet.add(highStr + lowPart.get(j));
         }
         return strSet;
@@ -111,8 +113,8 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
         output = new OutputToFile();
         mapIDtoSub = new HashMap<>();
 
-        if(executorID==0){
-            log=new StringBuilder(boltName);
+        if (executorID == 0) {
+            log = new StringBuilder(boltName);
             log.append("MultiPartitionMatchBolt \nnumExecutor = ");
             log.append(numExecutor);
             log.append("\nredundancy = ");
@@ -120,7 +122,7 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
             log.append("\nnumVisualSubSet = ");
             log.append(numVisualSubSet);
             log.append("\nMap Table:\nID  ExecutorID");
-            for(int i=0;i<VSSIDtoExecutorID.size();i++){
+            for (int i = 0; i < VSSIDtoExecutorID.size(); i++) {
                 log.append(String.format("\n%02d: ", i));
                 log.append(VSSIDtoExecutorID.get(i));
             }
@@ -179,12 +181,12 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
 
         // Solution B: get the operation type to find what the tuple is
 //        int type = (int) tuple.getValue(0);
-        int type=tuple.getInteger(0);
+        int type = tuple.getInteger(0);
         try {
             switch (type) {
                 case TypeConstant.Insert_Subscription: {
 
-                    Integer subPacketID=tuple.getInteger(1);
+                    Integer subPacketID = tuple.getInteger(1);
 //                    if(subPacketID%executorIDAllocator.getIDNum()!=executorID)
 //                    {
 //                        collector.ack(tuple);
@@ -205,10 +207,11 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
                     ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
                     for (int i = 0; i < subPacket.size(); i++) {
                         subID = subPacket.get(i).getSubID();
-                        if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID)=='0')
+                        if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID) == '0')
                             continue;
+                        if (!mapIDtoSub.containsKey(subID))
+                            numSubInserted++;
                         mapIDtoSub.put(subID, subPacket.get(i));
-                        numSubInserted++;
                         log = new StringBuilder(boltName);
                         log.append(" Thread ");
                         log.append(executorID);
@@ -278,26 +281,26 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
                         }
 
                         ArrayList<Integer> matchedSubIDList = new ArrayList<Integer>();
-                        HashMap<String, Double> eventAttributeNameToValue = eventPacket.get(i).getMap();
+                        HashMap<Integer, Double> eventAttributeIDToValue = eventPacket.get(i).getMap();
                         Iterator<HashMap.Entry<Integer, Subscription>> subIterator = mapIDtoSub.entrySet().iterator();
 
                         while (subIterator.hasNext()) {
                             HashMap.Entry<Integer, Subscription> subEntry = subIterator.next();
                             Integer subID = subEntry.getKey();
-                            Iterator<HashMap.Entry<String, Pair<Double, Double>>> subAttributeIterator = subEntry.getValue().getMap().entrySet().iterator();
+                            Iterator<HashMap.Entry<Integer, Pair<Double, Double>>> subAttributeIterator = subEntry.getValue().getMap().entrySet().iterator();
 
                             Boolean matched = true;
                             while (subAttributeIterator.hasNext()) {
-                                HashMap.Entry<String, Pair<Double, Double>> subAttributeEntry = subAttributeIterator.next();
-                                String subAttributeName = subAttributeEntry.getKey();
-                                if (!eventAttributeNameToValue.containsKey(subAttributeName)) {
+                                HashMap.Entry<Integer, Pair<Double, Double>> subAttributeEntry = subAttributeIterator.next();
+                                Integer subAttributeID = subAttributeEntry.getKey();
+                                if (!eventAttributeIDToValue.containsKey(subAttributeID)) {
                                     matched = false;
                                     break;
                                 }
 
                                 Double low = subAttributeEntry.getValue().getFirst();
                                 Double high = subAttributeEntry.getValue().getSecond();
-                                Double eventValue = eventAttributeNameToValue.get(subAttributeName);
+                                Double eventValue = eventAttributeIDToValue.get(subAttributeID);
                                 if (eventValue < low || eventValue > high) {
                                     matched = false;
                                     break;
@@ -367,10 +370,10 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("executorID", "eventID","subIDs"));
+        outputFieldsDeclarer.declare(new Fields("executorID", "eventID", "subIDs"));
     }
 
-    public Integer getNumExecutor(){
+    public Integer getNumExecutor() {
         return numExecutor;
 //        return boltIDAllocator;   //  this variable may not be the last executor number.
     }

@@ -104,7 +104,7 @@ public class EventSpout extends BaseRichSpout {
             int numAttribute = new Random().nextInt(maxNumAttribute + 1); // Generate the number of attribute in this subscription: 0~maxNumAttribute
 
             Double eventValue;
-            String attributeName = "attributeName";
+            //String attributeName = "attributeName";
 
             for (int j = 0; j < numAttribute; j++) { // Use the first #numAttribute values of randomArray to create the attribute name
                 int index = valueGenerator.nextInt(numAttributeType - j) + j;
@@ -113,13 +113,14 @@ public class EventSpout extends BaseRichSpout {
                 randomPermutation[index] = temp;
             }
 
-            HashMap<String, Double> mapNameToValue = new HashMap<>();
+            HashMap<Integer, Double> mapIDToValue = new HashMap<>();
             for (int j = 0; j < numAttribute; j++) {
                 eventValue = valueGenerator.nextDouble();
-                mapNameToValue.put(attributeName + String.valueOf(randomPermutation[j]), eventValue);
+//                mapNameToValue.put(attributeName + String.valueOf(randomPermutation[j]), eventValue);
+                mapIDToValue.put(randomPermutation[j], eventValue);
             }
             try {
-                events.add(new Event(eventID, numAttribute, mapNameToValue));
+                events.add(new Event(eventID, numAttribute, mapIDToValue));
                 eventID += 1;
             } catch (IOException e) {
                 e.printStackTrace();
