@@ -86,6 +86,13 @@ public class MyUtils {
         int numExecutor = VSSIDtoExecutorID.get(0).length();
         StringBuilder[] stringBuilder = new StringBuilder[numExecutor];
 
+        for(int i=0;i<numExecutor;i++)
+            stringBuilder[i]=new StringBuilder();
+        for(int i=0;i<VSSIDtoExecutorID.size();i++){
+            System.out.println(String.format("%02d: ", i)+VSSIDtoExecutorID.get(i));
+        }
+        System.out.println(numExecutor);
+
         for (int i = 0; i < VSSIDtoExecutorID.size(); i++) {
             for (int j = 0; j < numExecutor; j++) {
                 stringBuilder[j].append(VSSIDtoExecutorID.get(i).charAt(j));
