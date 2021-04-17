@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.*;
 //import java.util.Map;
 
-public class MergerBolt extends BaseRichBolt {
+public class MultiPartitionMergerBolt extends BaseRichBolt {
     private OutputToFile output;
     private OutputCollector collector;
     private TopologyContext boltContext;
@@ -32,10 +32,11 @@ public class MergerBolt extends BaseRichBolt {
     final private long intervalTime; // The interval between two calculations of speed
 
     private HashMap<Integer, HashSet<Integer>> matchResultMap;
-    private HashMap<Integer, HashSet<Integer>> matchResultNum;
+    //private HashMap<Integer, HashSet<Integer>> matchResultNum;
+    private HashMap<Integer,Integer> recordStatus;
     private Boolean[] executorCombination;
 
-    public MergerBolt(Integer num_executor,Integer redundancy_degree,Boolean[] executor_combination) {
+    public MultiPartitionMergerBolt(Integer num_executor, Integer redundancy_degree, Boolean[] executor_combination) {
         numMatchExecutor=num_executor; // receive a eventID from this number of matchBolts then the event is fully matched
         redundancy=redundancy_degree;
         executorCombination=executor_combination;
@@ -54,7 +55,8 @@ public class MergerBolt extends BaseRichBolt {
         log = new StringBuilder();
         matchResultBuilder = new StringBuilder();
         matchResultMap = new HashMap<>();
-        matchResultNum = new HashMap<>();
+        //matchResultNum = new HashMap<>();
+        recordStatus=new HashMap<>();
         numEventMatched = 1;
         runTime = 1;
         speedTime = System.nanoTime() + intervalTime;
@@ -91,21 +93,26 @@ public class MergerBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple tuple) {
         Integer eventID = tuple.getInteger(1);
-        if (!matchResultNum.containsKey(eventID)) {
-            matchResultNum.put(eventID, new HashSet<>());
+        if (!recordStatus.containsKey(eventID)) {
+           // matchResultNum.put(eventID, new HashSet<>());
             matchResultMap.put(eventID, new HashSet<>());
+            recordStatus.put(eventID,0);
         }
-        else if (matchResultNum.get(eventID).size() == redundancy) {
+    /*    else if (executorCombination[recordStatus.get(eventID)]) {
+
             collector.ack(tuple);
             return;
-        }
+        }*/
         ArrayList<Integer> subIDs = (ArrayList<Integer>) tuple.getValueByField("subIDs");
 
         HashSet<Integer> resultSet = matchResultMap.get(eventID);  // This is an reference.
         for (int i = 0; i < subIDs.size(); i++)
             resultSet.add(subIDs.get(i));
-        matchResultNum.get(eventID).add(tuple.getInteger(0));
-        if (matchResultNum.get(eventID).size() == redundancy) {
+       // matchResultNum.get(eventID).add(tuple.getInteger(0));
+        Integer nextState=recordStatus.get(eventID)|(1<<tuple.getInteger(0));
+        recordStatus.put(eventID,nextState);
+        if(executorCombination[recordStatus.get(eventID)]){
+        //if (matchResultNum.get(eventID).size() == redundancy) {
             matchResultBuilder = new StringBuilder(boltName);
             matchResultBuilder.append(" Thread ");
             matchResultBuilder.append(executorID);
@@ -129,6 +136,7 @@ public class MergerBolt extends BaseRichBolt {
             numEventMatched++;
             matchResultMap.put(eventID,null);
             matchResultMap.remove(eventID);
+            recordStatus.remove(eventID);
         }
         collector.ack(tuple);
 
