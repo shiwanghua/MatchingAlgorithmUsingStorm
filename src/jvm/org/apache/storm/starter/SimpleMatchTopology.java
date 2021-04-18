@@ -46,7 +46,7 @@ public class SimpleMatchTopology {
         conf.registerSerialization(Double.class);
 //        conf.registerSerialization(Rein.class);
 
-        conf.setDebug(false);
+        conf.setDebug(false); // True will print all sub, event and match data.
         conf.setNumWorkers(6);
         conf.setMaxTaskParallelism(12);
         conf.put(Config.TOPOLOGY_ACKER_EXECUTORS, 3);// 设置acker的数量, default: 1

@@ -6,7 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class OutputToFile {
-    private static final String baseFilePath = "/data/storm/log/";
+    private static final String baseFilePath = "/home/swhua/Desktop/storm-2.2.0/log/exp/";
     private static String logFilePath;
     private static String matchResultFilePath;
     private static String speedFilePath;

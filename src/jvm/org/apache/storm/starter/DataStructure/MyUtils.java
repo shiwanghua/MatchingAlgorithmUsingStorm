@@ -85,13 +85,8 @@ public class MyUtils {
     private void generateExecutorIDtoVSSID(ArrayList<String> VSSIDtoExecutorID) {
         int numExecutor = VSSIDtoExecutorID.get(0).length();
         StringBuilder[] stringBuilder = new StringBuilder[numExecutor];
-
-        for(int i=0;i<numExecutor;i++)
-            stringBuilder[i]=new StringBuilder();
-        for(int i=0;i<VSSIDtoExecutorID.size();i++){
-            System.out.println(String.format("%02d: ", i)+VSSIDtoExecutorID.get(i));
-        }
-        System.out.println(numExecutor);
+        for (int i = 0; i < numExecutor; i++)
+            stringBuilder[i] = new StringBuilder();
 
         for (int i = 0; i < VSSIDtoExecutorID.size(); i++) {
             for (int j = 0; j < numExecutor; j++) {
@@ -117,11 +112,14 @@ public class MyUtils {
     }
 
     private void generateCombinationResult(ArrayList<String> ExecutorIDtoVSSID) {
+
         int numExecutor = ExecutorIDtoVSSID.size();
         int n = (int) Math.pow(2, numExecutor);
+        int countOne, id;
+        String orResult;
         executorCombination = new Boolean[n];
         for (int i = 0; i < n; i++) {
-            int countOne = 0;
+            countOne = 0;
             int j = i;
             while (j != 0) {
                 countOne++;
@@ -129,16 +127,16 @@ public class MyUtils {
             }
             if (countOne <= 1)
                 executorCombination[i] = false;
-            else if (countOne >= redundancy)
+            else if (countOne > redundancy) // cannot equal !
                 executorCombination[i] = true;
             else {
                 executorCombination[i] = true;
                 j = i;
-                int id = 0;
-                String orResult = "";
+                id = 0;
+                orResult = "";
                 while (j > 0) {
                     if (j % 2 == 1) {
-                        if (orResult == "")  // Init xorResult
+                        if (orResult == "")  // Init orResult
                             orResult = ExecutorIDtoVSSID.get(id);
                         else
                             orResult = orOperation(orResult, ExecutorIDtoVSSID.get(id));
@@ -149,7 +147,7 @@ public class MyUtils {
 
                 for (j = 0; j < orResult.length(); j++)
                     if (orResult.charAt(j) == '0') {
-                        executorCombination[j] = false;
+                        executorCombination[i] = false; // It's i not j !
                         break;
                     }
             }
@@ -164,7 +162,7 @@ public class MyUtils {
         return executorCombination;
     }
 
-    public Integer getNumVisualSubSet(){
+    public Integer getNumVisualSubSet() {
         return numVisualSubSet;
     }
 }
