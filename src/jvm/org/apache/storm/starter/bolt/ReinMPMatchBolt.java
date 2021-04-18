@@ -78,7 +78,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
 
         if (executorID == 0) {
             log = new StringBuilder(boltName);
-            log.append("MultiPartitionMatchBolt \nnumExecutor = ");
+            log.append("\nnumExecutor = ");
             log.append(numExecutor);
             log.append("\nredundancy = ");
             log.append(redundancy);

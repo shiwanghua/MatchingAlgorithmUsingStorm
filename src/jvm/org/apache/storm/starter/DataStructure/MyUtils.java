@@ -104,7 +104,7 @@ public class MyUtils {
             ExecutorIDtoVSSID.add(stringBuilder[i].toString());
     }
 
-    private String xor(String a, String b) {
+    private String orOperation(String a, String b) {
         int n = a.length();
         if (b.length() != n)  //  exception
             return "false";
@@ -135,20 +135,20 @@ public class MyUtils {
                 executorCombination[i] = true;
                 j = i;
                 int id = 0;
-                String xorResult = "";
+                String orResult = "";
                 while (j > 0) {
                     if (j % 2 == 1) {
-                        if (xorResult == "")  // Init xorResult
-                            xorResult = ExecutorIDtoVSSID.get(id);
+                        if (orResult == "")  // Init xorResult
+                            orResult = ExecutorIDtoVSSID.get(id);
                         else
-                            xorResult = xor(xorResult, ExecutorIDtoVSSID.get(id));
+                            orResult = orOperation(orResult, ExecutorIDtoVSSID.get(id));
                     }
                     j = j >> 1;
                     id++;
                 }
 
-                for (j = 0; j < xorResult.length(); j++)
-                    if (xorResult.charAt(j) == '0') {
+                for (j = 0; j < orResult.length(); j++)
+                    if (orResult.charAt(j) == '0') {
                         executorCombination[j] = false;
                         break;
                     }
