@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MyUtils {
-    private AtomicInteger allocator;
     private Integer numVisualSubSet;
     private Integer numExecutor;
     private Integer redundancy;
@@ -26,10 +25,11 @@ public class MyUtils {
         numExecutor = num_executor;
         redundancy = redundancy_degree;
 
-        boltNameToIDAllocator = new HashMap<>();
+        static {
+            boltNameToIDAllocator = new HashMap<>();
+        }
         mpv = new HashMap<>();
         VSSIDtoExecutorID = new ArrayList<>();
-        allocator = new AtomicInteger(0);
 
         // calculate the number of visual subset
         numVisualSubSet = calculateCmn(numExecutor, redundancy);
@@ -41,8 +41,10 @@ public class MyUtils {
         generateCombinationResult(ExecutorIDtoVSSID);
     }
 
-    public Integer allocateID() {
-        return (Integer) allocator.getAndIncrement();
+    public synchronized Integer allocateID(String boltname) {
+        if (!boltNameToIDAllocator.containsKey(boltname))
+            boltNameToIDAllocator.put(boltname, new AtomicInteger(1));
+        return (Integer) boltNameToIDAllocator.get(boltname).getAndIncrement();
     }
 
     public Integer getIDNum() {
