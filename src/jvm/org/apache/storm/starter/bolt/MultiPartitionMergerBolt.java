@@ -76,14 +76,18 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
             log.append(executorID);
             log.append(";\nNumberOfMatchExecutor: ");
             log.append(numMatchExecutor); // need to be checked carefully
-            log.append("\n\nComplete Executor Combination:\n");
+            log.append("\nComplete Executor Combination:\n");
+            int count=0;
             for (int i = 0; i < executorCombination.length; i++) {
                 if (executorCombination[i] == true) {
                     log.append(i);
                     log.append(" ");
+                    count++;
                 }
             }
-            log.append("\n");
+            log.append(" TotalNum: ");
+            log.append(count);
+            log.append("\n\n");
             output.otherInfo(log.toString());
         } catch (IOException e) {
             e.printStackTrace();

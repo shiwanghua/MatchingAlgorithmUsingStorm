@@ -15,19 +15,19 @@ public class MyUtils {
     private Integer redundancy;
 
     static public HashMap<String, AtomicInteger> boltNameToIDAllocator;
-
+    static {
+        boltNameToIDAllocator = new HashMap<>();
+    }
     private HashMap<Pair<Integer, Integer>, ArrayList<String>> mpv;
     private ArrayList<String> VSSIDtoExecutorID;
     private ArrayList<String> ExecutorIDtoVSSID;
+
     private Boolean[] executorCombination;
 
     public MyUtils(Integer num_executor, Integer redundancy_degree) {
         numExecutor = num_executor;
         redundancy = redundancy_degree;
 
-        static {
-            boltNameToIDAllocator = new HashMap<>();
-        }
         mpv = new HashMap<>();
         VSSIDtoExecutorID = new ArrayList<>();
 
@@ -41,14 +41,14 @@ public class MyUtils {
         generateCombinationResult(ExecutorIDtoVSSID);
     }
 
-    public synchronized Integer allocateID(String boltname) {
+    static public synchronized Integer allocateID(String boltname) {
         if (!boltNameToIDAllocator.containsKey(boltname))
-            boltNameToIDAllocator.put(boltname, new AtomicInteger(1));
+            boltNameToIDAllocator.put(boltname, new AtomicInteger(0));
         return (Integer) boltNameToIDAllocator.get(boltname).getAndIncrement();
     }
 
-    public Integer getIDNum() {
-        return allocator.get();
+    public Integer getIDNum(String boltname) {
+        return boltNameToIDAllocator.get(boltname).get();
     }
 
     // equal to VSSIDtoExecutorID.size()

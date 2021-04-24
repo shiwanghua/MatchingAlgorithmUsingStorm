@@ -20,6 +20,8 @@ public class EventSpout extends BaseRichSpout {
     private Random valueGenerator;
     private Integer eventID;
     private Integer numEventPacket;
+    private Integer numMatchBolt;
+    private Integer nextMatchBoltID;
     final int maxNumEvent;            //  Maximum number of event emitted per time
     final int maxNumAttribute;        //  Maxinum number of attributes in a event
     final int numAttributeType;       //  Type number of attributes
@@ -30,10 +32,11 @@ public class EventSpout extends BaseRichSpout {
     private String spoutName;
     TopologyContext eventSpoutTopologyContext;
 
-    public EventSpout() {
+    public EventSpout(Integer num_match_bolt) {
         maxNumEvent = TypeConstant.maxNumEventPerPacket;
         maxNumAttribute = TypeConstant.maxNumAttributePerEvent;
         numAttributeType=TypeConstant.numAttributeType;
+        numMatchBolt=num_match_bolt;
     }
 
     @Override
@@ -41,6 +44,7 @@ public class EventSpout extends BaseRichSpout {
         valueGenerator = new Random();
         eventID = 1;
         numEventPacket = 0;  // messageID
+        nextMatchBoltID=-1;
         randomPermutation = new int[numAttributeType];
         for (int i = 0; i < numAttributeType; i++)
             randomPermutation[i] = i;
@@ -175,12 +179,12 @@ public class EventSpout extends BaseRichSpout {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        collector.emit(new Values(TypeConstant.Event_Match_Subscription, numEventPacket, events), numEventPacket);
+        nextMatchBoltID=(nextMatchBoltID+1)%numMatchBolt;
+        collector.emit(new Values(nextMatchBoltID,TypeConstant.Event_Match_Subscription, numEventPacket, events), numEventPacket);
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("Type", "PacketID", "EventPacket"));
+        outputFieldsDeclarer.declare(new Fields("MatchBoltID","Type", "PacketID", "EventPacket"));
     }
 }

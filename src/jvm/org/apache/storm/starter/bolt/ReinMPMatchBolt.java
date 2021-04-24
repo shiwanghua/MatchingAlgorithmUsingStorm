@@ -26,6 +26,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
 //    private StringBuilder matchResult;
 
     private String boltName;
+    private Integer boltID;
     private Integer numSubPacket;
     private Integer numEventPacket;
     private Integer numSubInserted;
@@ -41,8 +42,9 @@ public class ReinMPMatchBolt extends BaseRichBolt {
     final private long beginTime;
     final private long intervalTime; // The interval between two calculations of speed
 
-    public ReinMPMatchBolt(Integer num_executor, Integer redundancy_degree, Integer num_visual_subSet, ArrayList<String>VSSID_to_ExecutorID) {   // only execute one time for all executors!
+    public ReinMPMatchBolt(Integer boltid, Integer num_executor, Integer redundancy_degree, Integer num_visual_subSet, ArrayList<String>VSSID_to_ExecutorID) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
+        boltID=boltid;
         intervalTime = 60000000000L;  // 1 minute
         executorIDAllocator = 0;
         //executorIDAllocator=new IDAllocator();
@@ -71,8 +73,8 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         boltContext = topologyContext;
         collector = outputCollector;
         boltName = boltContext.getThisComponentId();
-        //  executorID=executorIDAllocator.allocateID();
-        allocateID();  // boltIDAllocator need to keep synchronized
+        //allocateID();  // boltIDAllocator need to keep synchronized
+        executorID=MyUtils.allocateID(boltName);
         rein = new Rein();
         output = new OutputToFile();
 
@@ -121,12 +123,12 @@ public class ReinMPMatchBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple tuple) {
 
-        int type = tuple.getInteger(0);
+        int type = tuple.getIntegerByField("Type");
         try {
             switch (type) {
                 case TypeConstant.Insert_Subscription: {
 
-                    Integer subPacketID = tuple.getInteger(1);
+                    //Integer subPacketID = tuple.getIntegerByField("PacketID");
 
                     int subID;
                     numSubPacket++;

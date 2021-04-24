@@ -7,6 +7,7 @@ import org.apache.storm.starter.bolt.*;
 import org.apache.storm.starter.spout.EventSpout;
 import org.apache.storm.starter.spout.SubscriptionSpout;
 import org.apache.storm.topology.TopologyBuilder;
+import org.apache.storm.tuple.Fields;
 import org.apache.storm.utils.Utils;
 
 
@@ -22,11 +23,14 @@ public class SimpleMatchTopology {
         TopologyBuilder builder = new TopologyBuilder();
 
         builder.setSpout("SubSpout", new SubscriptionSpout(), 1);
-        builder.setSpout("EventSpout", new EventSpout(), 1);
-//        builder.setBolt("ReinMPMBolt0", new ReinMPMatchBolt(numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
- //       builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("ReinMPMBolt0");
-        builder.setBolt("MPMBolt1", new MultiPartitionMatchBolt(numExecutorInAMatchBolt,redundancy),numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
-        builder.setBolt("MergerBolt1",new MultiPartitionMergerBolt(numExecutorInAMatchBolt,redundancy,utils.getExecutorCombination()),1).allGrouping("MPMBolt1");
+        builder.setSpout("EventSpout", new EventSpout(2), 1);
+
+        builder.setBolt("ReinMPMBolt0", new ReinMPMatchBolt(numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
+        builder.setBolt("ReinMPMBolt1", new ReinMPMatchBolt(numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
+        builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("ReinMPMBolt0");
+        builder.setBolt("MPMergerBolt1", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("ReinMPMBolt1");
+ //       builder.setBolt("MPMBolt1", new MultiPartitionMatchBolt(numExecutorInAMatchBolt,redundancy),numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
+    //    builder.setBolt("MergerBolt1",new MultiPartitionMergerBolt(numExecutorInAMatchBolt,redundancy,utils.getExecutorCombination()),1).allGrouping("MPMBolt1");
 
 //        builder.setBolt("TDMBolt0", new ThreadDivisionMatchBolt(numExecutorInAMatchBolt),6).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
 //        builder.setBolt("MergerBolt1",new MergerBolt(numExecutorInAMatchBolt),1).allGrouping("TDMBolt0");
