@@ -42,9 +42,9 @@ public class ReinMPMatchBolt extends BaseRichBolt {
     final private long beginTime;
     final private long intervalTime; // The interval between two calculations of speed
 
-    public ReinMPMatchBolt(Integer boltid, Integer num_executor, Integer redundancy_degree, Integer num_visual_subSet, ArrayList<String>VSSID_to_ExecutorID) {   // only execute one time for all executors!
+    public ReinMPMatchBolt(Integer boltid, Integer num_executor, Integer redundancy_degree, Integer num_visual_subSet, ArrayList<String> VSSID_to_ExecutorID) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
-        boltID=boltid;
+        boltID = boltid;
         intervalTime = 60000000000L;  // 1 minute
         executorIDAllocator = 0;
         //executorIDAllocator=new IDAllocator();
@@ -74,12 +74,14 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         collector = outputCollector;
         boltName = boltContext.getThisComponentId();
         //allocateID();  // boltIDAllocator need to keep synchronized
-        executorID=MyUtils.allocateID(boltName);
+        executorID = MyUtils.allocateID(boltName);
         rein = new Rein();
         output = new OutputToFile();
 
         if (executorID == 0) {
             log = new StringBuilder(boltName);
+            log.append(" boltID: ");
+            log.append(boltID);
             log.append("\nnumExecutor = ");
             log.append(numExecutor);
             log.append("\nredundancy = ");
@@ -87,7 +89,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
             log.append("\nnumVisualSubSet = ");
             log.append(numVisualSubSet);
             log.append("\nMap Table:\nID  ExecutorID");
-            int size=VSSIDtoExecutorID.size();
+            int size = VSSIDtoExecutorID.size();
             for (int i = 0; i < size; i++) {
                 log.append(String.format("\n%02d: ", i));
                 log.append(VSSIDtoExecutorID.get(i));
@@ -102,7 +104,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
 
         try {
             log = new StringBuilder(boltName);
-            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + boltName + ":");
+            log.append(" boltID: " + String.valueOf(boltID) + " ThreadNum: " + Thread.currentThread().getName() + "\n" + boltName + ":");
             List<Integer> taskIds = boltContext.getComponentTasks(boltContext.getThisComponentId());
             Iterator taskIdsIter = taskIds.iterator();
             int taskID;
@@ -133,7 +135,9 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                     int subID;
                     numSubPacket++;
                     log = new StringBuilder(boltName);
-                    log.append(" Thread ");
+                    log.append(" boltID: ");
+                    log.append(boltID);
+                    log.append(". Thread ");
                     log.append(executorID);
                     log.append(": SubPacket ");
                     log.append(numSubPacket);
@@ -141,7 +145,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                     output.writeToLogFile(log.toString());
 
                     ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
-                    int size=subPacket.size();
+                    int size = subPacket.size();
                     for (int i = 0; i < size; i++) {
                         subID = subPacket.get(i).getSubID();
                         if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID) == '0')
@@ -149,7 +153,9 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                         if (rein.insert(subPacket.get(i))) // no need to add if already exists
                             numSubInserted++;
                         log = new StringBuilder(boltName);
-                        log.append(" Thread ");
+                        log.append(" boltID: ");
+                        log.append(boltID);
+                        log.append(". Thread ");
                         log.append(executorID);
                         log.append(": Sub ");
                         log.append(subID);
@@ -173,36 +179,44 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                     break;
                 }
                 case TypeConstant.Event_Match_Subscription: {
-                    numEventPacket++;
-                    log = new StringBuilder(boltName);
-                    log.append(" Thread ");
-                    log.append(executorID);
-                    log.append(": EventPacket ");
-                    log.append(numEventPacket);
-                    log.append(" is received.\n");
-                    output.writeToLogFile(log.toString());
-                    ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
-                    int size = eventPacket.size(),eventID;
-                    for (int i = 0; i < size; i++) {
-                        ArrayList<Integer> matchedSubIDList = rein.match(eventPacket.get(i));
-                        eventID=eventPacket.get(i).getEventID();
+                    if(tuple.getIntegerByField("MatchBoltID").equals(boltID)){
+                        numEventPacket++;
                         log = new StringBuilder(boltName);
-                        log.append(" Thread ");
+                        log.append(" boltID: ");
+                        log.append(boltID);
+                        log.append(". Thread ");
                         log.append(executorID);
-                        log.append(": EventID ");
-                        log.append(eventID);
-                        log.append(" matching task is done.\n");
+                        log.append(": EventPacket ");
+                        log.append(numEventPacket);
+                        log.append(" is received.\n");
                         output.writeToLogFile(log.toString());
-                        collector.emit(new Values(executorID, eventID, matchedSubIDList));
+                        ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
+                        int size = eventPacket.size(), eventID;
+                        for (int i = 0; i < size; i++) {
+                            ArrayList<Integer> matchedSubIDList = rein.match(eventPacket.get(i));
+                            eventID = eventPacket.get(i).getEventID();
+                            log = new StringBuilder(boltName);
+                            log.append(" boltID: ");
+                            log.append(boltID);
+                            log.append(". Thread ");
+                            log.append(executorID);
+                            log.append(": EventID ");
+                            log.append(eventID);
+                            log.append(" matching task is done.\n");
+                            output.writeToLogFile(log.toString());
+                            collector.emit(new Values(executorID, eventID, matchedSubIDList));
+                        }
+                        numEventMatched += eventPacket.size();
                     }
                     collector.ack(tuple);
-                    numEventMatched += eventPacket.size();
                     break;
                 }
                 default:
                     collector.fail(tuple);
                     log = new StringBuilder(boltName);
-                    log.append(" Thread ");
+                    log.append(" boltID: ");
+                    log.append(boltID);
+                    log.append(". Thread ");
                     log.append(executorID);
                     log.append(": Wrong operation type is detected.\n");
                     output.writeToLogFile(log.toString());
@@ -214,7 +228,9 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         if (System.nanoTime() > speedTime) {
             runTime = System.nanoTime() - beginTime;
             StringBuilder speedReport = new StringBuilder(boltName);
-            speedReport.append(" Thread ");
+            speedReport.append(" boltID: ");
+            speedReport.append(boltID);
+            speedReport.append(". Thread ");
             speedReport.append(executorID);
             speedReport.append(" - RunTime: ");
             speedReport.append(runTime / intervalTime);
@@ -277,7 +293,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
 
         public boolean insert(Subscription sub) {
             Integer subID = sub.getSubID();
-            if (exist.get(subID)!=null&&exist.get(subID)==true)
+            if (exist.get(subID) != null && exist.get(subID) == true)
                 return false;
 
             Integer subAttributeID;
@@ -340,7 +356,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                         } // LinkedList
                     } // Bucket ArrayList
                 } else {
-                    bucketID=(int)(attributeValue/bucketSpan);
+                    bucketID = (int) (attributeValue / bucketSpan);
                     for (Pair<Integer, Double> subIDValue : infBuckets.get(i).get(bucketID))
                         if (subIDValue.value2 > attributeValue)
                             bits[subIDValue.value1] = true;
