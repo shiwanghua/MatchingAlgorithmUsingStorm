@@ -113,10 +113,11 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
         for (int i = 0; i < subIDs.size(); i++)
             resultSet.add(subIDs.get(i));
         // matchResultNum.get(eventID).add(tuple.getInteger(0));
-        Integer nextState = recordStatus.get(eventID) | (1 << tuple.getInteger(0));
+        Integer nextState = recordStatus.get(eventID) | (1 << tuple.getIntegerByField("executorID"));
         recordStatus.put(eventID, nextState);
+        //if (matchResultNum.get(eventID).size() == redundancy) {
         if (executorCombination[recordStatus.get(eventID)]) {
-            //if (matchResultNum.get(eventID).size() == redundancy) {
+
             matchResultBuilder = new StringBuilder(boltName);
             matchResultBuilder.append(" Thread ");
             matchResultBuilder.append(executorID);
@@ -124,13 +125,13 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
             matchResultBuilder.append(eventID);
             matchResultBuilder.append("; MatchedSubNum: ");
             matchResultBuilder.append(resultSet.size());
-            matchResultBuilder.append("; SubID:");
-
-            Iterator<Integer> setIterator = resultSet.iterator();
-            while (setIterator.hasNext()) {
-                matchResultBuilder.append(" ");
-                matchResultBuilder.append(setIterator.next());
-            }
+//            matchResultBuilder.append("; SubID:");
+//
+//            Iterator<Integer> setIterator = resultSet.iterator();
+//            while (setIterator.hasNext()) {
+//                matchResultBuilder.append(" ");
+//                matchResultBuilder.append(setIterator.next());
+//            }
             matchResultBuilder.append(".\n");
             try {
                 output.saveMatchResult(matchResultBuilder.toString());

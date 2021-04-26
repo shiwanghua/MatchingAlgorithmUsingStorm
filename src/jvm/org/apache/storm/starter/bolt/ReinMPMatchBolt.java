@@ -134,15 +134,15 @@ public class ReinMPMatchBolt extends BaseRichBolt {
 
                     int subID;
                     numSubPacket++;
-                    log = new StringBuilder(boltName);
-                    log.append(" boltID: ");
-                    log.append(boltID);
-                    log.append(". Thread ");
-                    log.append(executorID);
-                    log.append(": SubPacket ");
-                    log.append(numSubPacket);
-                    log.append(" is received.\n");
-                    output.writeToLogFile(log.toString());
+//                    log = new StringBuilder(boltName);
+//                    log.append(" boltID: ");
+//                    log.append(boltID);
+//                    log.append(". Thread ");
+//                    log.append(executorID);
+//                    log.append(": SubPacket ");
+//                    log.append(numSubPacket);
+//                    log.append(" is received.\n");
+//                    output.writeToLogFile(log.toString());
 
                     ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
                     int size = subPacket.size();
@@ -152,15 +152,15 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                             continue;
                         if (rein.insert(subPacket.get(i))) // no need to add if already exists
                             numSubInserted++;
-                        log = new StringBuilder(boltName);
-                        log.append(" boltID: ");
-                        log.append(boltID);
-                        log.append(". Thread ");
-                        log.append(executorID);
-                        log.append(": Sub ");
-                        log.append(subID);
-                        log.append(" is inserted.\n");
-                        output.writeToLogFile(log.toString());
+//                        log = new StringBuilder(boltName);
+//                        log.append(" boltID: ");
+//                        log.append(boltID);
+//                        log.append(". Thread ");
+//                        log.append(executorID);
+//                        log.append(": Sub ");
+//                        log.append(subID);
+//                        log.append(" is inserted.\n");
+//                        output.writeToLogFile(log.toString());
                     }
                     collector.ack(tuple);
 //                    insertSubTime += System.nanoTime() - startTime;
@@ -181,29 +181,29 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                 case TypeConstant.Event_Match_Subscription: {
                     if(tuple.getIntegerByField("MatchBoltID").equals(boltID)){
                         numEventPacket++;
-                        log = new StringBuilder(boltName);
-                        log.append(" boltID: ");
-                        log.append(boltID);
-                        log.append(". Thread ");
-                        log.append(executorID);
-                        log.append(": EventPacket ");
-                        log.append(numEventPacket);
-                        log.append(" is received.\n");
-                        output.writeToLogFile(log.toString());
+//                        log = new StringBuilder(boltName);
+//                        log.append(" boltID: ");
+//                        log.append(boltID);
+//                        log.append(". Thread ");
+//                        log.append(executorID);
+//                        log.append(": EventPacket ");
+//                        log.append(numEventPacket);
+//                        log.append(" is received.\n");
+//                        output.writeToLogFile(log.toString());
                         ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
                         int size = eventPacket.size(), eventID;
                         for (int i = 0; i < size; i++) {
                             ArrayList<Integer> matchedSubIDList = rein.match(eventPacket.get(i));
                             eventID = eventPacket.get(i).getEventID();
-                            log = new StringBuilder(boltName);
-                            log.append(" boltID: ");
-                            log.append(boltID);
-                            log.append(". Thread ");
-                            log.append(executorID);
-                            log.append(": EventID ");
-                            log.append(eventID);
-                            log.append(" matching task is done.\n");
-                            output.writeToLogFile(log.toString());
+//                            log = new StringBuilder(boltName);
+//                            log.append(" boltID: ");
+//                            log.append(boltID);
+//                            log.append(". Thread ");
+//                            log.append(executorID);
+//                            log.append(": EventID ");
+//                            log.append(eventID);
+//                            log.append(" matching task is done.\n");
+//                            output.writeToLogFile(log.toString());
                             collector.emit(new Values(executorID, eventID, matchedSubIDList));
                         }
                         numEventMatched += eventPacket.size();

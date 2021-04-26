@@ -74,15 +74,15 @@ public class EventSpout extends BaseRichSpout {
     @Override
     public void ack(Object id) {
 //        LOG.debug("Got ACK for msgId : ");
-        log=new StringBuilder(spoutName);
-        log.append(": EventTuple ");
-        log.append(id);
-        log.append(" is acked.\n");
-        try {
-            output.writeToLogFile(log.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        log=new StringBuilder(spoutName);
+//        log.append(": EventTuple ");
+//        log.append(id);
+//        log.append(" is acked.\n");
+//        try {
+//            output.writeToLogFile(log.toString());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     @Override
@@ -167,18 +167,18 @@ public class EventSpout extends BaseRichSpout {
 //            e.printStackTrace();
 //        }
         numEventPacket++;
-        try {
-            log = new StringBuilder(spoutName);
-            log.append(": EventID ");
-            log.append(eventID);
-            log.append(" in EventPacket ");
-            log.append(numEventPacket);
-            log.append(" is sent.\n");
-            output.writeToLogFile(log.toString());
-//            output.writeToLogFile(spoutName+": EventID "+String.valueOf(eventID)+" in EventPacket "+String.valueOf(++numEventPacket) +" is sent.\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            log = new StringBuilder(spoutName);
+//            log.append(": EventID ");
+//            log.append(eventID);
+//            log.append(" in EventPacket ");
+//            log.append(numEventPacket);
+//            log.append(" is sent.\n");
+//            output.writeToLogFile(log.toString());
+////            output.writeToLogFile(spoutName+": EventID "+String.valueOf(eventID)+" in EventPacket "+String.valueOf(++numEventPacket) +" is sent.\n");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
         nextMatchBoltID=(nextMatchBoltID+1)%numMatchBolt;
         collector.emit(new Values(nextMatchBoltID,TypeConstant.Event_Match_Subscription, numEventPacket, events), numEventPacket);
     }

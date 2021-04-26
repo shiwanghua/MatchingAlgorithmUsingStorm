@@ -71,15 +71,15 @@ public class SubscriptionSpout extends BaseRichSpout {
     @Override
     public void ack(Object id) {
 //        LOG.debug("Got ACK for msgId : ");
-        log = new StringBuilder(spoutName);
-        log.append(": SubTuple ");
-        log.append(id);
-        log.append(" is acked.\n");
-        try {
-            output.writeToLogFile(log.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        log = new StringBuilder(spoutName);
+//        log.append(": SubTuple ");
+//        log.append(id);
+//        log.append(" is acked.\n");
+//        try {
+//            output.writeToLogFile(log.toString());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     @Override
@@ -164,18 +164,18 @@ public class SubscriptionSpout extends BaseRichSpout {
 //            e.printStackTrace();
 //        }
         numSubPacket++;
-        try {
-            log = new StringBuilder(spoutName);
-            log.append(": SubID ");
-            log.append(subID);
-            log.append(" in SubPacket ");
-            log.append(numSubPacket);
-            log.append(" is sent.\n");
-            output.writeToLogFile(log.toString());
-//            output.writeToLogFile(spoutName+": SubID "+String.valueOf(subID)+" in SubPacket " + String.valueOf(numSubPacket) + " is sent.\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            log = new StringBuilder(spoutName);
+//            log.append(": SubID ");
+//            log.append(subID);
+//            log.append(" in SubPacket ");
+//            log.append(numSubPacket);
+//            log.append(" is sent.\n");
+//            output.writeToLogFile(log.toString());
+////            output.writeToLogFile(spoutName+": SubID "+String.valueOf(subID)+" in SubPacket " + String.valueOf(numSubPacket) + " is sent.\n");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
 //        collector.emit(new Values(TypeConstant.Insert_Subscription, sub),numSubPacket);
         collector.emit(new Values(TypeConstant.Insert_Subscription, numSubPacket, sub), numSubPacket);

@@ -150,7 +150,7 @@ public class ThreadDivisionMatchBolt extends BaseRichBolt {
                     ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
                     for (int i = 0; i < subPacket.size(); i++) {
                         subID = subPacket.get(i).getSubID();
-                        if (subID % executorIDAllocator != executorID)
+                        if ( !executorID.equals(subID % executorIDAllocator))
                             continue;
                         if(!mapIDtoSub.containsKey(subID))
                             numSubInserted++;

@@ -19,10 +19,10 @@ public class Test {
         HashMap<Integer, Integer> matchResultNum=new HashMap<>();
         matchResultNum.put(1,2);
         System.out.println(matchResultNum.get(1));
-        matchResultNum.put(1,null);
-        System.out.println(matchResultNum.get(1));
+//        matchResultNum.put(1,null);
+//        System.out.println(matchResultNum.get(1));
         matchResultNum.remove(1);
-        System.out.println(matchResultNum.get(1));
+        System.out.println(matchResultNum.containsKey(1));
         return;
     }
 }
