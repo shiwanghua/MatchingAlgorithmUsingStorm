@@ -30,7 +30,9 @@ public class ReinMPMatchBolt extends BaseRichBolt {
     private Integer numSubPacket;
     private Integer numEventPacket;
     private Integer numSubInserted;
+    private Integer numSubInsertedLast;
     private Integer numEventMatched;
+    private Integer numEventMatchedLast;
     final private Integer numVisualSubSet;
     final private Integer numExecutor;
     private Integer executorID;
@@ -51,7 +53,9 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         numSubPacket = 0;
         numEventPacket = 0;
         numSubInserted = 1;
+        numSubInsertedLast = 1;
         numEventMatched = 1;
+        numEventMatchedLast = 1;
         runTime = 1;
         numExecutor = num_executor;
         redundancy = redundancy_degree;
@@ -69,7 +73,6 @@ public class ReinMPMatchBolt extends BaseRichBolt {
     @Override
     public void prepare(Map<String, Object> map, TopologyContext topologyContext, OutputCollector outputCollector) { // execute one time for every executor!
 
-        speedTime = System.nanoTime() + intervalTime;
         boltContext = topologyContext;
         collector = outputCollector;
         boltName = boltContext.getThisComponentId();
@@ -120,6 +123,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        speedTime = System.nanoTime() + intervalTime;
     }
 
     @Override
@@ -179,7 +183,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                     break;
                 }
                 case TypeConstant.Event_Match_Subscription: {
-                    if(tuple.getIntegerByField("MatchBoltID").equals(boltID)){
+                    if (tuple.getIntegerByField("MatchBoltID").equals(boltID)) {
                         numEventPacket++;
 //                        log = new StringBuilder(boltName);
 //                        log.append(" boltID: ");
@@ -237,11 +241,14 @@ public class ReinMPMatchBolt extends BaseRichBolt {
             speedReport.append("min. numSubInserted: ");
             speedReport.append(numSubInserted); //mapIDtoSub.size()
             speedReport.append("; InsertSpeed: ");
-            speedReport.append(runTime / numSubInserted / 1000);  // us/per
+            speedReport.append(intervalTime / (numSubInserted - numSubInsertedLast+1) / 1000);  // us/per 加一避免除以0
+            numSubInsertedLast = numSubInserted;
             speedReport.append(". numEventMatched: ");
             speedReport.append(numEventMatched);
             speedReport.append("; MatchSpeed: ");
-            speedReport.append(runTime / numEventMatched / 1000); // us/per
+//            speedReport.append(runTime / numEventMatched / 1000); // us/per
+            speedReport.append(intervalTime / (numEventMatched - numEventMatchedLast) / 1000);
+            numEventMatchedLast = numEventMatched;
             speedReport.append(".\n");
             try {
                 output.recordSpeed(speedReport.toString());
@@ -250,7 +257,6 @@ public class ReinMPMatchBolt extends BaseRichBolt {
             }
             speedTime = System.nanoTime() + intervalTime;
         }
-
     }
 
     @Override

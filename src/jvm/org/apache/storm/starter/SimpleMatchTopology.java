@@ -10,13 +10,12 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.utils.Utils;
 
-
 //storm jar ./storm-2021-02-22.jar org.apache.storm.starter.SimpleMatchTopology
 public class SimpleMatchTopology {
     public static void main(String[] args) throws Exception {
 
-        Integer numExecutorInAMatchBolt = 6;
-        Integer redundancy = 3;
+        Integer numExecutorInAMatchBolt = TypeConstant.numExecutorperMatchBolt;
+        Integer redundancy = TypeConstant.redundancy;
 
         MyUtils utils = new MyUtils(numExecutorInAMatchBolt, redundancy);
 
@@ -29,8 +28,8 @@ public class SimpleMatchTopology {
 //        builder.setBolt("ReinMPMBolt1", new ReinMPMatchBolt(1,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
         builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("ReinMPMBolt0");
 //        builder.setBolt("MPMergerBolt1", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("ReinMPMBolt1");
- //       builder.setBolt("MPMBolt1", new MultiPartitionMatchBolt(numExecutorInAMatchBolt,redundancy),numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
-    //    builder.setBolt("MergerBolt1",new MultiPartitionMergerBolt(numExecutorInAMatchBolt,redundancy,utils.getExecutorCombination()),1).allGrouping("MPMBolt1");
+//        builder.setBolt("MPMBolt1", new MultiPartitionMatchBolt(0,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()),numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
+//        builder.setBolt("MergerBolt1",new MultiPartitionMergerBolt(numExecutorInAMatchBolt,redundancy,utils.getExecutorCombination()),1).allGrouping("MPMBolt1");
 
 //        builder.setBolt("TDMBolt0", new ThreadDivisionMatchBolt(numExecutorInAMatchBolt),6).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
 //        builder.setBolt("MergerBolt1",new MergerBolt(numExecutorInAMatchBolt),1).allGrouping("TDMBolt0");
@@ -67,7 +66,7 @@ public class SimpleMatchTopology {
         LocalCluster localCluster = new LocalCluster();
         localCluster.submitTopology(topoName, conf, builder.createTopology());
 //        StormSubmitter.submitTopologyWithProgressBar(topoName, conf, builder.createTopology());
-        Utils.sleep(720000);
+        Utils.sleep(60000000);
         localCluster.killTopology(topoName);
         localCluster.shutdown();
     }

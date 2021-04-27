@@ -26,6 +26,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
     private Integer numMatchExecutor;
     private Integer redundancy;
     private Integer numEventMatched;
+    private Integer numEventMatchedLast;
     private long runTime;
     private long speedTime;  // The time to calculate and record speed
     final private long beginTime;
@@ -58,6 +59,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
         //matchResultNum = new HashMap<>();
         recordStatus = new HashMap<>();
         numEventMatched = 1;
+        numEventMatchedLast = 1;
         runTime = 1;
         speedTime = System.nanoTime() + intervalTime;
 
@@ -77,7 +79,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
             log.append(";\nNumberOfMatchExecutor: ");
             log.append(numMatchExecutor); // need to be checked carefully
             log.append("\nComplete Executor Combination:\n");
-            int count=0;
+            int count = 0;
             for (int i = 0; i < executorCombination.length; i++) {
                 if (executorCombination[i] == true) {
                     log.append(i);
@@ -126,7 +128,6 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
             matchResultBuilder.append("; MatchedSubNum: ");
             matchResultBuilder.append(resultSet.size());
 //            matchResultBuilder.append("; SubID:");
-//
 //            Iterator<Integer> setIterator = resultSet.iterator();
 //            while (setIterator.hasNext()) {
 //                matchResultBuilder.append(" ");
@@ -155,7 +156,9 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
             speedReport.append("min. numEventMatched: ");
             speedReport.append(numEventMatched);
             speedReport.append("; MatchSpeed: ");
-            speedReport.append(runTime / numEventMatched / 1000); // us/per
+//            speedReport.append(runTime / numEventMatched / 1000); // us/per
+            speedReport.append(intervalTime/(numEventMatched-numEventMatchedLast)/1000);
+            numEventMatchedLast=numEventMatched;
             speedReport.append(".\n");
             try {
                 output.recordSpeed(speedReport.toString());
