@@ -11,12 +11,13 @@ public class TypeConstant {
     public static final int Null_Operation = 7;
 
     // 平凡参数
+    public static final int subSetSize = 200000;
+    public static final int numAttributeType=50;
     public static final int maxNumSubscriptionPerPacket = 100;
     public static final int maxNumAttributePerSubscription = 10;
     public static final int maxNumEventPerPacket=100;
-    public static final int maxNumAttributePerEvent=10;
-    public static final int subSetSize = 200000;
-    public static final int numAttributeType=30;
+    public static final int maxNumAttributePerEvent=30;
+
 
     // 实验模型参数
     //rein

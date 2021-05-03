@@ -16,9 +16,9 @@ public class Test {
 //        Scanner  scan_input = new Scanner(System.in);
 //        int  q = scan_input.nextInt();
 
-        HashMap<Integer, Integer> matchResultNum=new HashMap<>();
-        matchResultNum.put(1,2);
-        System.out.println(matchResultNum.get(1));
+        HashMap<Integer, Boolean> matchResultNum=new HashMap<>();
+        matchResultNum.put(1,true);
+        System.out.println(matchResultNum.getOrDefault(2,false)==true);
 //        matchResultNum.put(1,null);
 //        System.out.println(matchResultNum.get(1));
         matchResultNum.remove(1);

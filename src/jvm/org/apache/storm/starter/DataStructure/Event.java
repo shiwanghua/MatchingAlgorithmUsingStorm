@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 public class Event {
     private int maxNumAttributes;
-    private Integer eventID;
+    private int eventID;
     private OutputToFile output;
     //private HashMap<String, Double> attributeNameToValue;
     private HashMap<Integer, Double> attributeIDToValue;
@@ -18,7 +18,7 @@ public class Event {
         attributeIDToValue = new HashMap<>();
     }
 
-    public Event(final Integer ID, int num_attributes, ArrayList<Integer> attributeID, ArrayList<Double> values) throws IOException {
+    public Event(final int ID, int num_attributes, ArrayList<Integer> attributeID, ArrayList<Double> values) throws IOException {
         eventID = ID;
         maxNumAttributes = num_attributes;
         output = new OutputToFile();
@@ -27,7 +27,7 @@ public class Event {
             return;
         }
 
-        Integer size=attributeID.size();
+        int size=attributeID.size();
         for (int i = 0; i < size; i++) {
             if (attributeIDToValue.containsKey(attributeID.get(i))) {
                 output.writeToLogFile("Attribte name duplicate, event construct failed.\n");
@@ -52,7 +52,7 @@ public class Event {
         return attributeIDToValue.get(attributeID);
     }
 
-    public Integer getEventID() {
+    public int getEventID() {
         return eventID;
     }
 

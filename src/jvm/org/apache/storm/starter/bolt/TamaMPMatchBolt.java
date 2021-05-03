@@ -15,7 +15,7 @@ import org.apache.storm.tuple.Values;
 import java.io.IOException;
 import java.util.*;
 
-public class ReinMPMatchBolt extends BaseRichBolt {
+public class TamaMPMatchBolt extends BaseRichBolt {
     private OutputToFile output;
     private OutputCollector collector;
     private TopologyContext boltContext;
@@ -44,7 +44,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
     final private long beginTime;
     final private long intervalTime; // The interval between two calculations of speed
 
-    public ReinMPMatchBolt(int boltid, int num_executor, int redundancy_degree, int num_visual_subSet, ArrayList<String> VSSID_to_ExecutorID) {   // only execute one time for all executors!
+    public TamaMPMatchBolt(int boltid, int num_executor, int redundancy_degree, int num_visual_subSet, ArrayList<String> VSSID_to_ExecutorID) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
         boltID = boltid;
         intervalTime = 60000000000L;  // 1 minute

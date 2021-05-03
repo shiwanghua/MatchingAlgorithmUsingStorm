@@ -7,7 +7,7 @@ import java.util.HashMap;
 public class Subscription {
 
     private int maxNumAttributes;
-    private Integer subID;
+    private int subID;
     private OutputToFile out;
     private HashMap<Integer, Pair<Double, Double>> attributeIDToPair;
 
@@ -18,7 +18,7 @@ public class Subscription {
         attributeIDToPair = new HashMap<>();
     }
 
-    public Subscription(final Integer ID, int num_attributes, ArrayList<Integer> attributeID, ArrayList<Pair<Double, Double>> pairs) throws IOException {
+    public Subscription(final int ID, int num_attributes, ArrayList<Integer> attributeID, ArrayList<Pair<Double, Double>> pairs) throws IOException {
         subID = ID;
         maxNumAttributes = num_attributes;
         out = new OutputToFile();
@@ -45,7 +45,7 @@ public class Subscription {
         }
     }
 
-    public Subscription(final Integer ID, HashMap<Integer, Pair<Double, Double>> mapIDToPair) throws IOException {
+    public Subscription(final int ID, HashMap<Integer, Pair<Double, Double>> mapIDToPair) throws IOException {
         subID = ID;
         maxNumAttributes = mapIDToPair.size();
         out = new OutputToFile();

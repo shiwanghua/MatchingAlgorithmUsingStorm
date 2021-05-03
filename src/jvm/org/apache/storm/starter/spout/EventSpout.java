@@ -18,10 +18,10 @@ public class EventSpout extends BaseRichSpout {
     //    private static final Logger LOG = LoggerFactory.getLogger(EventSpout.class);
     SpoutOutputCollector collector;
     private Random valueGenerator;
-    private Integer eventID;
-    private Integer numEventPacket;
-    private Integer numMatchBolt;
-    private Integer nextMatchBoltID;
+    private int eventID;
+    private int numEventPacket;
+    private int numMatchBolt;
+    private int nextMatchBoltID;
     final int maxNumEvent;            //  Maximum number of event emitted per time
     final int maxNumAttribute;        //  Maxinum number of attributes in a event
     final int numAttributeType;       //  Type number of attributes

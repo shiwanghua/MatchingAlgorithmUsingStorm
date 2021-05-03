@@ -21,12 +21,12 @@ public class SubscriptionSpout extends BaseRichSpout {
     //    private static final Logger LOG = LoggerFactory.getLogger(SubscriptionSpout.class);
     SpoutOutputCollector collector;
     TopologyContext subSpoutTopologyContext;
-    private Integer subID;
-    private Integer numSubPacket;
+    private int subID;
+    private int numSubPacket;
     final int maxNumSubscription;           //  Maximum number of subscription emitted per time
     final int maxNumAttribute;              //  Maxinum number of attributes in a subscription
     final int numAttributeType;             //  Type number of attributes
-    final Integer subSetSize;
+    final int subSetSize;
     private Random valueGenerator;          //  Generate the interval value and index of attribute name
     private int[] randomPermutation;              //  To get the attribute name
     private OutputToFile output;
