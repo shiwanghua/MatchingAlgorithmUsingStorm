@@ -24,10 +24,14 @@ public class SimpleMatchTopology {
         builder.setSpout("SubSpout", new SubscriptionSpout(), 1);
         builder.setSpout("EventSpout", new EventSpout(1), 1);
 
-        builder.setBolt("ReinMPMBolt0", new ReinMPMatchBolt(0,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
+        builder.setBolt("TamaMPMBolt0",new TamaMPMatchBolt(0,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
+        builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("TamaMPMBolt0");
+
+//        builder.setBolt("ReinMPMBolt0", new ReinMPMatchBolt(0,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
 //        builder.setBolt("ReinMPMBolt1", new ReinMPMatchBolt(1,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
-        builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("ReinMPMBolt0");
+//        builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("ReinMPMBolt0");
 //        builder.setBolt("MPMergerBolt1", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("ReinMPMBolt1");
+
 //        builder.setBolt("MPMBolt1", new MultiPartitionMatchBolt(0,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()),numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
 //        builder.setBolt("MergerBolt1",new MultiPartitionMergerBolt(numExecutorInAMatchBolt,redundancy,utils.getExecutorCombination()),1).allGrouping("MPMBolt1");
 
@@ -53,7 +57,7 @@ public class SimpleMatchTopology {
         conf.setNumWorkers(6);
         conf.setMaxTaskParallelism(12);
         conf.put(Config.TOPOLOGY_ACKER_EXECUTORS, 3);// 设置acker的数量, default: 1
-        conf.put(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS, 180);
+        conf.put(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS, 90);
         conf.put(Config.TOPOLOGY_MAX_SPOUT_PENDING, 800);//设置一个spout task上面最多有多少个没有处理的tuple（没有ack/failed）回复，以防止tuple队列爆掉
         // conf.put(Config.TOPOLOGY_WORKER_CHILDOPTS,"-Xmx%HEAP-MEM%m -XX:+PrintGCDetails -Xloggc:artifacts/gc.log  -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=1M -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=artifacts/heapdump");
 

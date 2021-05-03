@@ -15,12 +15,14 @@ public class TypeConstant {
     public static final int numAttributeType=50;
     public static final int maxNumSubscriptionPerPacket = 100;
     public static final int maxNumAttributePerSubscription = 10;
-    public static final int maxNumEventPerPacket=100;
+    public static final int maxNumEventPerPacket=20;
     public static final int maxNumAttributePerEvent=30;
 
 
     // 实验模型参数
-    //rein
+    // TAMA
+    public static final int numLevel=10;
+    //REIN
     public static final int numBucket=5;
     //MPM
     public static final int numExecutorperMatchBolt=6;

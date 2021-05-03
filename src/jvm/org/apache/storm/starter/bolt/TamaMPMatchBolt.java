@@ -19,7 +19,7 @@ public class TamaMPMatchBolt extends BaseRichBolt {
     private OutputToFile output;
     private OutputCollector collector;
     private TopologyContext boltContext;
-    private Rein rein;
+    private Tama tama;
     private ArrayList<String> VSSIDtoExecutorID;
 
     private StringBuilder log;
@@ -27,8 +27,8 @@ public class TamaMPMatchBolt extends BaseRichBolt {
 
     private String boltName;
     private int boltID;
-    private int numSubPacket;
-    private int numEventPacket;
+//    private int numSubPacket;
+//    private int numEventPacket;
     private int numSubInserted;
     private int numSubInsertedLast;
     private int numEventMatched;
@@ -50,8 +50,8 @@ public class TamaMPMatchBolt extends BaseRichBolt {
         intervalTime = 60000000000L;  // 1 minute
         executorIDAllocator = 0;
         //executorIDAllocator=new IDAllocator();
-        numSubPacket = 0;
-        numEventPacket = 0;
+//        numSubPacket = 0;
+//        numEventPacket = 0;
         numSubInserted = 1;
         numSubInsertedLast = 1;
         numEventMatched = 1;
@@ -78,7 +78,7 @@ public class TamaMPMatchBolt extends BaseRichBolt {
         boltName = boltContext.getThisComponentId();
         //allocateID();  // boltIDAllocator need to keep synchronized
         executorID = MyUtils.allocateID(boltName);
-        rein = new Rein();
+        tama = new Tama();
         output = new OutputToFile();
 
         if (executorID == 0) {
@@ -137,7 +137,7 @@ public class TamaMPMatchBolt extends BaseRichBolt {
                     //Integer subPacketID = tuple.getIntegerByField("PacketID");
 
                     int subID;
-                    numSubPacket++;
+//                    numSubPacket++;
 //                    log = new StringBuilder(boltName);
 //                    log.append(" boltID: ");
 //                    log.append(boltID);
@@ -154,7 +154,7 @@ public class TamaMPMatchBolt extends BaseRichBolt {
                         subID = subPacket.get(i).getSubID();
                         if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID) == '0')
                             continue;
-                        if (rein.insert(subPacket.get(i))) // no need to add if already exists
+                        if (tama.insert(subPacket.get(i))) // no need to add if already exists
                             numSubInserted++;
 //                        log = new StringBuilder(boltName);
 //                        log.append(" boltID: ");
@@ -184,7 +184,7 @@ public class TamaMPMatchBolt extends BaseRichBolt {
                 }
                 case TypeConstant.Event_Match_Subscription: {
                     if (tuple.getIntegerByField("MatchBoltID").equals(boltID)) {
-                        numEventPacket++;
+//                        numEventPacket++;
 //                        log = new StringBuilder(boltName);
 //                        log.append(" boltID: ");
 //                        log.append(boltID);
@@ -197,7 +197,7 @@ public class TamaMPMatchBolt extends BaseRichBolt {
                         ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
                         int size = eventPacket.size(), eventID;
                         for (int i = 0; i < size; i++) {
-                            ArrayList<Integer> matchedSubIDList = rein.match(eventPacket.get(i));
+                            ArrayList<Integer> matchedSubIDList = tama.match(eventPacket.get(i));
                             eventID = eventPacket.get(i).getEventID();
 //                            log = new StringBuilder(boltName);
 //                            log.append(" boltID: ");
@@ -270,119 +270,114 @@ public class TamaMPMatchBolt extends BaseRichBolt {
     }
 
 
-    class Rein {
-        private int numBucket, numSub, numAttributeType;
-        private double bucketSpan;
+    // cell 从０开始编号，level从１开始编号
+    class Tama {
+        private int numSub, numAttributeType, numLevel, numCell;
+        private int[] counter, lchild, rchild;
+        private double[] mid;
+        private ArrayList<ArrayList<ArrayList<Integer>>> table;
+        private HashMap<Integer, Integer> mapSubIDtoNumAttribute;
         private ArrayList<Integer> mapToSubID;
-        private HashMap<Integer, Boolean> exist;
-        private ArrayList<ArrayList<LinkedList<Pair<Integer, Double>>>> infBuckets; // Attribute ID -> bucket id -> a bucket list -> (subID,subVlue)
-        private ArrayList<ArrayList<LinkedList<Pair<Integer, Double>>>> supBuckets;
 
-        public Rein() {
+        public Tama() {
             numSub = 0;
-            numBucket = TypeConstant.numBucket;
+            numCell = 0;
             numAttributeType = TypeConstant.numAttributeType;
-            bucketSpan = 1.0 / numBucket;
+            numLevel = TypeConstant.numLevel;
+            counter = new int[TypeConstant.subSetSize];
+            lchild = new int[1 << numLevel];
+            rchild = new int[1 << numLevel];
+            mid = new double[1 << numLevel];
+            mapSubIDtoNumAttribute = new HashMap<>();
             mapToSubID = new ArrayList<>();
-            exist = new HashMap<>();
-            infBuckets = new ArrayList<>();
-            supBuckets = new ArrayList<>();
-            for (int i = 0; i < TypeConstant.numAttributeType; i++) {
-                infBuckets.add(new ArrayList<>());
-                supBuckets.add(new ArrayList<>());
-                for (int j = 0; j < numBucket; j++) {
-                    infBuckets.get(i).add(new LinkedList<>());
-                    supBuckets.get(i).add(new LinkedList<>());
+            table = new ArrayList<>();
+            for (int i = 0; i < numAttributeType; i++) {
+                table.add(new ArrayList<>());
+                for (int j = 0; j < (1 << numLevel); j++) { // (1 << numLevel) - 1
+                    table.get(i).add(new ArrayList<>());
                 }
             }
+            initiate(1, 0, 0.0, 1.0);
+        }
+
+        private void initiate(int level, int cellID, double l, double r) {
+            if (level == numLevel)
+                return;
+            mid[cellID] = (l + r) / 2;
+//            if (l < r) {
+            lchild[cellID] = ++numCell;
+            initiate(level + 1, numCell, l, mid[cellID]);
+            rchild[cellID] = ++numCell;
+            initiate(level + 1, numCell, mid[cellID], r);
+//            }
         }
 
         public boolean insert(Subscription sub) {
             int subID = sub.getSubID();
-            if (exist.getOrDefault(subID, false) == true)
+            if (mapSubIDtoNumAttribute.getOrDefault(subID, 0) > 0)
                 return false;
+
             int subAttributeID;
-            double low, high;
+            double lowValue, highValue;
             HashMap.Entry<Integer, Pair<Double, Double>> subAttributeEntry;
             Iterator<HashMap.Entry<Integer, Pair<Double, Double>>> subAttributeIterator = sub.getMap().entrySet().iterator();
             while (subAttributeIterator.hasNext()) {
                 subAttributeEntry = subAttributeIterator.next();
                 subAttributeID = subAttributeEntry.getKey();
-                low = subAttributeEntry.getValue().getFirst();
-                high = subAttributeEntry.getValue().getSecond();
-
-                infBuckets.get(subAttributeID).get((int) (low / bucketSpan)).add(Pair.of(numSub, low));
-                supBuckets.get(subAttributeID).get((int) (high / bucketSpan)).add(Pair.of(numSub, high));
+                insert(1, 0, 0.0, 1.0, numSub, subAttributeID, subAttributeEntry.getValue().getFirst(), subAttributeEntry.getValue().getSecond());
             }
+            mapSubIDtoNumAttribute.put(numSub, sub.getAttibuteNum());
             mapToSubID.add(subID);  //  add this map to ensure the size of bits array int match() is right, since each executor will not get a successive subscription set
-            exist.put(subID, true);
             numSub++;   //  after Deletion operation, numSub!=numSubInserted, so variable 'numSubInserted' is needed.
             return true;
         }
 
+        private void insert(int level, int cellID, double left, double right, int subID, int attributeID, double low, double high) {
+            if (level == numLevel || (low <= left && high >= right)) {
+                table.get(attributeID).get(cellID).add(subID);
+                return;
+            }
+            if (high <= mid[cellID])
+                insert(level + 1, lchild[cellID], left, mid[cellID], subID, attributeID, low, high);
+            else if (low > mid[cellID])
+                insert(level + 1, lchild[cellID], mid[cellID], right, subID, attributeID, low, high);
+            else {
+                insert(level + 1, lchild[cellID], left, mid[cellID], subID, attributeID, low, high);
+                insert(level + 1, lchild[cellID], mid[cellID], right, subID, attributeID, low, high);
+            }
+        }
+
         public ArrayList<Integer> match(Event e) {
 
-            boolean[] bits = new boolean[numSub];
-//        Integer eventAttributeID;
-            Double attributeValue;
-            int bucketID;
-
-            // Solution: each event has all attribute types i.e.: e.getMap().size()==numAttributeType
-//        HashMap.Entry<Integer, Double> eventAttributeEntry;
-//        Iterator<HashMap.Entry<Integer, Double>> eventAttributeIterator = e.getMap().entrySet().iterator();
-//        while (eventAttributeIterator.hasNext()) {
-//            eventAttributeEntry = eventAttributeIterator.next();
-//            eventAttributeID = eventAttributeEntry.getKey();
-//            attributeValue = eventAttributeEntry.getValue();
-//            bucketID = (int) (attributeValue / bucketSpan);
-//
-//            for (Pair<Integer, Double> subIDValue : infBuckets.get(eventAttributeID).get(bucketID))
-//                if (subIDValue.value2 > attributeValue)
-//                    bits[subIDValue.value1] = true;
-//            for (int i = bucketID + 1; i < numBucket; i++)
-//                for (Pair<Integer, Double> subIDValue : infBuckets.get(eventAttributeID).get(i))
-//                    bits[subIDValue.value1] = true;
-//
-//            for (Pair<Integer, Double> subIDValue : supBuckets.get(eventAttributeID).get(bucketID))
-//                if (subIDValue.value2 < attributeValue)
-//                    bits[subIDValue.value1] = true;
-//            for (int i = 0; i < bucketID; i++)
-//                for (Pair<Integer, Double> subIDValue : infBuckets.get(eventAttributeID).get(i))
-//                    bits[subIDValue.value1] = true;
-//        }
-
-//        HashMap<Integer,Double> attributeIDToValue=e.getMap();
-            for (int i = 0; i < numAttributeType; i++) {   // i: attributeID
-                attributeValue = e.getAttributeValue(i);
-                if (attributeValue == null) {  // all sub containing this attribute should be marked, only either sup or inf is enough.
-                    for (int j = 0; j < numBucket; j++) {  // j: BucketID
-                        for (Iterator<Pair<Integer, Double>> pairIterator = infBuckets.get(i).get(j).iterator(); pairIterator.hasNext(); ) {
-                            bits[pairIterator.next().getFirst()] = true;
-                        } // LinkedList
-                    } // Bucket ArrayList
-                } else {
-                    bucketID = (int) (attributeValue / bucketSpan);
-                    for (Pair<Integer, Double> subIDValue : infBuckets.get(i).get(bucketID))
-                        if (subIDValue.value2 > attributeValue)
-                            bits[subIDValue.value1] = true;
-                    for (int bi = bucketID + 1; bi < numBucket; bi++)
-                        for (Pair<Integer, Double> subIDValue : infBuckets.get(i).get(bi))
-                            bits[subIDValue.value1] = true;
-
-                    for (Pair<Integer, Double> subIDValue : supBuckets.get(i).get(bucketID))
-                        if (subIDValue.value2 < attributeValue)
-                            bits[subIDValue.value1] = true;
-                    for (int bi = 0; bi < bucketID; bi++)
-                        for (Pair<Integer, Double> subIDValue : infBuckets.get(i).get(bi))
-                            bits[subIDValue.value1] = true;
-                }
+            for (HashMap.Entry<Integer, Integer> entry : mapSubIDtoNumAttribute.entrySet())
+                counter[entry.getKey()] = entry.getValue();
+            int eventAttributeID;
+            double attributeValue;
+            HashMap.Entry<Integer, Double> eventAttributeEntry;
+            Iterator<HashMap.Entry<Integer, Double>> eventAttributeIterator = e.getMap().entrySet().iterator();
+            while (eventAttributeIterator.hasNext()) {
+                eventAttributeEntry = eventAttributeIterator.next();
+                eventAttributeID = eventAttributeEntry.getKey();
+                attributeValue = eventAttributeEntry.getValue();
+                match(1, 0, eventAttributeID, 0.0, 1.0, attributeValue);
             }
 
             ArrayList<Integer> matchResult = new ArrayList<>();
             for (int i = 0; i < numSub; i++)
-                if (!bits[i])
+                if (counter[i] == 0)
                     matchResult.add(mapToSubID.get(i));
             return matchResult;
+        }
+
+        private void match(int level, int cellID, int attributeID, double left, double right, double value) {
+            for (int i = 0; i < table.get(attributeID).get(cellID).size(); i++)
+                --counter[table.get(attributeID).get(cellID).get(i)];
+            if (left >= right || level == numLevel)
+                return;
+            else if (value <= mid[cellID])
+                match(level + 1, lchild[cellID], attributeID, left, mid[cellID], value);
+            else
+                match(level + 1, rchild[cellID], attributeID, mid[cellID] + 1, right, value);
         }
 
         public int getNumSub() {

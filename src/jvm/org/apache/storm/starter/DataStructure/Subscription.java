@@ -6,26 +6,26 @@ import java.util.HashMap;
 
 public class Subscription {
 
-    private int maxNumAttributes;
+//    private int maxNumAttributes;
     private int subID;
     private OutputToFile out;
     private HashMap<Integer, Pair<Double, Double>> attributeIDToPair;
 
     public Subscription() {
-        maxNumAttributes = 10;
+//        maxNumAttributes = 10;
         subID = -1;
         out = new OutputToFile();
         attributeIDToPair = new HashMap<>();
     }
 
-    public Subscription(final int ID, int num_attributes, ArrayList<Integer> attributeID, ArrayList<Pair<Double, Double>> pairs) throws IOException {
+    public Subscription(final int ID, ArrayList<Integer> attributeID, ArrayList<Pair<Double, Double>> pairs) throws IOException {
         subID = ID;
-        maxNumAttributes = num_attributes;
+//        maxNumAttributes = num_attributes;
         out = new OutputToFile();
-        if (num_attributes < pairs.size()) {
-            out.writeToLogFile("The number of pair is larger than the number of attributes, subscription construct failed.\n");
-            return;
-        }
+//        if (num_attributes < pairs.size()) {
+//            out.writeToLogFile("The number of pair is larger than the number of attributes, subscription construct failed.\n");
+//            return;
+//        }
         if (attributeID.size() != pairs.size()) {
             out.writeToLogFile("The number of pair is not equal to the number of attributeName(ArrayList), subscription construct failed.\n");
             return;
@@ -47,7 +47,7 @@ public class Subscription {
 
     public Subscription(final int ID, HashMap<Integer, Pair<Double, Double>> mapIDToPair) throws IOException {
         subID = ID;
-        maxNumAttributes = mapIDToPair.size();
+//        maxNumAttributes = mapIDToPair.size();
         out = new OutputToFile();
 //        for (Pair<Double, Double> value : mapNameToPair.values()) {
 //            if (value.getFirst() > value.getSecond()) {
@@ -66,6 +66,8 @@ public class Subscription {
         return subID;
     }
 
+    public int getAttibuteNum(){return attributeIDToPair.size();}
+
     public HashMap<Integer, Pair<Double, Double>> getMap(){return attributeIDToPair;}
 
     public Boolean insertAttribute(Integer attributeID, Pair<Double, Double> p) throws IOException {
@@ -77,10 +79,10 @@ public class Subscription {
             out.writeToLogFile("Already exists such a attribute name, subscription insert failed.\n");
             return false;
         }
-        if (maxNumAttributes == attributeIDToPair.size()) {
-            out.writeToLogFile("Number of attributes is full, subscription insert failed.\n");
-            return false;
-        }
+//        if (maxNumAttributes <= attributeIDToPair.size()) {
+//            out.writeToLogFile("Number of attributes is full, subscription insert failed.\n");
+//            return false;
+//        }
         attributeIDToPair.put(attributeID, p);
         return true;
     }

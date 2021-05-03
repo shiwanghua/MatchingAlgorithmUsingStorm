@@ -56,6 +56,8 @@ public class Event {
         return eventID;
     }
 
+    public int getNumAttribute(){return attributeIDToValue.size();}
+
     public HashMap<Integer, Double> getMap() {
         return attributeIDToValue;
     }
