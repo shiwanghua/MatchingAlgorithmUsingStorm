@@ -349,7 +349,7 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+//        System.out.println("\n\n\n"+numSubInserted+"\n\n\n");
         if (System.nanoTime() > speedTime) {
             runTime = System.nanoTime() - beginTime;
             StringBuilder speedReport = new StringBuilder(boltName);

@@ -301,6 +301,20 @@ public class TamaMPMatchBolt extends BaseRichBolt {
         }
 
         private void initiate(int level, int cellID, double l, double r) {
+//            log=new StringBuilder(level);
+//            log.append(" ");
+//            log.append(cellID);
+//            log.append(" ");
+//            log.append(l);
+//            log.append(" ");
+//            log.append(r);
+//            log.append(".\n");
+//            try {
+//                output.writeToLogFile(log.toString());
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+
             if (level == numLevel)
                 return;
             mid[cellID] = (l + r) / 2;
@@ -377,7 +391,7 @@ public class TamaMPMatchBolt extends BaseRichBolt {
             else if (value <= mid[cellID])
                 match(level + 1, lchild[cellID], attributeID, left, mid[cellID], value);
             else
-                match(level + 1, rchild[cellID], attributeID, mid[cellID] + 1, right, value);
+                match(level + 1, rchild[cellID], attributeID, mid[cellID], right, value);
         }
 
         public int getNumSub() {

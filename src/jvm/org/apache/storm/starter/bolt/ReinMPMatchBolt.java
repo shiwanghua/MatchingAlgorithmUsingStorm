@@ -156,6 +156,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                             continue;
                         if (rein.insert(subPacket.get(i))) // no need to add if already exists
                             numSubInserted++;
+//                       System.out.println("\n\n\n"+numSubInserted+"\n\n\n");
 //                        log = new StringBuilder(boltName);
 //                        log.append(" boltID: ");
 //                        log.append(boltID);
@@ -171,15 +172,19 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                     break;
                 }
                 case TypeConstant.Insert_Attribute_Subscription: {
+                    System.out.println("Insert attributes to a subscription.\n");
                     break;
                 }
                 case TypeConstant.Update_Attribute_Subscription: {
-                    break;
-                }
-                case TypeConstant.Delete_Attribute_Subscription: {
+                    System.out.println("Update attributes of a subscription.\n");
                     break;
                 }
                 case TypeConstant.Delete_Subscription: {
+                    System.out.println("Delete subscriptions.\n");
+                    break;
+                }
+                case TypeConstant.Delete_Attribute_Subscription: {
+                    System.out.println("Delete attributes of a subscription.\n");
                     break;
                 }
                 case TypeConstant.Event_Match_Subscription: {
@@ -247,7 +252,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
             speedReport.append(numEventMatched);
             speedReport.append("; MatchSpeed: ");
 //            speedReport.append(runTime / numEventMatched / 1000); // us/per
-            speedReport.append(intervalTime / (numEventMatched - numEventMatchedLast) / 1000);
+            speedReport.append(intervalTime / (numEventMatched - numEventMatchedLast + 1) / 1000);
             numEventMatchedLast = numEventMatched;
             speedReport.append(".\n");
             try {
