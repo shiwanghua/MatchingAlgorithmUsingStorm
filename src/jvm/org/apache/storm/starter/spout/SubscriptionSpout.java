@@ -12,7 +12,7 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichSpout;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
-//import org.apache.storm.utils.Utils;
+import org.apache.storm.utils.Utils;
 
 import java.io.IOException;
 import java.util.*;
@@ -97,7 +97,7 @@ public class SubscriptionSpout extends BaseRichSpout {
 
     @Override
     public void nextTuple() {
-//        Utils.sleep(50);
+        Utils.sleep(5);
         if (subID >= subSetSize) {
 //            collector.emit(new Values(TypeConstant.Null_Operation, null));
             return;
