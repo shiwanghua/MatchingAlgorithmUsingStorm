@@ -31,12 +31,32 @@ From: 'an unknown organization'
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - JSON.simple (http://code.google.com/p/json-simple/) com.googlecode.json-simple:json-simple:jar:1.1
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - ParaNamer Core (https://github.com/paul-hammant/paranamer/paranamer) com.thoughtworks.paranamer:paranamer:bundle:2.8
+    License: BSD  (LICENSE.txt)
   - carbonite  com.twitter:carbonite:jar:1.5.0
 
+  - Metrics Core Library (http://metrics.codahale.com/metrics-core/) com.yammer.metrics:metrics-core:jar:2.2.0
+    License: Apache License 2.0  (http://www.apache.org/licenses/LICENSE-2.0.html)
   - Metrics Core (http://metrics.dropwizard.io/metrics-core/) io.dropwizard.metrics:metrics-core:bundle:3.2.6
     License: Apache License 2.0  (http://www.apache.org/licenses/LICENSE-2.0.html)
   - JLine (http://jline.sourceforge.net) jline:jline:jar:0.9.94
     License: BSD  (LICENSE.txt)
+  - JOpt Simple (http://jopt-simple.github.io/jopt-simple) net.sf.jopt-simple:jopt-simple:jar:5.0.4
+    License: The MIT License  (http://www.opensource.org/licenses/mit-license.php)
+  - Apache Kafka (https://kafka.apache.org) org.apache.kafka:connect-api:jar:2.7.0
+    License: The Apache Software License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Apache Kafka (https://kafka.apache.org) org.apache.kafka:connect-json:jar:2.7.0
+    License: The Apache Software License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Apache Kafka (https://kafka.apache.org) org.apache.kafka:kafka-clients:jar:2.7.0
+    License: The Apache Software License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Apache Kafka (https://kafka.apache.org) org.apache.kafka:kafka-raft:jar:2.7.0
+    License: The Apache Software License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Apache Kafka (https://kafka.apache.org) org.apache.kafka:kafka-streams:jar:2.7.0
+    License: The Apache Software License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Apache Kafka (https://kafka.apache.org) org.apache.kafka:kafka_2.13:jar:2.7.0
+    License: The Apache Software License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+  - zookeeper  org.apache.zookeeper:zookeeper:pom:3.4.14
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - Checker Qual (https://checkerframework.org) org.checkerframework:checker-qual:jar:2.5.2
     License: The MIT License  (http://opensource.org/licenses/MIT)
   - clojure (http://clojure.org/) org.clojure:clojure:jar:1.10.0
@@ -49,6 +69,8 @@ From: 'an unknown organization'
     License: Eclipse Public License 1.0  (http://opensource.org/licenses/eclipse-1.0.php)
   - HdrHistogram (http://hdrhistogram.github.io/HdrHistogram/) org.hdrhistogram:HdrHistogram:bundle:2.1.10
     License: Public Domain, per Creative Commons CC0  (http://creativecommons.org/publicdomain/zero/1.0/)    License: BSD-2-Clause  (https://opensource.org/licenses/BSD-2-Clause)
+  - LZ4 and xxHash (https://github.com/lz4/lz4-java) org.lz4:lz4-java:jar:1.7.1
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - RocksDB JNI (http://rocksdb.org/) org.rocksdb:rocksdbjni:jar:5.18.4
     License: Apache License 2.0  (http://www.apache.org/licenses/LICENSE-2.0.html)    License: GNU General Public License, version 2  (http://www.gnu.org/licenses/gpl-2.0.html)
   - SnakeYAML (http://www.snakeyaml.org) org.yaml:snakeyaml:bundle:1.26
@@ -56,9 +78,21 @@ From: 'an unknown organization'
   - Jedis (https://github.com/xetorthio/jedis) redis.clients:jedis:jar:2.9.0
     License: MIT  (http://github.com/xetorthio/jedis/raw/master/LICENSE.txt)
 
+From: 'com.fasterxml.jackson.module'
+  - jackson-module-scala (http://wiki.fasterxml.com/JacksonModuleScala) com.fasterxml.jackson.module:jackson-module-scala_2.13:bundle:2.10.5
+    License: The Apache Software License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'com.github.luben'
+  - zstd-jni (https://github.com/luben/zstd-jni) com.github.luben:zstd-jni:jar:1.4.5-6
+    License: BSD 2-Clause License  (https://opensource.org/licenses/BSD-2-Clause)
+
 From: 'com.twitter'
   - chill-java (https://github.com/twitter/chill) com.twitter:chill-java:jar:0.8.0
     License: Apache 2  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'com.typesafe.scala-logging' (https://github.com/lightbend/scala-logging)
+  - scala-logging (https://github.com/lightbend/scala-logging) com.typesafe.scala-logging:scala-logging_2.13:bundle:3.9.2
+    License: Apache 2.0 License  (http://www.apache.org/licenses/LICENSE-2.0.html)
 
 From: 'FasterXML' (http://fasterxml.com/)
   - Jackson-annotations (http://github.com/FasterXML/jackson) com.fasterxml.jackson.core:jackson-annotations:bundle:2.9.0
@@ -66,6 +100,12 @@ From: 'FasterXML' (http://fasterxml.com/)
   - Jackson-core (https://github.com/FasterXML/jackson-core) com.fasterxml.jackson.core:jackson-core:bundle:2.9.8
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - jackson-databind (http://github.com/FasterXML/jackson) com.fasterxml.jackson.core:jackson-databind:bundle:2.9.8
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Jackson-dataformat-CSV (https://github.com/FasterXML/jackson-dataformats-text) com.fasterxml.jackson.dataformat:jackson-dataformat-csv:bundle:2.9.8
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Jackson datatype: jdk8 (https://github.com/FasterXML/jackson-modules-java8/jackson-datatype-jdk8) com.fasterxml.jackson.datatype:jackson-datatype-jdk8:bundle:2.9.8
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Jackson module: Paranamer (https://github.com/FasterXML/jackson-modules-base) com.fasterxml.jackson.module:jackson-module-paranamer:bundle:2.9.8
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 From: 'FuseSource, Corp.' (http://fusesource.com/)
@@ -80,6 +120,12 @@ From: 'Joe Walnes, Henri Tremblay, Leonardo Mesquita'
   - Objenesis (http://objenesis.org) org.objenesis:objenesis:jar:2.6
     License: Apache 2  (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
+From: 'LAMP/EPFL' (https://lamp.epfl.ch/)
+  - Scala Library (https://www.scala-lang.org/) org.scala-lang:scala-library:jar:2.13.3
+    License: Apache-2.0  (https://www.apache.org/licenses/LICENSE-2.0)
+  - Scala Compiler (https://www.scala-lang.org/) org.scala-lang:scala-reflect:jar:2.13.3
+    License: Apache-2.0  (https://www.apache.org/licenses/LICENSE-2.0)
+
 From: 'MojoHaus' (http://www.mojohaus.org)
   - Animal Sniffer Annotations (http://www.mojohaus.org/animal-sniffer/animal-sniffer-annotations) org.codehaus.mojo:animal-sniffer-annotations:jar:1.17
     License: MIT license  (http://www.opensource.org/licenses/mit-license.php)
@@ -88,8 +134,16 @@ From: 'ObjectWeb' (http://www.objectweb.org/)
   - ASM Core (http://asm.objectweb.org/asm/) org.ow2.asm:asm:jar:5.0.3
     License: BSD  (http://asm.objectweb.org/license.html)
 
+From: 'org.scala-lang.modules' (http://www.scala-lang.org/)
+  - scala-collection-compat (http://www.scala-lang.org/) org.scala-lang.modules:scala-collection-compat_2.13:jar:2.2.0
+    License: Apache-2.0  (https://www.apache.org/licenses/LICENSE-2.0)
+  - scala-java8-compat (http://www.scala-lang.org/) org.scala-lang.modules:scala-java8-compat_2.13:bundle:0.9.1
+    License: Apache-2.0  (https://www.apache.org/licenses/LICENSE-2.0)
+
 From: 'QOS.ch' (http://www.qos.ch)
   - SLF4J API Module (http://www.slf4j.org) org.slf4j:slf4j-api:jar:1.7.26
+    License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
+  - SLF4J NOP Binding (http://www.slf4j.org) org.slf4j:slf4j-nop:jar:1.7.2
     License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
 
 From: 'The Apache Software Foundation' (http://www.apache.org/)
@@ -107,8 +161,12 @@ From: 'The Apache Software Foundation' (http://www.apache.org/)
     License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - Apache HttpCore (http://hc.apache.org/httpcomponents-core-ga) org.apache.httpcomponents:httpcore:jar:4.4.10
     License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Apache Yetus - Audience Annotations (https://yetus.apache.org/audience-annotations) org.apache.yetus:audience-annotations:jar:0.5.0
+    License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 From: 'The Apache Software Foundation' (https://www.apache.org/)
+  - Apache Commons CLI (http://commons.apache.org/proper/commons-cli/) commons-cli:commons-cli:jar:1.4
+    License: Apache License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
   - Apache Commons Codec (http://commons.apache.org/proper/commons-codec/) commons-codec:commons-codec:jar:1.11
     License: Apache License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
   - Apache Commons IO (http://commons.apache.org/proper/commons-io/) commons-io:commons-io:jar:2.6
@@ -123,12 +181,22 @@ From: 'The Apache Software Foundation' (https://www.apache.org/)
     License: The Apache Software License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
   - storm-clojure (https://storm.apache.org/storm-clojure) org.apache.storm:storm-clojure:jar:2.2.0
     License: The Apache Software License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+  - storm-kafka-client (https://storm.apache.org/external/storm-kafka-client) org.apache.storm:storm-kafka-client:jar:2.2.0
+    License: The Apache Software License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
   - storm-metrics (https://storm.apache.org/external/storm-metrics) org.apache.storm:storm-metrics:jar:2.2.0
     License: The Apache Software License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
   - storm-redis (https://storm.apache.org/external/storm-redis) org.apache.storm:storm-redis:jar:2.2.0
     License: The Apache Software License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
   - storm-server (https://storm.apache.org/storm-server) org.apache.storm:storm-server:jar:2.2.0
     License: The Apache Software License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'The Netty Project' (http://netty.io/)
+  - Netty (http://netty.io/) io.netty:netty:bundle:3.10.6.Final
+    License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
+
+From: 'xerial.org' (https://github.com/xerial/snappy-java)
+  - snappy-java (https://github.com/xerial/snappy-java) org.xerial.snappy:snappy-java:bundle:1.1.7.7
+    License: Apache-2.0  (https://www.apache.org/licenses/LICENSE-2.0.html)
 
 
 

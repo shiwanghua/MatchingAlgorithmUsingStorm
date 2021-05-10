@@ -35,8 +35,8 @@ public class EventSpout extends BaseRichSpout {
     public EventSpout(Integer num_match_bolt) {
         maxNumEvent = TypeConstant.maxNumEventPerPacket;
         maxNumAttribute = TypeConstant.maxNumAttributePerEvent;
-        numAttributeType=TypeConstant.numAttributeType;
-        numMatchBolt=num_match_bolt;
+        numAttributeType = TypeConstant.numAttributeType;
+        numMatchBolt = num_match_bolt;
     }
 
     @Override
@@ -44,7 +44,7 @@ public class EventSpout extends BaseRichSpout {
         valueGenerator = new Random();
         eventID = 1;
         numEventPacket = 0;  // messageID
-        nextMatchBoltID=-1;
+        nextMatchBoltID = -1;
         randomPermutation = new int[numAttributeType];
         for (int i = 0; i < numAttributeType; i++)
             randomPermutation[i] = i;
@@ -87,7 +87,7 @@ public class EventSpout extends BaseRichSpout {
 
     @Override
     public void fail(Object id) {
-        errorLog=new StringBuilder(spoutName);
+        errorLog = new StringBuilder(spoutName);
         errorLog.append(": EventTuple ");
         errorLog.append(id);
         errorLog.append(" is failed.\n");
@@ -100,7 +100,8 @@ public class EventSpout extends BaseRichSpout {
 
     @Override
     public void nextTuple() {
-//        Utils.sleep(100);
+        if (eventID % 1000 == 0)
+            Utils.sleep(1000);
         int numEvent = (int) (Math.random() * maxNumEvent + 1); // Generate the number of subscriptions in this tuple: 1~maxNumEvent
         ArrayList<Event> events = new ArrayList<>(numEvent);
 
@@ -179,12 +180,12 @@ public class EventSpout extends BaseRichSpout {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
-        nextMatchBoltID=(nextMatchBoltID+1)%numMatchBolt;
-        collector.emit(new Values(nextMatchBoltID,TypeConstant.Event_Match_Subscription, numEventPacket, events), numEventPacket);
+        nextMatchBoltID = (nextMatchBoltID + 1) % numMatchBolt;
+        collector.emit(new Values(nextMatchBoltID, TypeConstant.Event_Match_Subscription, numEventPacket, events), numEventPacket);
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("MatchBoltID","Type", "PacketID", "EventPacket"));
+        outputFieldsDeclarer.declare(new Fields("MatchBoltID", "Type", "PacketID", "EventPacket"));
     }
 }

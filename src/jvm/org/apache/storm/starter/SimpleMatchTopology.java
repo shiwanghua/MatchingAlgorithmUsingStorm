@@ -25,12 +25,12 @@ public class SimpleMatchTopology {
         builder.setSpout("SubSpout", new SubscriptionSpout(), 1);
         builder.setSpout("EventSpout", new EventSpout(1), 1);
 
-//        builder.setBolt("TamaMPMBolt0",new TamaMPMatchBolt(0,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
-//        builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("TamaMPMBolt0");
+        builder.setBolt("TamaMPMBolt0",new TamaMPMatchBolt(0,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
+        builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("TamaMPMBolt0");
 
-        builder.setBolt("ReinMPMBolt0", new ReinMPMatchBolt(0,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
+//        builder.setBolt("ReinMPMBolt0", new ReinMPMatchBolt(0,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
 //        builder.setBolt("ReinMPMBolt1", new ReinMPMatchBolt(1,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
-        builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("ReinMPMBolt0");
+//        builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("ReinMPMBolt0");
 //        builder.setBolt("MPMergerBolt1", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("ReinMPMBolt1");
 
 //        builder.setBolt("MPMBolt1", new MultiPartitionMatchBolt(0,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()),numExecutorInAMatchBolt).allGrouping("SubSpout");
@@ -68,11 +68,11 @@ public class SimpleMatchTopology {
             topoName = args[0];
         }
 
-//        LocalCluster localCluster = new LocalCluster();
-//        localCluster.submitTopology(topoName, conf, builder.createTopology());
-        StormSubmitter.submitTopologyWithProgressBar(topoName, conf, builder.createTopology());
-//        Utils.sleep(60000000);
-//        localCluster.killTopology(topoName);
-//        localCluster.shutdown();
+        LocalCluster localCluster = new LocalCluster();
+        localCluster.submitTopology(topoName, conf, builder.createTopology());
+//        StormSubmitter.submitTopologyWithProgressBar(topoName, conf, builder.createTopology());
+        Utils.sleep(60000000);
+        localCluster.killTopology(topoName);
+        localCluster.shutdown();
     }
 }

@@ -19,4 +19,5 @@ org/apache/storm/starter/bolt/MultiPartitionMergerBolt.class
 org/apache/storm/starter/Test.class
 org/apache/storm/starter/bolt/ThreadDivisionMatchBolt.class
 org/apache/storm/starter/DataStructure/Pair.class
+org/apache/storm/starter/Test$1.class
 org/apache/storm/starter/DataStructure/TypeConstant.class

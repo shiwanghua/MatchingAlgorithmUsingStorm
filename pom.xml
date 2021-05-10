@@ -164,13 +164,45 @@
             <version>2.2.0</version>
             <scope>compile</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_2.13</artifactId>
+            <version>2.7.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.storm</groupId>
+            <artifactId>storm-kafka-client</artifactId>
+            <version>2.2.0</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-streams</artifactId>
+            <version>2.7.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>2.7.0</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-nop</artifactId>
+            <version>1.7.2</version>
+        </dependency>
     </dependencies>
 
 
     <build>
         <finalName>storm-2021-5-4</finalName>
         <sourceDirectory>src/jvm</sourceDirectory>
-        <testSourceDirectory>test/jvm</testSourceDirectory>
+<!--        <testSourceDirectory>test/jvm</testSourceDirectory>-->
         <resources>
             <resource>
                 <directory>${basedir}/multilang</directory>
@@ -181,6 +213,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
+<!--                <version>1.4</version>-->
                 <configuration>
                     <createDependencyReducedPom>true</createDependencyReducedPom>
                     <filters>
