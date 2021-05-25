@@ -47,6 +47,7 @@ public class Test2 {
 
         }
     }
+
     public static void main(String[] args) {
         TopologyBuilder builder = new TopologyBuilder();
         //该类将传入的kafka记录转换为storm的tuple

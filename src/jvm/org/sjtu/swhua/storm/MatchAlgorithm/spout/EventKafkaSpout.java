@@ -1,6 +1,7 @@
 package org.sjtu.swhua.storm.MatchAlgorithm.spout;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Arrays;
@@ -18,7 +19,7 @@ public class EventKafkaSpout {
         String topicName = "event";
         Properties props = new Properties();
 
-        props.put("bootstrap.servers", "localhost:9092");
+        props.put("bootstrap.servers", "swhua:9092");
         props.put("group.id", "SubscriptionsKafkaSpout");
         props.put("enable.auto.commit", "true");
         props.put("auto.commit.interval.ms", "1000");
@@ -45,7 +46,7 @@ public class EventKafkaSpout {
                 List<Event> e = JSON.parseArray(record.value().toString(), Event.class);
                 System.out.println("eventID="+e.get(1).getEventID());
                 System.out.println("attributeValue="+e.get(1).getNumAttribute());
-                System.out.println("e[attr[3]] = "+e.get(0).getAttributeValue(-1));
+                System.out.println("e[attr[-2]] = "+e.get(0).getAttributeValue(-2));
             }
         }
 

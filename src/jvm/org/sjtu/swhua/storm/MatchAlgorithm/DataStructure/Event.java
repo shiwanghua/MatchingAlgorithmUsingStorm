@@ -1,5 +1,8 @@
 package org.sjtu.swhua.storm.MatchAlgorithm.DataStructure;
 
+import com.alibaba.fastjson.annotation.JSONCreator;
+import com.alibaba.fastjson.annotation.JSONField;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -7,9 +10,12 @@ import java.util.HashMap;
 
 public class Event implements Serializable {
 //    private int maxNumAttributes;
+    @JSONField(name="0")
     private int eventID;
+    @JSONField(serialize=false)
     private OutputToFile output;
     //private HashMap<String, Double> attributeNameToValue;
+    @JSONField
     private HashMap<Integer, Double> attributeIDToValue;
 
     public Event() {
@@ -38,7 +44,7 @@ public class Event implements Serializable {
         }
     }
 
-    public Event(final Integer ID, int num_attributes, HashMap<Integer, Double> mapIDToValue) throws IOException {
+    public Event( final Integer ID, int num_attributes, HashMap<Integer, Double> mapIDToValue) throws IOException {
         eventID = ID;
         output = new OutputToFile();
         if (num_attributes < mapIDToValue.size()) {
@@ -49,6 +55,14 @@ public class Event implements Serializable {
         attributeIDToValue = mapIDToValue;
     }
 
+    @JSONCreator
+    public Event(@JSONField final Integer ID,  @JSONField HashMap<Integer, Double> mapIDToValue) throws IOException {
+        eventID = ID;
+        output = new OutputToFile();
+        attributeIDToValue = mapIDToValue;
+    }
+
+    // 专门为反序列化而设置
     public void setEventID(int id){
         eventID=id;
     }

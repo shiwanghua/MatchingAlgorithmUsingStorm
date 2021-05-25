@@ -11,7 +11,7 @@ public class TypeConstant {
     public static final int Null_Operation = 7;
 
     // 平凡参数
-    public static final int subSetSize = 200000;
+    public static final int subSetSize = 2000;
     public static final int numAttributeType=50;
     public static final int maxNumSubscriptionPerPacket = 50;
     public static final int maxNumAttributePerSubscription = 20;
@@ -21,7 +21,7 @@ public class TypeConstant {
 
     // 实验模型参数
     // TAMA
-    public static final int numLevel=13;
+    public static final int numLevel=4;
     //REIN
     public static final int numBucket=10;
     //MPM

@@ -15,7 +15,7 @@ public class EventProducer {
         // create instance for properties to access producer configs
         Properties props = new Properties();
         //Assign localhost id
-        props.put("bootstrap.servers", "localhost:9092");
+        props.put("bootstrap.servers", "swhua:9092");
         //Set acknowledgements for producer requests.
         props.put("acks", "all");
         //If the request fails, the producer can automatically retry,

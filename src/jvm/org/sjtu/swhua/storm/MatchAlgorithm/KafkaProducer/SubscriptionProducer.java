@@ -1,23 +1,83 @@
 package org.sjtu.swhua.storm.MatchAlgorithm.KafkaProducer;
 
 import org.apache.kafka.clients.producer.*;
-import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Event;
-import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Pair;
-import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Subscription;
+import org.apache.storm.tuple.Values;
+import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.*;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
+import java.io.IOException;
+import java.util.*;
 
 public class SubscriptionProducer {
-    public static void main(String[] args) throws Exception{
+    private int subID;
+    private int numSubPacket;               //  Number of message
+    final int maxNumSubscription;           //  Maximum number of subscription emitted per time
+    final int maxNumAttribute;              //  Maxinum number of attributes in a subscription
+    final int numAttributeType;             //  Type number of attributes
+    final int subSetSize;
+    private Random valueGenerator;          //  Generate the interval value and index of attribute name
+    private int[] randomPermutation;              //  To get the attribute name
+    private OutputToFile output;
+    private StringBuilder log;
+
+    public SubscriptionProducer() {
+//        maxNumSubscription = TypeConstant.maxNumSubscriptionPerPacket;
+//        maxNumAttribute = TypeConstant.maxNumAttributePerSubscription;
+        maxNumSubscription = 5;
+        maxNumAttribute = 10;
+        numAttributeType = TypeConstant.numAttributeType;
+        subSetSize = TypeConstant.subSetSize;
+
+        subID = 0;
+        numSubPacket = 0;
+        valueGenerator = new Random();
+        randomPermutation = new int[numAttributeType];
+        for (int i = 0; i < numAttributeType; i++)
+            randomPermutation[i] = i;
+        output = new OutputToFile();
+    }
+
+    public ArrayList<Subscription> produceSubscriptionPacket() {
+//        int numSub = (int) (Math.random() * maxNumSubscription + 1); // Generate the number of subscriptions in this tuple: 1~maxNumSubscription
+        int numSub = maxNumSubscription;
+        ArrayList<Subscription> sub = new ArrayList<>(numSub);
+        for (int i = 0; i < numSub; i++) {
+            int numAttribute = new Random().nextInt(maxNumAttribute + 1); // Generate the number of attribute in this subscription: 0~maxNumAttribute
+
+            int index, temp;
+            for (int j = 0; j < numAttribute; j++) { // Use the first #numAttribute values of randomArray to create the attribute name
+                index = valueGenerator.nextInt(numAttributeType - j) + j;
+                temp = randomPermutation[j];
+                randomPermutation[j] = randomPermutation[index];
+                randomPermutation[index] = temp;
+            }
+
+            Double low, high;
+//            String attributeName = "attributeName";
+            HashMap<Integer, Pair<Double, Double>> mapNameToPair = new HashMap<>();
+
+            for (int j = 0; j < numAttribute; j++) {
+                low = valueGenerator.nextDouble();
+                high = low + (1.0 - low) * valueGenerator.nextDouble();
+                mapNameToPair.put(randomPermutation[j], Pair.of(low, high));
+            }
+            try {
+                subID += 1;
+                sub.add(new Subscription(subID, mapNameToPair));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        numSubPacket++;
+        return sub;
+    }
+
+    public static void main(String[] args) throws Exception {
         //Assign topicName to string variable
         String topicName = "subscription";
         // create instance for properties to access producer configs
         Properties props = new Properties();
         //Assign localhost id
-        props.put("bootstrap.servers", "localhost:9092");
+        props.put("bootstrap.servers", "swhua:9092");
         //Set acknowledgements for producer requests.
         props.put("acks", "all");
         //If the request fails, the producer can automatically retry,
@@ -32,38 +92,38 @@ public class SubscriptionProducer {
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.sjtu.swhua.storm.MatchAlgorithm.serialization.KafkaSerializer");
 
+        SubscriptionProducer subProducer = new SubscriptionProducer();
+
+
         Producer<String, Object> producer = new KafkaProducer<String, Object>(props);
 //        long startTimes = System.currentTimeMillis();
 
-        for(int i = 0; i < 5; i++){
+//        for (int i = 0; i < 5; i++) {
+//            HashMap<Integer, Pair<Double, Double>> attributeIDToPair = new HashMap<>();
+//            attributeIDToPair.put(i * 10 + 1, Pair.of(0.0, 0.1));
+//            attributeIDToPair.put(i * 10 + 2, Pair.of(0.1, 0.2));
+//            Subscription s1 = new Subscription(10, attributeIDToPair);
+//            attributeIDToPair = new HashMap<>();
+//            attributeIDToPair.put(i * 10 + 3, Pair.of(0.2, 0.3));
+//            attributeIDToPair.put(4, Pair.of(0.3, 0.4));
+//            attributeIDToPair.put(5, Pair.of(0.4, 0.5));
+//            Subscription s2 = new Subscription(22, attributeIDToPair);
+//            List<Subscription> asList = Arrays.asList(s1, s2);
 
-            final int index = i;
-
-            HashMap<Integer, Pair<Double, Double>> attributeIDToPair=new HashMap<>();
-            attributeIDToPair.put(i*10+1,Pair.of(0.0,0.1));
-            attributeIDToPair.put(i*10+2,Pair.of(0.1,0.2));
-            Subscription s1=new Subscription(10,attributeIDToPair);
-            attributeIDToPair=new HashMap<>();
-            attributeIDToPair.put(i*10+3,Pair.of(0.2,0.3));
-            attributeIDToPair.put(4,Pair.of(0.3,0.4));
-            attributeIDToPair.put(5,Pair.of(0.4,0.5));
-            Subscription s2=new Subscription(22,attributeIDToPair);
-
-            List<Subscription> asList = Arrays.asList(s1,s2);
-            producer.send(new ProducerRecord<String, Object>(topicName, Integer.toString(+1), asList), new Callback() {
-                // 每发一个消息就调用一次
-                @Override
-                public void onCompletion(RecordMetadata metadata, Exception exception) {
-                    if (metadata != null) {
-                        System.out.println("第"+(1+index)+"个事件发送成功：metadata.checksum: "+metadata.checksum()
-                                +" metadata.offset: "+metadata.offset()+" metadata.partition: "+metadata.partition()+" metadata.topic: "+metadata.topic());
-                    }
-                    if (exception != null) {
-                        System.out.println(index+"异常："+exception.getMessage());
-                    }
+        producer.send(new ProducerRecord<String, Object>(topicName, Integer.toString(subProducer.numSubPacket), subProducer.produceSubscriptionPacket()), new Callback() {
+            // 每发一个消息就调用一次
+            @Override
+            public void onCompletion(RecordMetadata metadata, Exception exception) {
+                if (metadata != null) {
+                    System.out.println("第" + String.valueOf(subProducer.numSubPacket) + "个订阅包消息发送成功：metadata.checksum: " + metadata.checksum()
+                            + " metadata.offset: " + metadata.offset() + " metadata.partition: " + metadata.partition() + " metadata.topic: " + metadata.topic());
                 }
-            });
-        }
+                if (exception != null) {
+                    System.out.println("第"+String.valueOf(subProducer.numSubPacket)  + "个订阅包消息发送异常：" + exception.getMessage());
+                }
+            }
+        });
+//        }
         producer.close();
     }
 }
