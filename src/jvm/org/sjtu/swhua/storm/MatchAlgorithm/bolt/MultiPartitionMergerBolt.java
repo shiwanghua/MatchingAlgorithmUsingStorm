@@ -10,6 +10,7 @@ import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.OutputToFile;
 
 import java.io.IOException;
 import java.util.*;
+import java.lang.Math;
 //import java.util.Map;
 
 public class MultiPartitionMergerBolt extends BaseRichBolt {
@@ -33,6 +34,8 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
     //private HashMap<Integer, HashSet<Integer>> matchResultNum;
     private HashMap<Integer, Integer> recordStatus;
     private Boolean[] executorCombination;
+
+    private int receive_max_event_id=0;
 
     public MultiPartitionMergerBolt(Integer num_executor, Integer redundancy_degree, Boolean[] executor_combination) {
         numMatchExecutor = num_executor; // receive a eventID from this number of matchBolts then the event is fully matched
@@ -96,6 +99,8 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple tuple) {
         Integer eventID = tuple.getInteger(1);
+        receive_max_event_id=Math.max(eventID,receive_max_event_id);
+
         if (!recordStatus.containsKey(eventID)) {
             // matchResultNum.put(eventID, new HashSet<>());
             matchResultMap.put(eventID, new HashSet<>());
@@ -124,6 +129,9 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
             matchResultBuilder.append(eventID);
             matchResultBuilder.append("; MatchedSubNum: ");
             matchResultBuilder.append(resultSet.size());
+
+            matchResultBuilder.append("; receive_max_event_id: ");
+            matchResultBuilder.append(receive_max_event_id);
 //            matchResultBuilder.append("; SubID:");
 //            Iterator<Integer> setIterator = resultSet.iterator();
 //            while (setIterator.hasNext()) {

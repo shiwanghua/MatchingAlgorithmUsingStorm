@@ -99,7 +99,7 @@ public class EventSpout extends BaseRichSpout {
 
     @Override
     public void nextTuple() {
-        if(eventID>=1000) return;
+//        if(eventID>=11000) return;
 //        if (eventID % 1000 == 0)
 //            Utils.sleep(2000);
         int numEvent = (int) (Math.random() * maxNumEvent + 1); // Generate the number of subscriptions in this tuple: 1~maxNumEvent
