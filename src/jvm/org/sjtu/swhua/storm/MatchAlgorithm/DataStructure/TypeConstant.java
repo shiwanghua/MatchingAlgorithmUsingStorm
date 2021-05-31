@@ -12,12 +12,11 @@ public class TypeConstant {
 
     // 平凡参数
     public static final int subSetSize = 200000;
-    public static final int numAttributeType=50;
-    public static final int maxNumSubscriptionPerPacket = 50;
-    public static final int maxNumAttributePerSubscription = 20;
-    public static final int maxNumEventPerPacket=50;
-    public static final int maxNumAttributePerEvent=20;
-
+    public static final int numAttributeType=30;
+    public static final int maxNumSubscriptionPerPacket = 5;
+    public static final int maxNumAttributePerSubscription = 10;
+    public static final int maxNumEventPerPacket=5;
+    public static final int maxNumAttributePerEvent=10;
 
     // 实验模型参数
     // TAMA

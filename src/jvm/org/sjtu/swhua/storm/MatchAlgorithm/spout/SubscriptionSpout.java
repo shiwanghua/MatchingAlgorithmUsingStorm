@@ -72,15 +72,15 @@ public class SubscriptionSpout extends BaseRichSpout {
     @Override
     public void ack(Object packetID) {
 //        LOG.debug("Got ACK for msgId : ");
-//        log = new StringBuilder(spoutName);
-//        log.append(": SubTuple ");
-//        log.append(id);
-//        log.append(" is acked.\n");
-//        try {
-//            output.writeToLogFile(log.toString());
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        log = new StringBuilder(spoutName);
+        log.append(": SubTuple ");
+        log.append((int)packetID);
+        log.append(" is acked.\n");
+        try {
+            output.writeToLogFile(log.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 //        dataUnacked.put((int)packetID,null);
         tupleUnacked.remove((int)packetID);
     }
@@ -96,7 +96,7 @@ public class SubscriptionSpout extends BaseRichSpout {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        collector.emit(new Values(TypeConstant.Insert_Subscription, numSubPacket, tupleUnacked.get(packetID)), numSubPacket);
+        collector.emit(new Values(TypeConstant.Insert_Subscription, (int)packetID, tupleUnacked.get(packetID)), numSubPacket);
     }
 
     @Override

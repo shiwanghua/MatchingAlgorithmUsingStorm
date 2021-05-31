@@ -24,7 +24,7 @@ public class TamaMPMatchBolt extends BaseRichBolt {
 
     private String boltName;
     private int boltID;
-//    private int numSubPacket;
+    //    private int numSubPacket;
 //    private int numEventPacket;
     private int numSubInserted;
     private int numSubInsertedLast;
@@ -244,8 +244,8 @@ public class TamaMPMatchBolt extends BaseRichBolt {
             speedReport.append(numEventMatched);
             speedReport.append("; MatchSpeed: ");
 //            speedReport.append(runTime / numEventMatched / 1000); // us/per
-            speedReport.append(intervalTime / Math.max(1,numEventMatched - numEventMatchedLast) / 1000);
-            numEventMatchedLast = numEventMatched;
+            speedReport.append(intervalTime / (numEventMatched - numEventMatchedLast) / 1000);
+            numEventMatchedLast = numEventMatched - 1; // 防止某分钟内一个事件都没匹配，从而除以0
             speedReport.append(".\n");
             try {
                 output.recordSpeed(speedReport.toString());

@@ -104,24 +104,24 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
         }
 
 
-        // create instance for properties to access producer configs
-        props = new Properties();
-        //Assign localhost id
-        props.put("bootstrap.servers", "swhua:9092");
-        //Set acknowledgements for producer requests.
-        props.put("acks", "all");
-        //If the request fails, the producer can automatically retry
-        props.put("retries", 1);
-        props.put("metadata.fetch.timeout.ms", 30000);
-        //Specify buffer size in config
-        props.put("batch.size", 16384);
-        //Reduce the no of requests less than 0
-        props.put("linger.ms", 1);
-        //The buffer.memory controls the total amount of memory available to the producer for buffering.
-        props.put("buffer.memory", 33554432);
-        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        props.put("value.serializer", "org.sjtu.swhua.storm.MatchAlgorithm.serialization.KafkaSerializer");
-        resultProducer = new KafkaProducer<String, Object>(props);
+//        // create instance for properties to access producer configs
+//        props = new Properties();
+//        //Assign localhost id
+//        props.put("bootstrap.servers", "swhua:9092");
+//        //Set acknowledgements for producer requests.
+//        props.put("acks", "all");
+//        //If the request fails, the producer can automatically retry
+//        props.put("retries", 1);
+//        props.put("metadata.fetch.timeout.ms", 30000);
+//        //Specify buffer size in config
+//        props.put("batch.size", 16384);
+//        //Reduce the no of requests less than 0
+//        props.put("linger.ms", 1);
+//        //The buffer.memory controls the total amount of memory available to the producer for buffering.
+//        props.put("buffer.memory", 33554432);
+//        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+//        props.put("value.serializer", "org.sjtu.swhua.storm.MatchAlgorithm.serialization.KafkaSerializer");
+//        resultProducer = new KafkaProducer<String, Object>(props);
     }
 
     @Override
@@ -157,12 +157,12 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
             matchResultBuilder.append(eventID);
             matchResultBuilder.append("; MatchedSubNum: ");
             matchResultBuilder.append(resultSet.size());
-            matchResultBuilder.append("; SubID:");
-            Iterator<Integer> setIterator = resultSet.iterator();
-            while (setIterator.hasNext()) {
-                matchResultBuilder.append(" ");
-                matchResultBuilder.append(setIterator.next());
-            }
+//            matchResultBuilder.append("; SubID:");
+//            Iterator<Integer> setIterator = resultSet.iterator();
+//            while (setIterator.hasNext()) {
+//                matchResultBuilder.append(" ");
+//                matchResultBuilder.append(setIterator.next());
+//            }
             matchResultBuilder.append("; receive_max_event_id: ");
             matchResultBuilder.append(receive_max_event_id);
             matchResultBuilder.append(".\n");
@@ -172,18 +172,18 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
                 e.printStackTrace();
             }
 
-            resultProducer.send(new ProducerRecord<String, Object>(topicName, Integer.toString(eventID), resultSet), new Callback() {
-                @Override
-                public void onCompletion(RecordMetadata metadata, Exception exception) {
-                    if (metadata != null) {
-                        System.out.println("第" + String.valueOf(eventID) + "个事件匹配完成：metadata.checksum: " + metadata.checksum()
-                                + " metadata.offset: " + metadata.offset() + " metadata.partition: " + metadata.partition() + " metadata.topic: " + metadata.topic());
-                    }
-                    if (exception != null) {
-                        System.out.println("第" + String.valueOf(eventID)  + "个事件匹配发送到主题时产生异常：" + exception.getMessage());
-                    }
-                }
-            });
+//            resultProducer.send(new ProducerRecord<String, Object>(topicName, Integer.toString(eventID), resultSet), new Callback() {
+//                @Override
+//                public void onCompletion(RecordMetadata metadata, Exception exception) {
+//                    if (metadata != null) {
+//                        System.out.println("第" + String.valueOf(eventID) + "个事件匹配完成：metadata.checksum: " + metadata.checksum()
+//                                + " metadata.offset: " + metadata.offset() + " metadata.partition: " + metadata.partition() + " metadata.topic: " + metadata.topic());
+//                    }
+//                    if (exception != null) {
+//                        System.out.println("第" + String.valueOf(eventID)  + "个事件匹配发送到主题时产生异常：" + exception.getMessage());
+//                    }
+//                }
+//            });
             numEventMatched++;
 //            matchResultMap.put(eventID, null);
             matchResultMap.remove(eventID);
@@ -203,7 +203,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
             speedReport.append("; MatchSpeed: ");
 //            speedReport.append(runTime / numEventMatched / 1000); // us/per
             speedReport.append(intervalTime/(numEventMatched-numEventMatchedLast)/1000);
-            numEventMatchedLast=numEventMatched;
+            numEventMatchedLast=numEventMatched-1; // 防止某分钟内一个事件都没匹配，从而除以0
             speedReport.append(".\n");
             try {
                 output.recordSpeed(speedReport.toString());

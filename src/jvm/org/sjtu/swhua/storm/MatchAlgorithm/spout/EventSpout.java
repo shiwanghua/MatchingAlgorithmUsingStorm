@@ -75,15 +75,15 @@ public class EventSpout extends BaseRichSpout {
     @Override
     public void ack(Object packetID) {
 //        LOG.debug("Got ACK for msgId : ");
-//        log=new StringBuilder(spoutName);
-//        log.append(": EventTuple ");
-//        log.append(id);
-//        log.append(" is acked.\n");
-//        try {
-//            output.writeToLogFile(log.toString());
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        log=new StringBuilder(spoutName);
+        log.append(": EventTuple ");
+        log.append((int)packetID);
+        log.append(" is acked.\n");
+        try {
+            output.writeToLogFile(log.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         tupleUnacked.remove((int)packetID);
     }
 
@@ -91,14 +91,15 @@ public class EventSpout extends BaseRichSpout {
     public void fail(Object packetID) {
         errorLog = new StringBuilder(spoutName);
         errorLog.append(": EventTuple ");
-        errorLog.append(packetID);
+        errorLog.append((int)packetID);
         errorLog.append(" is failed and re-emitted.\n");
         try {
             output.errorLog(errorLog.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        collector.emit(new Values(TypeConstant.Insert_Subscription, numEventPacket, tupleUnacked.get(packetID)), numEventPacket);
+        // 只能处理一组match-bolt的情况，即0号bolt组
+        collector.emit(new Values(0,TypeConstant.Event_Match_Subscription, (int)packetID, tupleUnacked.get(packetID)), numEventPacket);
     }
 
     @Override
