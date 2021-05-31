@@ -32,6 +32,7 @@ public class SubscriptionSpout extends BaseRichSpout {
     private StringBuilder log;
     private StringBuilder errorLog;
     private String spoutName;
+    private HashMap<Integer,ArrayList<Subscription>> tupleUnacked;  // backup data
 
     public SubscriptionSpout() {
         maxNumSubscription = TypeConstant.maxNumSubscriptionPerPacket;
@@ -52,6 +53,7 @@ public class SubscriptionSpout extends BaseRichSpout {
         spoutName = subSpoutTopologyContext.getThisComponentId();
         collector = spoutOutputCollector;
         output = new OutputToFile();
+        tupleUnacked=new HashMap<>();
         try {
             log = new StringBuilder(spoutName);
             log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + spoutName + ":");
@@ -68,7 +70,7 @@ public class SubscriptionSpout extends BaseRichSpout {
     }
 
     @Override
-    public void ack(Object id) {
+    public void ack(Object packetID) {
 //        LOG.debug("Got ACK for msgId : ");
 //        log = new StringBuilder(spoutName);
 //        log.append(": SubTuple ");
@@ -79,19 +81,22 @@ public class SubscriptionSpout extends BaseRichSpout {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
+//        dataUnacked.put((int)packetID,null);
+        tupleUnacked.remove((int)packetID);
     }
 
     @Override
-    public void fail(Object id) {
+    public void fail(Object packetID) {
         errorLog = new StringBuilder(spoutName);
         errorLog.append(": SubTuple ");
-        errorLog.append(id);
-        errorLog.append(" is failed.\n");
+        errorLog.append(packetID);
+        errorLog.append(" is failed and re-emitted.\n");
         try {
             output.errorLog(errorLog.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
+        collector.emit(new Values(TypeConstant.Insert_Subscription, numSubPacket, tupleUnacked.get(packetID)), numSubPacket);
     }
 
     @Override
@@ -177,6 +182,7 @@ public class SubscriptionSpout extends BaseRichSpout {
 //        }
 
 //        collector.emit(new Values(TypeConstant.Insert_Subscription, sub),numSubPacket);
+        tupleUnacked.put(numSubPacket,sub);
         collector.emit(new Values(TypeConstant.Insert_Subscription, numSubPacket, sub), numSubPacket);
     }
 

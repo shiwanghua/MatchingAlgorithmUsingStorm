@@ -244,7 +244,7 @@ public class TamaMPMatchBolt extends BaseRichBolt {
             speedReport.append(numEventMatched);
             speedReport.append("; MatchSpeed: ");
 //            speedReport.append(runTime / numEventMatched / 1000); // us/per
-            speedReport.append(intervalTime / (numEventMatched - numEventMatchedLast) / 1000);
+            speedReport.append(intervalTime / Math.max(1,numEventMatched - numEventMatchedLast) / 1000);
             numEventMatchedLast = numEventMatched;
             speedReport.append(".\n");
             try {
@@ -328,14 +328,11 @@ public class TamaMPMatchBolt extends BaseRichBolt {
             if (mapSubIDtoNumAttribute.getOrDefault(subID, 0) > 0)
                 return false;
 
-            int subAttributeID;
-            double lowValue, highValue;
             HashMap.Entry<Integer, Pair<Double, Double>> subAttributeEntry;
             Iterator<HashMap.Entry<Integer, Pair<Double, Double>>> subAttributeIterator = sub.getMap().entrySet().iterator();
             while (subAttributeIterator.hasNext()) {
                 subAttributeEntry = subAttributeIterator.next();
-                subAttributeID = subAttributeEntry.getKey();
-                insert(1, 0, 0.0, 1.0, numSub, subAttributeID, subAttributeEntry.getValue().getFirst(), subAttributeEntry.getValue().getSecond());
+                insert(1, 0, 0.0, 1.0, numSub, subAttributeEntry.getKey(), subAttributeEntry.getValue().getFirst(), subAttributeEntry.getValue().getSecond());
             }
             mapSubIDtoNumAttribute.put(numSub, sub.getAttibuteNum());
             mapToSubID.add(subID);  //  add this map to ensure the size of bits array int match() is right, since each executor will not get a successive subscription set
@@ -351,10 +348,10 @@ public class TamaMPMatchBolt extends BaseRichBolt {
             if (high <= mid[cellID])
                 insert(level + 1, lchild[cellID], left, mid[cellID], subID, attributeID, low, high);
             else if (low > mid[cellID])
-                insert(level + 1, lchild[cellID], mid[cellID], right, subID, attributeID, low, high);
+                insert(level + 1, rchild[cellID], mid[cellID], right, subID, attributeID, low, high);
             else {
                 insert(level + 1, lchild[cellID], left, mid[cellID], subID, attributeID, low, high);
-                insert(level + 1, lchild[cellID], mid[cellID], right, subID, attributeID, low, high);
+                insert(level + 1, rchild[cellID], mid[cellID], right, subID, attributeID, low, high);
             }
         }
 

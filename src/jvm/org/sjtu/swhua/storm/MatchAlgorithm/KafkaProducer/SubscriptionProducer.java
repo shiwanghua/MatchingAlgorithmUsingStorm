@@ -1,7 +1,6 @@
 package org.sjtu.swhua.storm.MatchAlgorithm.KafkaProducer;
 
 import org.apache.kafka.clients.producer.*;
-import org.apache.storm.tuple.Values;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.*;
 
 import java.io.IOException;
@@ -13,36 +12,36 @@ public class SubscriptionProducer {
     final int maxNumSubscription;           //  Maximum number of subscription emitted per time
     final int maxNumAttribute;              //  Maxinum number of attributes in a subscription
     final int numAttributeType;             //  Type number of attributes
-    final int subSetSize;
+//    final int subSetSize;
     private Random valueGenerator;          //  Generate the interval value and index of attribute name
     private int[] randomPermutation;              //  To get the attribute name
-    private OutputToFile output;
-    private StringBuilder log;
+//    private OutputToFile output;
+//    private StringBuilder log;
 
     public SubscriptionProducer() {
 //        maxNumSubscription = TypeConstant.maxNumSubscriptionPerPacket;
 //        maxNumAttribute = TypeConstant.maxNumAttributePerSubscription;
-        maxNumSubscription = 5;
+        maxNumSubscription = 1500;
         maxNumAttribute = 10;
         numAttributeType = TypeConstant.numAttributeType;
-        subSetSize = TypeConstant.subSetSize;
+//        subSetSize = TypeConstant.subSetSize;
 
-        subID = 0;
-        numSubPacket = 0;
+        subID = 1;
+        numSubPacket = 1;
         valueGenerator = new Random();
         randomPermutation = new int[numAttributeType];
         for (int i = 0; i < numAttributeType; i++)
             randomPermutation[i] = i;
-        output = new OutputToFile();
+//        output = new OutputToFile();
     }
 
     public ArrayList<Subscription> produceSubscriptionPacket() {
-//        int numSub = (int) (Math.random() * maxNumSubscription + 1); // Generate the number of subscriptions in this tuple: 1~maxNumSubscription
-        int numSub = maxNumSubscription;
+        int numSub = (int) (Math.random() * maxNumSubscription + 1); // Generate the number of subscriptions in this tuple: 1~maxNumSubscription
+//        int numSub = maxNumSubscription; // 不能一次发3000,可以发1500个
+        int numAttribute;
         ArrayList<Subscription> sub = new ArrayList<>(numSub);
         for (int i = 0; i < numSub; i++) {
-            int numAttribute = new Random().nextInt(maxNumAttribute + 1); // Generate the number of attribute in this subscription: 0~maxNumAttribute
-
+            numAttribute = new Random().nextInt(maxNumAttribute + 1); // Generate the number of attribute in this subscription: 0~maxNumAttribute
             int index, temp;
             for (int j = 0; j < numAttribute; j++) { // Use the first #numAttribute values of randomArray to create the attribute name
                 index = valueGenerator.nextInt(numAttributeType - j) + j;
@@ -61,13 +60,12 @@ public class SubscriptionProducer {
                 mapNameToPair.put(randomPermutation[j], Pair.of(low, high));
             }
             try {
-                subID += 1;
                 sub.add(new Subscription(subID, mapNameToPair));
+                subID += 1;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        numSubPacket++;
         return sub;
     }
 
@@ -89,12 +87,11 @@ public class SubscriptionProducer {
         props.put("linger.ms", 1);
         //The buffer.memory controls the total amount of memory available to the producer for buffering.
         props.put("buffer.memory", 33554432);
+//        props.put("max.request.size",1000000000);
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.sjtu.swhua.storm.MatchAlgorithm.serialization.KafkaSerializer");
 
         SubscriptionProducer subProducer = new SubscriptionProducer();
-
-
         Producer<String, Object> producer = new KafkaProducer<String, Object>(props);
 //        long startTimes = System.currentTimeMillis();
 
@@ -119,10 +116,11 @@ public class SubscriptionProducer {
                             + " metadata.offset: " + metadata.offset() + " metadata.partition: " + metadata.partition() + " metadata.topic: " + metadata.topic());
                 }
                 if (exception != null) {
-                    System.out.println("第"+String.valueOf(subProducer.numSubPacket)  + "个订阅包消息发送异常：" + exception.getMessage());
+                    System.out.println("第" + String.valueOf(subProducer.numSubPacket) + "个订阅包消息发送异常：" + exception.getMessage());
                 }
             }
         });
+        subProducer.numSubPacket++;
 //        }
         producer.close();
     }

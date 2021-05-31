@@ -3,6 +3,7 @@ package org.sjtu.swhua.storm.MatchAlgorithm.spout;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Event;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.OutputToFile;
+import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Subscription;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.TypeConstant;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -16,7 +17,6 @@ import java.util.*;
 public class EventSpout extends BaseRichSpout {
     //    private static final Logger LOG = LoggerFactory.getLogger(EventSpout.class);
     SpoutOutputCollector collector;
-    private Random valueGenerator;
     private int eventID;
     private int numEventPacket;
     private int numMatchBolt;
@@ -25,11 +25,13 @@ public class EventSpout extends BaseRichSpout {
     final int maxNumAttribute;        //  Maxinum number of attributes in a event
     final int numAttributeType;       //  Type number of attributes
     private int[] randomPermutation;  //  To get the attribute name
+    private Random valueGenerator;
     private OutputToFile output;
     private StringBuilder log;
     private StringBuilder errorLog;
     private String spoutName;
     TopologyContext eventSpoutTopologyContext;
+    private HashMap<Integer,ArrayList<Event>> tupleUnacked;  // backup data
 
     public EventSpout(Integer num_match_bolt) {
         maxNumEvent = TypeConstant.maxNumEventPerPacket;
@@ -40,19 +42,19 @@ public class EventSpout extends BaseRichSpout {
 
     @Override
     public void open(Map<String, Object> map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
-        valueGenerator = new Random();
         eventID = 1;
-        numEventPacket = 0;  // messageID
+        numEventPacket = 0;  // messageID、packetID
         nextMatchBoltID = -1;
         randomPermutation = new int[numAttributeType];
         for (int i = 0; i < numAttributeType; i++)
             randomPermutation[i] = i;
-
+        valueGenerator = new Random();
         eventSpoutTopologyContext = topologyContext;
         spoutName = eventSpoutTopologyContext.getThisComponentId();
         collector = spoutOutputCollector;
         output = new OutputToFile();
         log = new StringBuilder();
+        tupleUnacked=new HashMap<>();
 
         try {
             log = new StringBuilder(spoutName);
@@ -71,7 +73,7 @@ public class EventSpout extends BaseRichSpout {
     }
 
     @Override
-    public void ack(Object id) {
+    public void ack(Object packetID) {
 //        LOG.debug("Got ACK for msgId : ");
 //        log=new StringBuilder(spoutName);
 //        log.append(": EventTuple ");
@@ -82,19 +84,21 @@ public class EventSpout extends BaseRichSpout {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
+        tupleUnacked.remove((int)packetID);
     }
 
     @Override
-    public void fail(Object id) {
+    public void fail(Object packetID) {
         errorLog = new StringBuilder(spoutName);
         errorLog.append(": EventTuple ");
-        errorLog.append(id);
-        errorLog.append(" is failed.\n");
+        errorLog.append(packetID);
+        errorLog.append(" is failed and re-emitted.\n");
         try {
             output.errorLog(errorLog.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
+        collector.emit(new Values(TypeConstant.Insert_Subscription, numEventPacket, tupleUnacked.get(packetID)), numEventPacket);
     }
 
     @Override
@@ -181,6 +185,7 @@ public class EventSpout extends BaseRichSpout {
 //            e.printStackTrace();
 //        }
         nextMatchBoltID = (nextMatchBoltID + 1) % numMatchBolt;
+        tupleUnacked.put(numEventPacket,events);
         collector.emit(new Values(nextMatchBoltID, TypeConstant.Event_Match_Subscription, numEventPacket, events), numEventPacket);
     }
 

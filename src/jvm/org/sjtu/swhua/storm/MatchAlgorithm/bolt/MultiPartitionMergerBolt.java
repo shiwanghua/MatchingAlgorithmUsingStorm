@@ -1,11 +1,14 @@
 package org.sjtu.swhua.storm.MatchAlgorithm.bolt;
 
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.*;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.OutputToFile;
+import org.sjtu.swhua.storm.MatchAlgorithm.KafkaProducer.SubscriptionProducer;
 
 
 import java.io.IOException;
@@ -21,7 +24,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
     private String boltName;
     private Integer executorID;
     private Integer numMatchExecutor;
-    private Integer redundancy;
+//    private Integer redundancy;
     private Integer numEventMatched;
     private Integer numEventMatchedLast;
     private long runTime;
@@ -34,9 +37,14 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
     private HashMap<Integer, Integer> recordStatus;
     private Boolean[] executorCombination;
 
+    @SuppressWarnings("resource")
+    final private String topicName = "match_result";
+    Properties props;
+    KafkaProducer<String, Object> resultProducer;
+
     public MultiPartitionMergerBolt(Integer num_executor, Integer redundancy_degree, Boolean[] executor_combination) {
         numMatchExecutor = num_executor; // receive a eventID from this number of matchBolts then the event is fully matched
-        redundancy = redundancy_degree;
+//        redundancy = redundancy_degree;
         executorCombination = executor_combination;
         beginTime = System.nanoTime();
         intervalTime = 60000000000L;  // 1 minute
@@ -91,11 +99,31 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+
+        // create instance for properties to access producer configs
+        props = new Properties();
+        //Assign localhost id
+        props.put("bootstrap.servers", "swhua:9092");
+        //Set acknowledgements for producer requests.
+        props.put("acks", "all");
+        //If the request fails, the producer can automatically retry
+        props.put("retries", 1);
+        props.put("metadata.fetch.timeout.ms", 30000);
+        //Specify buffer size in config
+        props.put("batch.size", 16384);
+        //Reduce the no of requests less than 0
+        props.put("linger.ms", 1);
+        //The buffer.memory controls the total amount of memory available to the producer for buffering.
+        props.put("buffer.memory", 33554432);
+        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.put("value.serializer", "org.sjtu.swhua.storm.MatchAlgorithm.serialization.KafkaSerializer");
+        resultProducer = new KafkaProducer<String, Object>(props);
     }
 
     @Override
     public void execute(Tuple tuple) {
-        Integer eventID = tuple.getInteger(1);
+        Integer eventID = tuple.getIntegerByField("eventID");
         if (!recordStatus.containsKey(eventID)) {
             // matchResultNum.put(eventID, new HashSet<>());
             matchResultMap.put(eventID, new HashSet<>());
@@ -108,7 +136,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
         }*/
         ArrayList<Integer> subIDs = (ArrayList<Integer>) tuple.getValueByField("subIDs");
 
-        HashSet<Integer> resultSet = matchResultMap.get(eventID);  // This is an reference.
+        HashSet<Integer> resultSet = matchResultMap.get(eventID);  // This is an reference !
         for (int i = 0; i < subIDs.size(); i++)
             resultSet.add(subIDs.get(i));
         // matchResultNum.get(eventID).add(tuple.getInteger(0));
@@ -124,20 +152,33 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
             matchResultBuilder.append(eventID);
             matchResultBuilder.append("; MatchedSubNum: ");
             matchResultBuilder.append(resultSet.size());
-//            matchResultBuilder.append("; SubID:");
-//            Iterator<Integer> setIterator = resultSet.iterator();
-//            while (setIterator.hasNext()) {
-//                matchResultBuilder.append(" ");
-//                matchResultBuilder.append(setIterator.next());
-//            }
+            matchResultBuilder.append("; SubID:");
+            Iterator<Integer> setIterator = resultSet.iterator();
+            while (setIterator.hasNext()) {
+                matchResultBuilder.append(" ");
+                matchResultBuilder.append(setIterator.next());
+            }
             matchResultBuilder.append(".\n");
             try {
                 output.saveMatchResult(matchResultBuilder.toString());
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            resultProducer.send(new ProducerRecord<String, Object>(topicName, Integer.toString(eventID), resultSet), new Callback() {
+                @Override
+                public void onCompletion(RecordMetadata metadata, Exception exception) {
+                    if (metadata != null) {
+                        System.out.println("第" + String.valueOf(eventID) + "个事件匹配完成：metadata.checksum: " + metadata.checksum()
+                                + " metadata.offset: " + metadata.offset() + " metadata.partition: " + metadata.partition() + " metadata.topic: " + metadata.topic());
+                    }
+                    if (exception != null) {
+                        System.out.println("第" + String.valueOf(eventID)  + "个事件匹配发送到主题时产生异常：" + exception.getMessage());
+                    }
+                }
+            });
             numEventMatched++;
-            matchResultMap.put(eventID, null);
+//            matchResultMap.put(eventID, null);
             matchResultMap.remove(eventID);
             recordStatus.remove(eventID);
         }

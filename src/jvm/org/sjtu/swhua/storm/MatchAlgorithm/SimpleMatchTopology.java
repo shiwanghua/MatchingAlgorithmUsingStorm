@@ -4,12 +4,9 @@ import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.*;
 import org.sjtu.swhua.storm.MatchAlgorithm.bolt.*;
-import org.sjtu.swhua.storm.MatchAlgorithm.spout.EventSpout;
-import org.sjtu.swhua.storm.MatchAlgorithm.spout.SubscriptionSpout;
+import org.sjtu.swhua.storm.MatchAlgorithm.spout.*;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.utils.Utils;
-import org.sjtu.swhua.storm.MatchAlgorithm.bolt.MultiPartitionMergerBolt;
-import org.sjtu.swhua.storm.MatchAlgorithm.bolt.TamaMPMatchBolt;
 
 //storm local ./storm-2021-5-4.jar  org.sjtu.swhua.storm.MatchAlgorithm.SimpleMatchTopology
 public class SimpleMatchTopology {
@@ -24,6 +21,9 @@ public class SimpleMatchTopology {
 
         builder.setSpout("SubSpout", new SubscriptionSpout(), 1);
         builder.setSpout("EventSpout", new EventSpout(1), 1);
+
+//        builder.setSpout("SubSpout", new SubscriptionKafkaSpout(), 1);
+//        builder.setSpout("EventSpout", new EventKafkaSpout(1), 1);
 
         builder.setBolt("TamaMPMBolt0",new TamaMPMatchBolt(0,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
         builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("TamaMPMBolt0");

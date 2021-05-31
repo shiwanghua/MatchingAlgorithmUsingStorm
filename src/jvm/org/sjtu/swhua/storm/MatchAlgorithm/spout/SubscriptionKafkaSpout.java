@@ -1,6 +1,8 @@
 package org.sjtu.swhua.storm.MatchAlgorithm.spout;
 
-import com.alibaba.fastjson.JSON;
+import java.io.IOException;
+import java.util.*;
+
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -11,9 +13,8 @@ import org.apache.storm.topology.base.BaseRichSpout;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.*;
+import com.alibaba.fastjson.JSON;
 
-import java.io.IOException;
-import java.util.*;
 
 public class SubscriptionKafkaSpout extends BaseRichSpout {
     //    private static final Logger LOG = LoggerFactory.getLogger(SubscriptionSpout.class);
@@ -21,21 +22,23 @@ public class SubscriptionKafkaSpout extends BaseRichSpout {
     TopologyContext subSpoutTopologyContext;
     private int subID;
     private int numSubPacket;
-    final int maxNumSubscription;           //  Maximum number of subscription emitted per time
-    final int maxNumAttribute;              //  Maxinum number of attributes in a subscription
-    final int numAttributeType;             //  Type number of attributes
-    final int subSetSize;
+    final private int subSetSize;
 
     private OutputToFile output;
     private StringBuilder log;
     private StringBuilder errorLog;
     private String spoutName;
 
+    final private String topicName;
+    Properties props;
+    @SuppressWarnings("resource")
+    KafkaConsumer<String, Object> subscriptionConsumer;
+
+    private HashMap<Integer, ArrayList<Subscription>> tupleUnacked;  // backup data
+
     public SubscriptionKafkaSpout() {
-        maxNumSubscription = TypeConstant.maxNumSubscriptionPerPacket;
-        maxNumAttribute = TypeConstant.maxNumAttributePerSubscription;
-        numAttributeType = TypeConstant.numAttributeType;
         subSetSize = TypeConstant.subSetSize;
+        topicName = "subscription"; // 常量需在构造函数里赋值
     }
 
     @Override
@@ -43,9 +46,10 @@ public class SubscriptionKafkaSpout extends BaseRichSpout {
         subID = 1;
         numSubPacket = 0;
         subSpoutTopologyContext = topologyContext;
-        spoutName = subSpoutTopologyContext.getThisComponentId();
+        spoutName = "Kafka-" + subSpoutTopologyContext.getThisComponentId();
         collector = spoutOutputCollector;
         output = new OutputToFile();
+        tupleUnacked = new HashMap<>();
         try {
             log = new StringBuilder(spoutName);
             log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + spoutName + ":");
@@ -59,19 +63,9 @@ public class SubscriptionKafkaSpout extends BaseRichSpout {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public void nextTuple() {
-//        Utils.sleep(5);
-        if (subID >= subSetSize) {
-//            collector.emit(new Values(TypeConstant.Null_Operation, null));
-            return;
-        }
 
         //Kafka consumer configuration settings
-        final String topicName = "subscription";
-        Properties props = new Properties();
+        props = new Properties();
         props.put("bootstrap.servers", "swhua:9092");
         props.put("group.id", "SubscriptionsKafkaSpout");
         props.put("enable.auto.commit", "true");
@@ -81,11 +75,18 @@ public class SubscriptionKafkaSpout extends BaseRichSpout {
                 "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer",
                 "org.sjtu.swhua.storm.MatchAlgorithm.serialization.KafkaDeserializer");
-        @SuppressWarnings("resource")
-        KafkaConsumer<String, Object> subscriptionConsumer = new KafkaConsumer<String, Object>(props);
-
+        subscriptionConsumer = new KafkaConsumer<String, Object>(props);
         //Kafka Consumer subscribes list of topics here.
         subscriptionConsumer.subscribe(Arrays.asList(topicName));
+    }
+
+    @Override
+    public void nextTuple() {
+//        Utils.sleep(5);
+        if (subID >= subSetSize) {
+//            collector.emit(new Values(TypeConstant.Null_Operation, null));
+            return;
+        }
 
 //        while (true) {
         ArrayList<Subscription> subscriptions;
@@ -104,24 +105,21 @@ public class SubscriptionKafkaSpout extends BaseRichSpout {
                 log.append(subID);
                 log.append(" in SubPacket ");
                 log.append(numSubPacket);
-                log.append(" from KafkaPacket ");
+                log.append(" from KafkaSubscriptionPacket ");
                 log.append(record.key());
                 log.append(" is sent.\n");
                 output.writeToLogFile(log.toString());
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-//        collector.emit(new Values(TypeConstant.Insert_Subscription, sub),numSubPacket);
+            tupleUnacked.put(numSubPacket, subscriptions);
             collector.emit(new Values(TypeConstant.Insert_Subscription, numSubPacket, subscriptions), numSubPacket);
         }
 //        }
-
-
     }
 
     @Override
-    public void ack(Object id) {
+    public void ack(Object packetID) {
 //        LOG.debug("Got ACK for msgId : ");
 //        log = new StringBuilder(spoutName);
 //        log.append(": SubTuple ");
@@ -132,19 +130,21 @@ public class SubscriptionKafkaSpout extends BaseRichSpout {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
+        tupleUnacked.remove((int) packetID);
     }
 
     @Override
-    public void fail(Object id) {
+    public void fail(Object packetID) {
         errorLog = new StringBuilder(spoutName);
         errorLog.append(": SubTuple ");
-        errorLog.append(id);
+        errorLog.append(packetID);
         errorLog.append(" is failed.\n");
         try {
             output.errorLog(errorLog.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
+        collector.emit(new Values(TypeConstant.Insert_Subscription, numSubPacket, tupleUnacked.get(packetID)), numSubPacket);
     }
 
     @Override
