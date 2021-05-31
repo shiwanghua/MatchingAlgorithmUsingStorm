@@ -6,6 +6,10 @@
 MatchAlgorithmUsingStorm
 
 
+From: 'Alibaba Group' (https://github.com/alibaba)
+  - fastjson (https://github.com/alibaba/fastjson) com.alibaba:fastjson:jar:1.2.76
+    License: Apache 2  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
 From: 'an unknown organization'
   - Kryo (https://github.com/EsotericSoftware/kryo/kryo) com.esotericsoftware:kryo:bundle:3.0.3
     License: New BSD License  (http://www.opensource.org/licenses/bsd-license.php)

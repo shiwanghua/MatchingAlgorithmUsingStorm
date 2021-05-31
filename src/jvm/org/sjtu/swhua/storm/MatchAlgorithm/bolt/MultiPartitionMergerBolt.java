@@ -13,6 +13,7 @@ import org.sjtu.swhua.storm.MatchAlgorithm.KafkaProducer.SubscriptionProducer;
 
 import java.io.IOException;
 import java.util.*;
+import java.lang.Math;
 //import java.util.Map;
 
 public class MultiPartitionMergerBolt extends BaseRichBolt {
@@ -41,6 +42,8 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
     final private String topicName = "match_result";
     Properties props;
     KafkaProducer<String, Object> resultProducer;
+
+    private int receive_max_event_id=0;
 
     public MultiPartitionMergerBolt(Integer num_executor, Integer redundancy_degree, Boolean[] executor_combination) {
         numMatchExecutor = num_executor; // receive a eventID from this number of matchBolts then the event is fully matched
@@ -124,6 +127,8 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple tuple) {
         Integer eventID = tuple.getIntegerByField("eventID");
+        receive_max_event_id=Math.max(eventID,receive_max_event_id);
+
         if (!recordStatus.containsKey(eventID)) {
             // matchResultNum.put(eventID, new HashSet<>());
             matchResultMap.put(eventID, new HashSet<>());
@@ -158,6 +163,8 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
                 matchResultBuilder.append(" ");
                 matchResultBuilder.append(setIterator.next());
             }
+            matchResultBuilder.append("; receive_max_event_id: ");
+            matchResultBuilder.append(receive_max_event_id);
             matchResultBuilder.append(".\n");
             try {
                 output.saveMatchResult(matchResultBuilder.toString());
