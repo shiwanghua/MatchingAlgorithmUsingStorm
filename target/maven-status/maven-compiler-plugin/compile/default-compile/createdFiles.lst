@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 org/sjtu/swhua/storm/MatchAlgorithm/bolt/SimpleMatchBolt.class
 org/sjtu/swhua/storm/MatchAlgorithm/DataStructure/MyUtils.class
 org/sjtu/swhua/storm/MatchAlgorithm/DataStructure/MatchResult.class
@@ -34,31 +33,3 @@ org/sjtu/swhua/storm/MatchAlgorithm/bolt/MultiPartitionMatchBolt.class
 org/sjtu/swhua/storm/MatchAlgorithm/spout/SubscriptionSpout.class
 org/sjtu/swhua/storm/MatchAlgorithm/DataStructure/MyUtils$1.class
 org/sjtu/swhua/storm/MatchAlgorithm/serialization/KafkaSerializer.class
-=======
-org/apache/storm/starter/DataStructure/MyUtils.class
-org/apache/storm/starter/SimpleMatchTopology.class
-org/apache/storm/starter/bolt/SimpleMatchBolt.class
-org/apache/storm/starter/bolt/ReinMPMatchBolt$Rein.class
-org/apache/storm/starter/DataStructure/MatchResult.class
-org/apache/storm/starter/spout/EventSpout.class
-org/apache/storm/starter/bolt/ThreadDivisionMergerBolt.class
-org/apache/storm/starter/bolt/MultiPartitionMergerBolt.class
-org/apache/storm/starter/bolt/MultiPartitionMatchBolt.class
-org/apache/storm/starter/DataStructure/Event.class
-org/apache/storm/starter/DataStructure/Subscription.class
-org/apache/storm/starter/bolt/ReinMPMatchBolt.class
-org/apache/storm/starter/Test.class
-org/apache/storm/starter/DataStructure/OutputToFile.class
-org/apache/storm/starter/DataStructure/MyUtils$1.class
-org/apache/storm/starter/spout/SubscriptionSpout.class
-org/apache/storm/starter/bolt/ThreadDivisionMatchBolt.class
-org/apache/storm/starter/DataStructure/Pair.class
-org/apache/storm/starter/DataStructure/TypeConstant.class
-org/apache/storm/starter/spout/SubscriptionsKafkaSpout.class
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
