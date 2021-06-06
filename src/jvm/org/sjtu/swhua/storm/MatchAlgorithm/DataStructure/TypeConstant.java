@@ -25,7 +25,7 @@ public class TypeConstant {
 
     // 实验模型参数
 
-    public static final int TYPE=2; // 本次实验所用的匹配算法类型，假定都用同一种匹配算法
+    public static final int TYPE = 2; // 本次实验所用的匹配算法类型，假定都用同一种匹配算法
 
     // Simple
     public static final double maxAttributeProportion_Simple = 0.5;
@@ -48,5 +48,5 @@ public class TypeConstant {
     public static final int numExecutorPerSpout = 1;
     public static final int numExecutorPerMatchBolt = 6;
     public static final int redundancy = 3;
-    public static final int numMatchBolt=1;
+    public static final int numMatchBolt = 1;
 }
