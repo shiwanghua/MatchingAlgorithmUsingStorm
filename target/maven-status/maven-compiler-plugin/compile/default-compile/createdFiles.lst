@@ -56,6 +56,9 @@ org/apache/storm/starter/DataStructure/Pair.class
 org/apache/storm/starter/DataStructure/TypeConstant.class
 org/apache/storm/starter/spout/SubscriptionsKafkaSpout.class
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
