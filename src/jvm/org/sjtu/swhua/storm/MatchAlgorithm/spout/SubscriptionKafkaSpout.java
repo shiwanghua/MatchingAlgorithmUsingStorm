@@ -18,21 +18,21 @@ import com.alibaba.fastjson.JSON;
 
 public class SubscriptionKafkaSpout extends BaseRichSpout {
     //    private static final Logger LOG = LoggerFactory.getLogger(SubscriptionSpout.class);
-    SpoutOutputCollector collector;
-    TopologyContext subSpoutTopologyContext;
+    private SpoutOutputCollector collector;
+    private TopologyContext subSpoutTopologyContext;
     private int subID;
     private int numSubPacket;
-    final private int subSetSize;
+    private final int subSetSize;
 
     private OutputToFile output;
     private StringBuilder log;
     private StringBuilder errorLog;
     private String spoutName;
 
-    final private String topicName;
+    private final String topicName;
     Properties props;
     @SuppressWarnings("resource")
-    KafkaConsumer<String, Object> subscriptionConsumer;
+    private KafkaConsumer<String, Object> subscriptionConsumer;
 
     private HashMap<Integer, ArrayList<Subscription>> tupleUnacked;  // backup data
 

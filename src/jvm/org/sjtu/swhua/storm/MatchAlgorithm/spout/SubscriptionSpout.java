@@ -18,27 +18,39 @@ import java.util.*;
 
 public class SubscriptionSpout extends BaseRichSpout {
     //    private static final Logger LOG = LoggerFactory.getLogger(SubscriptionSpout.class);
-    SpoutOutputCollector collector;
-    TopologyContext subSpoutTopologyContext;
+    private SpoutOutputCollector collector;
+    private TopologyContext subSpoutTopologyContext;
     private int subID;
     private int numSubPacket;
-    final int maxNumSubscription;           //  Maximum number of subscription emitted per time
-    final int maxNumAttribute;              //  Maxinum number of attributes in a subscription
-    final int numAttributeType;             //  Type number of attributes
-    final int subSetSize;
+    private final int type;
+    private final int maxNumSubscription;           //  Maximum number of subscription emitted per time
+    private final int maxNumAttribute;              //  Maxinum number of attributes in a subscription
+    private final int numAttributeType;             //  Type number of attributes
+    private final int subSetSize;
     private Random valueGenerator;          //  Generate the interval value and index of attribute name
     private int[] randomPermutation;              //  To get the attribute name
     private OutputToFile output;
     private StringBuilder log;
     private StringBuilder errorLog;
     private String spoutName;
-    private HashMap<Integer,ArrayList<Subscription>> tupleUnacked;  // backup data
+    private HashMap<Integer, ArrayList<Subscription>> tupleUnacked;  // backup data
 
-    public SubscriptionSpout() {
+    private final double maxIntervalWidth_Simple;
+    private final double minIntervalWidth_Rein;
+    private final double minIntervalWidth_Tama;
+
+
+    public SubscriptionSpout(int Type) { // 1 代表简单匹配模式，2 代表 Rein 模式，3 代表 Tama 模式
+        type = Type;
+
         maxNumSubscription = TypeConstant.maxNumSubscriptionPerPacket;
         maxNumAttribute = TypeConstant.maxNumAttributePerSubscription;
         numAttributeType = TypeConstant.numAttributeType;
         subSetSize = TypeConstant.subSetSize;
+
+        maxIntervalWidth_Simple = TypeConstant.maxIntervalWidth_Simple;
+        minIntervalWidth_Rein = TypeConstant.minIntervalWidth_Rein;
+        minIntervalWidth_Tama = TypeConstant.minIntervalWidth_Tama;
     }
 
     @Override
@@ -53,7 +65,7 @@ public class SubscriptionSpout extends BaseRichSpout {
         spoutName = subSpoutTopologyContext.getThisComponentId();
         collector = spoutOutputCollector;
         output = new OutputToFile();
-        tupleUnacked=new HashMap<>();
+        tupleUnacked = new HashMap<>();
         try {
             log = new StringBuilder(spoutName);
             log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + spoutName + ":");
@@ -74,7 +86,7 @@ public class SubscriptionSpout extends BaseRichSpout {
 //        LOG.debug("Got ACK for msgId : ");
         log = new StringBuilder(spoutName);
         log.append(": SubTuple ");
-        log.append((int)packetID);
+        log.append((int) packetID);
         log.append(" is acked.\n");
         try {
             output.writeToLogFile(log.toString());
@@ -82,7 +94,7 @@ public class SubscriptionSpout extends BaseRichSpout {
             e.printStackTrace();
         }
 //        dataUnacked.put((int)packetID,null);
-        tupleUnacked.remove((int)packetID);
+        tupleUnacked.remove((int) packetID);
     }
 
     @Override
@@ -96,7 +108,7 @@ public class SubscriptionSpout extends BaseRichSpout {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        collector.emit(new Values(TypeConstant.Insert_Subscription, (int)packetID, tupleUnacked.get(packetID)), numSubPacket);
+        collector.emit(new Values(TypeConstant.Insert_Subscription, (int) packetID, tupleUnacked.get(packetID)), numSubPacket);
     }
 
     @Override
@@ -104,6 +116,13 @@ public class SubscriptionSpout extends BaseRichSpout {
 //        Utils.sleep(5);
         if (subID >= subSetSize) {
 //            collector.emit(new Values(TypeConstant.Null_Operation, null));
+            log = new StringBuilder(spoutName);
+            log.append(": All subscriptions are created and sent. \n");
+            try {
+                output.writeToLogFile(log.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             return;
         }
 
@@ -120,12 +139,29 @@ public class SubscriptionSpout extends BaseRichSpout {
             }
 
             Double low, high;
+
 //            String attributeName = "attributeName";
             HashMap<Integer, Pair<Double, Double>> mapNameToPair = new HashMap<>();
 
             for (int j = 0; j < numAttribute; j++) {
-                low = valueGenerator.nextDouble();
-                high = low + (1.0 - low) * valueGenerator.nextDouble();
+                switch (type) {
+                    case TypeConstant.SIMPLE:
+                        low = valueGenerator.nextDouble();
+                        high = low + Math.min(1.0 - low, maxIntervalWidth_Simple) * valueGenerator.nextDouble();
+                        break;
+                    case TypeConstant.REIN:
+                        low = (1.0 - minIntervalWidth_Rein) * valueGenerator.nextDouble();
+                        high = low + minIntervalWidth_Rein + (1.0 - low - minIntervalWidth_Rein) * valueGenerator.nextDouble();
+                        break;
+                    case TypeConstant.TAMA:
+                        low = (1.0 - minIntervalWidth_Tama) * valueGenerator.nextDouble();
+                        high = low + minIntervalWidth_Tama + (1.0 - low - minIntervalWidth_Tama) * valueGenerator.nextDouble();
+                        break;
+                    default:
+                        low = 0.0;
+                        high = 1.0;
+                        System.out.println("Error: algorithm type.\n");
+                }
                 mapNameToPair.put(randomPermutation[j], Pair.of(low, high));
             }
             try {
@@ -182,7 +218,7 @@ public class SubscriptionSpout extends BaseRichSpout {
 //        }
 
 //        collector.emit(new Values(TypeConstant.Insert_Subscription, sub),numSubPacket);
-        tupleUnacked.put(numSubPacket,sub);
+        tupleUnacked.put(numSubPacket, sub);
         collector.emit(new Values(TypeConstant.Insert_Subscription, numSubPacket, sub), numSubPacket);
     }
 

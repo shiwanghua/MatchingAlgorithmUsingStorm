@@ -77,7 +77,7 @@ public class Event implements Serializable {
 
     public int getNumAttribute(){return attributeIDToValue.size();}
 
-    public HashMap<Integer, Double> getMap() {
+    public HashMap<Integer, Double> getAttributeIDToValue() {
         return attributeIDToValue;
     }
 

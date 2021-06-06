@@ -18,8 +18,8 @@ import com.alibaba.fastjson.JSON;
 // kafka consumer
 public class EventKafkaSpout extends BaseRichSpout {
     //    private static final Logger LOG = LoggerFactory.getLogger(EventSpout.class);
-    SpoutOutputCollector collector;
-    TopologyContext eventSpoutTopologyContext;
+    private SpoutOutputCollector collector;
+    private TopologyContext eventSpoutTopologyContext;
     private int eventID;
     private int numEventPacket;
     private int numMatchBolt;
@@ -31,9 +31,9 @@ public class EventKafkaSpout extends BaseRichSpout {
     private String spoutName;
 
     @SuppressWarnings("resource")
-    final private String topicName = "event";
-    Properties props;
-    KafkaConsumer<String, Object> eventConsumer;
+    private final String topicName = "event";
+    private Properties props;
+    private KafkaConsumer<String, Object> eventConsumer;
 
     private HashMap<Integer, ArrayList<Event>> tupleUnacked;
 

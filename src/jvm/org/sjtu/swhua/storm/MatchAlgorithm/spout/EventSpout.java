@@ -16,28 +16,34 @@ import java.util.*;
 
 public class EventSpout extends BaseRichSpout {
     //    private static final Logger LOG = LoggerFactory.getLogger(EventSpout.class);
-    SpoutOutputCollector collector;
+    private SpoutOutputCollector collector;
     private int eventID;
     private int numEventPacket;
     private int numMatchBolt;
     private int nextMatchBoltID;
-    final int maxNumEvent;            //  Maximum number of event emitted per time
-    final int maxNumAttribute;        //  Maxinum number of attributes in a event
-    final int numAttributeType;       //  Type number of attributes
+    private final int type;
+    private final int maxNumEvent;            //  Maximum number of event emitted per time
+    private final int maxNumAttribute_Simple; //  Maxinum number of attributes in a event
+    private final int minNumAttribute_Rein;
+    private final int maxNumAttribute_Tama;
+    private final int numAttributeType;       //  Type number of attributes
     private int[] randomPermutation;  //  To get the attribute name
     private Random valueGenerator;
     private OutputToFile output;
     private StringBuilder log;
     private StringBuilder errorLog;
     private String spoutName;
-    TopologyContext eventSpoutTopologyContext;
-    private HashMap<Integer,ArrayList<Event>> tupleUnacked;  // backup data
+    private TopologyContext eventSpoutTopologyContext;
+    private HashMap<Integer, ArrayList<Event>> tupleUnacked;  // backup data
 
-    public EventSpout(Integer num_match_bolt) {
-        maxNumEvent = TypeConstant.maxNumEventPerPacket;
-        maxNumAttribute = TypeConstant.maxNumAttributePerEvent;
-        numAttributeType = TypeConstant.numAttributeType;
+    public EventSpout(int Type, int num_match_bolt) {
+        type = Type;
         numMatchBolt = num_match_bolt;
+        maxNumEvent = TypeConstant.maxNumEventPerPacket;
+        maxNumAttribute_Simple = TypeConstant.maxNumAttributePerEvent_Simple;
+        minNumAttribute_Rein = TypeConstant.minNumAttributePerEvent_Rein;
+        maxNumAttribute_Tama = TypeConstant.maxNumAttributePerEvent_Tama;
+        numAttributeType = TypeConstant.numAttributeType;
     }
 
     @Override
@@ -54,7 +60,7 @@ public class EventSpout extends BaseRichSpout {
         collector = spoutOutputCollector;
         output = new OutputToFile();
         log = new StringBuilder();
-        tupleUnacked=new HashMap<>();
+        tupleUnacked = new HashMap<>();
 
         try {
             log = new StringBuilder(spoutName);
@@ -75,23 +81,23 @@ public class EventSpout extends BaseRichSpout {
     @Override
     public void ack(Object packetID) {
 //        LOG.debug("Got ACK for msgId : ");
-        log=new StringBuilder(spoutName);
+        log = new StringBuilder(spoutName);
         log.append(": EventTuple ");
-        log.append((int)packetID);
+        log.append((int) packetID);
         log.append(" is acked.\n");
         try {
             output.writeToLogFile(log.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        tupleUnacked.remove((int)packetID);
+        tupleUnacked.remove((int) packetID);
     }
 
     @Override
     public void fail(Object packetID) {
         errorLog = new StringBuilder(spoutName);
         errorLog.append(": EventTuple ");
-        errorLog.append((int)packetID);
+        errorLog.append((int) packetID);
         errorLog.append(" is failed and re-emitted.\n");
         try {
             output.errorLog(errorLog.toString());
@@ -99,7 +105,7 @@ public class EventSpout extends BaseRichSpout {
             e.printStackTrace();
         }
         // 只能处理一组match-bolt的情况，即0号bolt组
-        collector.emit(new Values(0,TypeConstant.Event_Match_Subscription, (int)packetID, tupleUnacked.get(packetID)), numEventPacket);
+        collector.emit(new Values(0, TypeConstant.Event_Match_Subscription, (int) packetID, tupleUnacked.get(packetID)), numEventPacket);
     }
 
     @Override
@@ -111,8 +117,22 @@ public class EventSpout extends BaseRichSpout {
         ArrayList<Event> events = new ArrayList<>(numEvent);
 
         for (int i = 0; i < numEvent; i++) {
-            int numAttribute = new Random().nextInt(maxNumAttribute + 1); // Generate the number of attribute in this subscription: 0~maxNumAttribute
 
+            int numAttribute; // Generate the number of attribute in this event
+            switch (type) {
+                case TypeConstant.SIMPLE:
+                    numAttribute = new Random().nextInt(maxNumAttribute_Simple + 1); // 0~maxNumAttribute_Simple
+                    break;
+                case TypeConstant.REIN:
+                    numAttribute = minNumAttribute_Rein + new Random().nextInt(numAttributeType - minNumAttribute_Rein + 1); // minNumAttribute_Rein~numAttributeType
+                    break;
+                case TypeConstant.TAMA:
+                    numAttribute = new Random().nextInt(maxNumAttribute_Tama + 1); // 0~maxNumAttribute_Tama
+                    break;
+                default:
+                    numAttribute=0;
+                    System.out.println("Error: algorithm type.\n");
+            }
             Double eventValue;
             //String attributeName = "attributeName";
 
@@ -186,7 +206,7 @@ public class EventSpout extends BaseRichSpout {
 //            e.printStackTrace();
 //        }
         nextMatchBoltID = (nextMatchBoltID + 1) % numMatchBolt;
-        tupleUnacked.put(numEventPacket,events);
+        tupleUnacked.put(numEventPacket, events);
         collector.emit(new Values(nextMatchBoltID, TypeConstant.Event_Match_Subscription, numEventPacket, events), numEventPacket);
     }
 

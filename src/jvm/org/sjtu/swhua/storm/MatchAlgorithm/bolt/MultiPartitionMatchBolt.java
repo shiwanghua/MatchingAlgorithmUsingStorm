@@ -285,7 +285,7 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
                             }
 
                             ArrayList<Integer> matchedSubIDList = new ArrayList<Integer>();
-                            HashMap<Integer, Double> eventAttributeIDToValue = eventPacket.get(i).getMap();
+                            HashMap<Integer, Double> eventAttributeIDToValue = eventPacket.get(i).getAttributeIDToValue();
                             Iterator<HashMap.Entry<Integer, Subscription>> subIterator = mapIDtoSub.entrySet().iterator();
 
                             while (subIterator.hasNext()) {

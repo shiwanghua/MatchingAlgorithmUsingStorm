@@ -191,7 +191,7 @@ public class SimpleMatchBolt extends BaseRichBolt {
                         }
 //                        System.out.println("\n\n\n" + String.valueOf(eventID) + " begins to match." + "\n\n\n");
 
-                        HashMap<Integer, Double> eventAttributeIDToValue = eventPacket.get(i).getMap();
+                        HashMap<Integer, Double> eventAttributeIDToValue = eventPacket.get(i).getAttributeIDToValue();
                         Iterator<HashMap.Entry<Integer, Subscription>> subIterator = mapIDtoSub.entrySet().iterator();
 
                         while (subIterator.hasNext()) {

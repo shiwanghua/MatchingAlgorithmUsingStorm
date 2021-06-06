@@ -6,7 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class OutputToFile {
-    private static final String baseFilePath = "/home/swhua/Desktop/log/";
+    private static String baseFilePath;
     private static String logFilePath;
     private static String matchResultFilePath;
     private static String speedFilePath;
@@ -14,6 +14,7 @@ public class OutputToFile {
     private static String errorLogFilePath;
 
     public OutputToFile() {
+        baseFilePath = TypeConstant.baseLogFilePath;
         logFilePath = baseFilePath + "log";
         matchResultFilePath = baseFilePath + "MatchResult";
         speedFilePath = baseFilePath + "speed";

@@ -362,7 +362,7 @@ public class TamaMPMatchBolt extends BaseRichBolt {
             int eventAttributeID;
             double attributeValue;
             HashMap.Entry<Integer, Double> eventAttributeEntry;
-            Iterator<HashMap.Entry<Integer, Double>> eventAttributeIterator = e.getMap().entrySet().iterator();
+            Iterator<HashMap.Entry<Integer, Double>> eventAttributeIterator = e.getAttributeIDToValue().entrySet().iterator();
             while (eventAttributeIterator.hasNext()) {
                 eventAttributeEntry = eventAttributeIterator.next();
                 eventAttributeID = eventAttributeEntry.getKey();
