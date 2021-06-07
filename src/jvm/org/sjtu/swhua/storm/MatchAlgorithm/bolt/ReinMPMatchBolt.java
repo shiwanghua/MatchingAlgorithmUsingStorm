@@ -44,7 +44,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
     public ReinMPMatchBolt(int boltid, int num_executor, int redundancy_degree, int num_visual_subSet, ArrayList<String> VSSID_to_ExecutorID) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
         boltID = boltid;
-        intervalTime = 60000000000L;  // 1 minute
+        intervalTime = 1000000000L;//60000000000L;  // 1 minute
         executorIDAllocator = 0;
         //executorIDAllocator=new IDAllocator();
         numSubPacket = 0;
@@ -152,17 +152,19 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                         if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID) == '0')
                             continue;
                         if (rein.insert(subPacket.get(i))) // no need to add if already exists
+                        {
                             numSubInserted++;
 //                       System.out.println("\n\n\n"+numSubInserted+"\n\n\n");
-//                        log = new StringBuilder(boltName);
-//                        log.append(" boltID: ");
-//                        log.append(boltID);
-//                        log.append(". Thread ");
-//                        log.append(executorID);
-//                        log.append(": Sub ");
-//                        log.append(subID);
-//                        log.append(" is inserted.\n");
-//                        output.writeToLogFile(log.toString());
+                            log = new StringBuilder(boltName);
+                            log.append(" boltID: ");
+                            log.append(boltID);
+                            log.append(". Thread ");
+                            log.append(executorID);
+                            log.append(": Sub ");
+                            log.append(subID);
+                            log.append(" is inserted.\n");
+                            output.writeToLogFile(log.toString());
+                        }
                     }
                     collector.ack(tuple);
 //                    insertSubTime += System.nanoTime() - startTime;

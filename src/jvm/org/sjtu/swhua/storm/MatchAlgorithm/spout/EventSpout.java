@@ -90,7 +90,7 @@ public class EventSpout extends BaseRichSpout {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        tupleUnacked.remove((int) packetID);
+//        tupleUnacked.remove((int) packetID);
     }
 
     @Override
@@ -105,94 +105,31 @@ public class EventSpout extends BaseRichSpout {
             e.printStackTrace();
         }
         // 只能处理一组match-bolt的情况，即0号bolt组
-        collector.emit(new Values(0, TypeConstant.Event_Match_Subscription, (int) packetID, tupleUnacked.get(packetID)), numEventPacket);
+//        collector.emit(new Values(0, TypeConstant.Event_Match_Subscription, (int) packetID, tupleUnacked.get(packetID)), numEventPacket);
     }
 
+    // 只发同一个事件
     @Override
     public void nextTuple() {
-//        if(eventID>=11000) return;
-//        if (eventID % 1000 == 0)
-//            Utils.sleep(2000);
-        int numEvent = (int) (Math.random() * maxNumEvent + 1); // Generate the number of subscriptions in this tuple: 1~maxNumEvent
+        int numEvent = 1;
         ArrayList<Event> events = new ArrayList<>(numEvent);
 
         for (int i = 0; i < numEvent; i++) {
-
-            int numAttribute; // Generate the number of attribute in this event
-            switch (type) {
-                case TypeConstant.SIMPLE:
-                    numAttribute = new Random().nextInt(maxNumAttribute_Simple + 1); // 0~maxNumAttribute_Simple
-                    break;
-                case TypeConstant.REIN:
-                    numAttribute = minNumAttribute_Rein + new Random().nextInt(numAttributeType - minNumAttribute_Rein + 1); // minNumAttribute_Rein~numAttributeType
-                    break;
-                case TypeConstant.TAMA:
-                    numAttribute = new Random().nextInt(maxNumAttribute_Tama + 1); // 0~maxNumAttribute_Tama
-                    break;
-                default:
-                    numAttribute=0;
-                    System.out.println("Error: algorithm type.\n");
-            }
             Double eventValue;
-            //String attributeName = "attributeName";
-
-            for (int j = 0; j < numAttribute; j++) { // Use the first #numAttribute values of randomArray to create the attribute name
-                int index = valueGenerator.nextInt(numAttributeType - j) + j;
-                int temp = randomPermutation[j];
-                randomPermutation[j] = randomPermutation[index];
-                randomPermutation[index] = temp;
-            }
-
             HashMap<Integer, Double> mapIDToValue = new HashMap<>();
-            for (int j = 0; j < numAttribute; j++) {
-                eventValue = valueGenerator.nextDouble();
+            for (int j = 0; j < 10; j++) {
+                eventValue = 0.5;//valueGenerator.nextDouble();
 //                mapNameToValue.put(attributeName + String.valueOf(randomPermutation[j]), eventValue);
-                mapIDToValue.put(randomPermutation[j], eventValue);
+                mapIDToValue.put(j, eventValue);
             }
             try {
-                events.add(new Event(eventID, numAttribute, mapIDToValue));
+                events.add(new Event(eventID, 10, mapIDToValue));
                 eventID += 1;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-
-        // for test
-//        Utils.sleep(5000);
-//        try {
-//
-//            HashMap<String, Double> m1 = new HashMap<>();  // Match sub0,sub1,sub3
-//            m1.put("name1", 0.06);
-//            m1.put("name2", 0.14);
-//            m1.put("name3", 0.25);
-//            m1.put("name4", 0.35);
-//            events.add(new Event(1, 4, m1));
-//
-//            HashMap<String, Double> m2 = new HashMap<>();   // Match null
-//            m2.put("name3", 0.21);
-//            m2.put("name4", 0.5);
-//            events.add(new Event(2, 2, m2));
-//
-//            HashMap<String, Double> m3 = new HashMap<>(); // Match sub2
-//            m3.put("name1", 0.46);
-//            m3.put("name2", 0.54);
-//            events.add(new Event(3, 2, m3));
-//
-//            HashMap<String, Double> m4 = new HashMap<>(); // Match sub2, sub3
-//            m4.put("name1", 0.48);
-//            m4.put("name2", 0.56);
-//            m4.put("name3", 0.85);
-//            events.add(new Event(4, 3, m4));
-//
-//            HashMap<String, Double> m5 = new HashMap<>(); // Match sub4
-//            m5.put("name2", 0.18);
-//            m5.put("name4", 0.75);
-//            events.add(new Event(5, 2, m5));
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-        numEventPacket++;
+//        numEventPacket++;
 //        try {
 //            log = new StringBuilder(spoutName);
 //            log.append(": EventID ");
@@ -205,10 +142,112 @@ public class EventSpout extends BaseRichSpout {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
-        nextMatchBoltID = (nextMatchBoltID + 1) % numMatchBolt;
-        tupleUnacked.put(numEventPacket, events);
-        collector.emit(new Values(nextMatchBoltID, TypeConstant.Event_Match_Subscription, numEventPacket, events), numEventPacket);
+//        nextMatchBoltID = (nextMatchBoltID + 1) % numMatchBolt;
+//        tupleUnacked.put(1, events);
+        collector.emit(new Values(0, TypeConstant.Event_Match_Subscription, 1, events), 1);
     }
+
+//    @Override
+//    public void nextTuple() {
+////        if(eventID>=11000) return;
+////        if (eventID % 1000 == 0)
+////            Utils.sleep(2000);
+//        int numEvent = (int) (Math.random() * maxNumEvent + 1); // Generate the number of subscriptions in this tuple: 1~maxNumEvent
+//        ArrayList<Event> events = new ArrayList<>(numEvent);
+//
+//        for (int i = 0; i < numEvent; i++) {
+//
+//            int numAttribute; // Generate the number of attribute in this event
+//            switch (type) {
+//                case TypeConstant.SIMPLE:
+//                    numAttribute = new Random().nextInt(maxNumAttribute_Simple + 1); // 0~maxNumAttribute_Simple
+//                    break;
+//                case TypeConstant.REIN:
+//                    numAttribute = minNumAttribute_Rein + new Random().nextInt(numAttributeType - minNumAttribute_Rein + 1); // minNumAttribute_Rein~numAttributeType
+//                    break;
+//                case TypeConstant.TAMA:
+//                    numAttribute = new Random().nextInt(maxNumAttribute_Tama + 1); // 0~maxNumAttribute_Tama
+//                    break;
+//                default:
+//                    numAttribute=0;
+//                    System.out.println("Error: algorithm type.\n");
+//            }
+//            Double eventValue;
+//            //String attributeName = "attributeName";
+//
+//            for (int j = 0; j < numAttribute; j++) { // Use the first #numAttribute values of randomArray to create the attribute name
+//                int index = valueGenerator.nextInt(numAttributeType - j) + j;
+//                int temp = randomPermutation[j];
+//                randomPermutation[j] = randomPermutation[index];
+//                randomPermutation[index] = temp;
+//            }
+//
+//            HashMap<Integer, Double> mapIDToValue = new HashMap<>();
+//            for (int j = 0; j < numAttribute; j++) {
+//                eventValue = valueGenerator.nextDouble();
+////                mapNameToValue.put(attributeName + String.valueOf(randomPermutation[j]), eventValue);
+//                mapIDToValue.put(randomPermutation[j], eventValue);
+//            }
+//            try {
+//                events.add(new Event(eventID, numAttribute, mapIDToValue));
+//                eventID += 1;
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//
+//        // for test
+////        Utils.sleep(5000);
+////        try {
+////
+////            HashMap<String, Double> m1 = new HashMap<>();  // Match sub0,sub1,sub3
+////            m1.put("name1", 0.06);
+////            m1.put("name2", 0.14);
+////            m1.put("name3", 0.25);
+////            m1.put("name4", 0.35);
+////            events.add(new Event(1, 4, m1));
+////
+////            HashMap<String, Double> m2 = new HashMap<>();   // Match null
+////            m2.put("name3", 0.21);
+////            m2.put("name4", 0.5);
+////            events.add(new Event(2, 2, m2));
+////
+////            HashMap<String, Double> m3 = new HashMap<>(); // Match sub2
+////            m3.put("name1", 0.46);
+////            m3.put("name2", 0.54);
+////            events.add(new Event(3, 2, m3));
+////
+////            HashMap<String, Double> m4 = new HashMap<>(); // Match sub2, sub3
+////            m4.put("name1", 0.48);
+////            m4.put("name2", 0.56);
+////            m4.put("name3", 0.85);
+////            events.add(new Event(4, 3, m4));
+////
+////            HashMap<String, Double> m5 = new HashMap<>(); // Match sub4
+////            m5.put("name2", 0.18);
+////            m5.put("name4", 0.75);
+////            events.add(new Event(5, 2, m5));
+////
+////        } catch (IOException e) {
+////            e.printStackTrace();
+////        }
+//        numEventPacket++;
+////        try {
+////            log = new StringBuilder(spoutName);
+////            log.append(": EventID ");
+////            log.append(eventID);
+////            log.append(" in EventPacket ");
+////            log.append(numEventPacket);
+////            log.append(" is sent.\n");
+////            output.writeToLogFile(log.toString());
+//////            output.writeToLogFile(spoutName+": EventID "+String.valueOf(eventID)+" in EventPacket "+String.valueOf(++numEventPacket) +" is sent.\n");
+////        } catch (IOException e) {
+////            e.printStackTrace();
+////        }
+//        nextMatchBoltID = (nextMatchBoltID + 1) % numMatchBolt;
+//        tupleUnacked.put(numEventPacket, events);
+//        collector.emit(new Values(nextMatchBoltID, TypeConstant.Event_Match_Subscription, numEventPacket, events), numEventPacket);
+//    }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {

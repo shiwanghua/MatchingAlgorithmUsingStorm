@@ -18,6 +18,7 @@ public class SimpleMatchTopology {
         int type=TypeConstant.TYPE;
         int numMatchBolt=TypeConstant.numMatchBolt;
         int boltId=0;
+
         MyUtils utils = new MyUtils(numExecutorInAMatchBolt, redundancy);
         TopologyBuilder builder = new TopologyBuilder();
 
