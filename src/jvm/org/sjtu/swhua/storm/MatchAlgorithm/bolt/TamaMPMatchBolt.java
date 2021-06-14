@@ -44,7 +44,7 @@ public class TamaMPMatchBolt extends BaseRichBolt {
     public TamaMPMatchBolt(int boltid, int num_executor, int redundancy_degree, int num_visual_subSet, ArrayList<String> VSSID_to_ExecutorID) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
         boltID = boltid;
-        intervalTime = 60000000000L;  // 1 minute
+        intervalTime = TypeConstant.intervalTime;//1000000000L;//60000000000L;  // 1 minute
         executorIDAllocator = 0;
         //executorIDAllocator=new IDAllocator();
 //        numSubPacket = 0;
@@ -235,7 +235,7 @@ public class TamaMPMatchBolt extends BaseRichBolt {
             speedReport.append(executorID);
             speedReport.append(" - RunTime: ");
             speedReport.append(runTime / intervalTime);
-            speedReport.append("min. numSubInserted: ");
+            speedReport.append("s. numSubInserted: ");
             speedReport.append(numSubInserted); //mapIDtoSub.size()
             speedReport.append("; InsertSpeed: ");
             speedReport.append(intervalTime / (numSubInserted - numSubInsertedLast + 1) / 1000);  // us/per 加一避免除以0

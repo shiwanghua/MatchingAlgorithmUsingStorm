@@ -93,7 +93,7 @@ public class EventSpout extends BaseRichSpout {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        tupleUnacked.remove((int) packetID);
+        tupleUnacked.remove((int) packetID);
     }
 
     @Override
@@ -108,7 +108,7 @@ public class EventSpout extends BaseRichSpout {
             e.printStackTrace();
         }
         // 只能处理一组match-bolt的情况，即0号bolt组
-//        collector.emit(new Values(0, TypeConstant.Event_Match_Subscription, (int) packetID, tupleUnacked.get(packetID)), numEventPacket);
+        collector.emit(new Values(0, TypeConstant.Event_Match_Subscription, (int) packetID, tupleUnacked.get(packetID)), numEventPacket);
     }
 
     // 只发同一个事件
@@ -170,7 +170,6 @@ public class EventSpout extends BaseRichSpout {
         ArrayList<Event> events = new ArrayList<>(numEvent);
 
         for (int i = 0; i < numEvent; i++) {
-
             int numAttribute; // Generate the number of attribute in this event
             switch (type) {
                 case TypeConstant.SIMPLE:

@@ -63,8 +63,8 @@ public class SimpleMatchTopology {
         conf.put(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS, 90);
         conf.put(Config.TOPOLOGY_MAX_SPOUT_PENDING, 1000);//设置一个spout task上面最多有多少个没有处理的tuple（没有ack/failed）回复，以防止tuple队列爆掉
         conf.put(Config.TOPOLOGY_EXECUTOR_RECEIVE_BUFFER_SIZE,262144); // 8192*32
-        conf.put(Config.TOPOLOGY_WORKER_MAX_HEAP_SIZE_MB,1024); // A per topology config that specifies the maximum amount of memory a worker can use for that specific topology
-        conf.put(Config.WORKER_HEAP_MEMORY_MB,1024); // The default heap memory size in MB per worker, used in the jvm -Xmx opts for launching the worker
+        conf.put(Config.TOPOLOGY_WORKER_MAX_HEAP_SIZE_MB,2048); // A per topology config that specifies the maximum amount of memory a worker can use for that specific topology
+        conf.put(Config.WORKER_HEAP_MEMORY_MB,2048); // The default heap memory size in MB per worker, used in the jvm -Xmx opts for launching the worker
 //        conf.put(Config.NIMBUS_SUPERVISOR_USERS,);
         conf.put(Config.SUPERVISOR_MEMORY_CAPACITY_MB,512); // The total amount of memory (in MiB) a supervisor is allowed to give to its workers.
 //        conf.put(Config.TOPOLOGY_EXECUTOR_SEND_BUFFER_SIZE,8192); // 无法识别
