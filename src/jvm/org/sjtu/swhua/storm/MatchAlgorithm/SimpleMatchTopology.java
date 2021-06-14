@@ -66,7 +66,7 @@ public class SimpleMatchTopology {
         conf.put(Config.TOPOLOGY_WORKER_MAX_HEAP_SIZE_MB,2048); // A per topology config that specifies the maximum amount of memory a worker can use for that specific topology
         conf.put(Config.WORKER_HEAP_MEMORY_MB,2048); // The default heap memory size in MB per worker, used in the jvm -Xmx opts for launching the worker
 //        conf.put(Config.NIMBUS_SUPERVISOR_USERS,);
-        conf.put(Config.SUPERVISOR_MEMORY_CAPACITY_MB,512); // The total amount of memory (in MiB) a supervisor is allowed to give to its workers.
+        conf.put(Config.SUPERVISOR_MEMORY_CAPACITY_MB,1024); // The total amount of memory (in MiB) a supervisor is allowed to give to its workers.
 //        conf.put(Config.TOPOLOGY_EXECUTOR_SEND_BUFFER_SIZE,8192); // 无法识别
 //        conf.put(Config.TOPOLOGY_RECEIVER_BUFFER_SIZE,32);// 接收线程缓存消息的大小 // 无法识别
         conf.put(Config.TOPOLOGY_TRANSFER_BUFFER_SIZE,256); // 进程中向外发送消息的缓存大小 The size of the Disruptor transfer queue for each worker.

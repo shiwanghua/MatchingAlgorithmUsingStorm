@@ -31,7 +31,7 @@ public class MyUtils {
         // calculate the number of visual subset
         numVisualSubSet = calculateCmn(numExecutor, redundancy);
 
-        VSSIDtoExecutorID = SubsetCodeGeneration(redundancy, numExecutor);  // recursion
+        VSSIDtoExecutorID = SubsetCodeGeneration2(redundancy, numExecutor);  // recursion
         mpv = null;  //  Now is not needed.
 
         generateExecutorIDtoVSSID(VSSIDtoExecutorID);
@@ -61,7 +61,7 @@ public class MyUtils {
         return n / m / nm;
     }
 
-    //  从K位里生成含k个1的字符串的集合
+    //  从K位里生成含k个1的字符串的集合　递归编码
     private ArrayList<String> SubsetCodeGeneration(int k, int K) {
         if (k == 0) return new ArrayList<String>() {{
             add(StringUtils.repeat("0", K));
@@ -80,16 +80,21 @@ public class MyUtils {
         }
         return strSet;
     }
-
+    // 第二种编码　迭代编码
     private ArrayList<String> SubsetCodeGeneration2(int k, int K) {
-        String one_zero="",zero_one="";
-        for(int i=0;i<K;i++)
-        ArrayList<String> strSet = new ArrayList<>();
-        int i=0;
-        while(i<numVisualSubSet/2){
-
-            i++;
+        StringBuilder[] stringBuilder = new StringBuilder[numVisualSubSet];
+        for(int i=0;i<numVisualSubSet;i++)
+            stringBuilder[i]=new StringBuilder(StringUtils.repeat("0", K));
+        int p=0;
+        for(int i=0;i<k;i++){
+            for(int j=0;j<numVisualSubSet;j++){
+                stringBuilder[j].setCharAt(p,'1');
+                p=(p+1)%K;
+            }
         }
+        ArrayList<String> strSet = new ArrayList<>();
+        for (int i = 0; i < numVisualSubSet; i++)
+            strSet.add(stringBuilder[i].toString());
         return strSet;
     }
 
@@ -164,7 +169,7 @@ public class MyUtils {
                         executorCombination[i] = false; // It's i not j !
                         break;
                     }
-                if(executorCombination[i]==true){ // 当前这种子集构造法不存在这样的情况，这个分支可以删了
+                if(executorCombination[i]==true){ // 第一种编码不会为true, 第二种编码才可能为true
                     System.out.println("i = "+i+", orResult="+orResult+", countOne="+countOne);
                 }
             }

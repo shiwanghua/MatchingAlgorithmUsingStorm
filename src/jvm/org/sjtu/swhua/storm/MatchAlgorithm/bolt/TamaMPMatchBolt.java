@@ -52,7 +52,7 @@ public class TamaMPMatchBolt extends BaseRichBolt {
         numSubInserted = 1;
         numSubInsertedLast = 1;
         numEventMatched = 1;
-        numEventMatchedLast = 1;
+        numEventMatchedLast = 0;
         runTime = 1;
         numExecutor = num_executor;
         redundancy = redundancy_degree;
