@@ -23,8 +23,7 @@ public class OutputToFile {
     }
 
     public static void writeToLogFile(String content) throws IOException {
-        File file = null;
-        file = new File(logFilePath);
+        File file = new File(logFilePath);
         if (!file.exists()) {
             file.createNewFile();
             System.out.println("Log file is created.\n");

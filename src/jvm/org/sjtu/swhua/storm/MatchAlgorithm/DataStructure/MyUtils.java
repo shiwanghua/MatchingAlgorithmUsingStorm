@@ -96,6 +96,9 @@ public class MyUtils {
         ExecutorIDtoVSSID = new ArrayList<>();
         for (int i = 0; i < numExecutor; i++)
             ExecutorIDtoVSSID.add(stringBuilder[i].toString());
+
+//        for (int i = 0; i < numExecutor; i++)
+//            System.out.println(i+": "+ExecutorIDtoVSSID.get(i));
     }
 
     private String orOperation(String a, String b) {
@@ -126,7 +129,7 @@ public class MyUtils {
             }
             if (countOne <= 1)
                 executorCombination[i] = false;
-            else if (countOne > redundancy) // cannot equal !
+            else if (countOne > numExecutor-redundancy) // cannot equal ! not redundancy !
                 executorCombination[i] = true;
             else {
                 executorCombination[i] = true;
@@ -149,6 +152,9 @@ public class MyUtils {
                         executorCombination[i] = false; // It's i not j !
                         break;
                     }
+                if(executorCombination[i]==true){ // 当前这种子集构造法不存在这样的情况，这个分支可以删了
+                    System.out.println("i = "+i+", orResult="+orResult+", countOne="+countOne);
+                }
             }
         }
     }
