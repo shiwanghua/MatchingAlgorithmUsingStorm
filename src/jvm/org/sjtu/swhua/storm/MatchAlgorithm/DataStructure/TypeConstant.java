@@ -18,11 +18,11 @@ public class TypeConstant {
     // 平凡参数
     public static final int subSetSize = 1000000;
     public static final int numAttributeType = 30;
-    public static final int maxNumSubscriptionPerPacket = 1;
-    public static final int maxNumEventPerPacket = 1;
+    public static final int maxNumSubscriptionPerPacket = 5;
+    public static final int maxNumEventPerPacket = 5;
     public static final int maxNumAttributePerSubscription = 10; // 对所有匹配算法都是越小越好！
-    public static final String baseLogFilePath = "/home/swhua/Desktop/log/";
-//    public static final String baseLogFilePath = "/root/log/log1/";
+//    public static final String baseLogFilePath = "/home/swhua/Desktop/log/";
+    public static final String baseLogFilePath = "/root/log/log1/";
     public static final long intervalTime = 1000000000L; // The interval between two calculations of speed
 
     // 实验模型参数

@@ -25,7 +25,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
     private String boltName;
     private Integer executorID;
     private Integer numMatchExecutor;
-//    private Integer redundancy;
+    //    private Integer redundancy;
     private Integer numEventMatched;
     private Integer numEventMatchedLast;
     private long runTime;
@@ -43,7 +43,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
     Properties props;
     KafkaProducer<String, Object> resultProducer;
 
-    private int receive_max_event_id=0;
+    private int receive_max_event_id = 0;
 
     public MultiPartitionMergerBolt(Integer num_executor, Integer redundancy_degree, Boolean[] executor_combination) {
         numMatchExecutor = num_executor; // receive a eventID from this number of matchBolts then the event is fully matched
@@ -67,7 +67,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
         //matchResultNum = new HashMap<>();
         recordStatus = new HashMap<>();
         numEventMatched = 1;
-        numEventMatchedLast = 1;
+        numEventMatchedLast = 0;
         runTime = 1;
         speedTime = System.nanoTime() + intervalTime;
 
@@ -127,51 +127,56 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple tuple) {
         Integer eventID = tuple.getIntegerByField("eventID");
-        receive_max_event_id=Math.max(eventID,receive_max_event_id);
-
-        if (!recordStatus.containsKey(eventID)) {
-            // matchResultNum.put(eventID, new HashSet<>());
-            matchResultMap.put(eventID, new HashSet<>());
-            recordStatus.put(eventID, 0);
-        }
-    /*    else if (executorCombination[recordStatus.get(eventID)]) {
-
-            collector.ack(tuple);
-            return;
-        }*/
-        ArrayList<Integer> subIDs = (ArrayList<Integer>) tuple.getValueByField("subIDs");
-
-        HashSet<Integer> resultSet = matchResultMap.get(eventID);  // This is an reference !
-        for (int i = 0; i < subIDs.size(); i++)
-            resultSet.add(subIDs.get(i));
-        // matchResultNum.get(eventID).add(tuple.getInteger(0));
-        Integer nextState = recordStatus.get(eventID) | (1 << tuple.getIntegerByField("executorID"));
-        recordStatus.put(eventID, nextState);
-        //if (matchResultNum.get(eventID).size() == redundancy) {
-        if (executorCombination[recordStatus.get(eventID)]) {
-
-            matchResultBuilder = new StringBuilder(boltName);
-            matchResultBuilder.append(" Thread ");
-            matchResultBuilder.append(executorID);
-            matchResultBuilder.append(" - EventID: ");
-            matchResultBuilder.append(eventID);
-            matchResultBuilder.append("; MatchedSubNum: ");
-            matchResultBuilder.append(resultSet.size());
+        // 每个事件会有 redundancy-1 个进来
+        // -1代表得到了完整匹配集，0代表还没收到过这个事件的部分匹配结果
+        if (recordStatus.getOrDefault(eventID, 0) == -1) {
+            log = new StringBuilder(boltName);
+            log.append(" Thread ");
+            log.append(executorID);
+            log.append(" - EventID ");
+            log.append(eventID);
+            log.append(" is already processed.\n");
+            try {
+                output.writeToLogFile(log.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            receive_max_event_id = Math.max(eventID, receive_max_event_id);
+            if (!recordStatus.containsKey(eventID)) {
+                // matchResultNum.put(eventID, new HashSet<>());
+                matchResultMap.put(eventID, new HashSet<>());
+                recordStatus.put(eventID, 0);
+            }
+            HashSet<Integer> resultSet = matchResultMap.get(eventID);  // This is an reference !
+            ArrayList<Integer> subIDs = (ArrayList<Integer>) tuple.getValueByField("subIDs");
+            for (int i = 0; i < subIDs.size(); i++)
+                resultSet.add(subIDs.get(i));
+            // matchResultNum.get(eventID).add(tuple.getInteger(0));
+            Integer nextState = recordStatus.get(eventID) | (1 << tuple.getIntegerByField("executorID"));
+            //if (matchResultNum.get(eventID).size() == redundancy) {
+            if (executorCombination[nextState]) {
+                matchResultBuilder = new StringBuilder(boltName);
+                matchResultBuilder.append(" Thread ");
+                matchResultBuilder.append(executorID);
+                matchResultBuilder.append(" - EventID: ");
+                matchResultBuilder.append(eventID);
+                matchResultBuilder.append("; MatchedSubNum: ");
+                matchResultBuilder.append(resultSet.size());
 //            matchResultBuilder.append("; SubID:");
 //            Iterator<Integer> setIterator = resultSet.iterator();
 //            while (setIterator.hasNext()) {
 //                matchResultBuilder.append(" ");
 //                matchResultBuilder.append(setIterator.next());
 //            }
-            matchResultBuilder.append("; receive_max_event_id: ");
-            matchResultBuilder.append(receive_max_event_id);
-            matchResultBuilder.append(".\n");
-            try {
-                output.saveMatchResult(matchResultBuilder.toString());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+                matchResultBuilder.append("; receive_max_event_id: ");
+                matchResultBuilder.append(receive_max_event_id);
+                matchResultBuilder.append(".\n");
+                try {
+                    output.saveMatchResult(matchResultBuilder.toString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 //            resultProducer.send(new ProducerRecord<String, Object>(topicName, Integer.toString(eventID), resultSet), new Callback() {
 //                @Override
 //                public void onCompletion(RecordMetadata metadata, Exception exception) {
@@ -184,10 +189,13 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
 //                    }
 //                }
 //            });
-            numEventMatched++;
+                numEventMatched++;
 //            matchResultMap.put(eventID, null);
-            matchResultMap.remove(eventID);
-            recordStatus.remove(eventID);
+                matchResultMap.remove(eventID);
+//            recordStatus.remove(eventID);
+                recordStatus.put(eventID, -1); // 表示已经完成
+            } else
+                recordStatus.put(eventID, nextState);
         }
         collector.ack(tuple);
 
@@ -202,8 +210,8 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
             speedReport.append(numEventMatched);
             speedReport.append("; MatchSpeed: ");
 //            speedReport.append(runTime / numEventMatched / 1000); // us/per
-            speedReport.append(intervalTime/(numEventMatched-numEventMatchedLast)/1000);
-            numEventMatchedLast=numEventMatched-1; // 防止某分钟内一个事件都没匹配，从而除以0
+            speedReport.append(intervalTime / (numEventMatched - numEventMatchedLast) / 1000);
+            numEventMatchedLast = numEventMatched - 1; // 防止某分钟内一个事件都没匹配，从而除以0
             speedReport.append(".\n");
             try {
                 output.recordSpeed(speedReport.toString());

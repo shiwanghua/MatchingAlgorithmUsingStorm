@@ -81,6 +81,18 @@ public class MyUtils {
         return strSet;
     }
 
+    private ArrayList<String> SubsetCodeGeneration2(int k, int K) {
+        String one_zero="",zero_one="";
+        for(int i=0;i<K;i++)
+        ArrayList<String> strSet = new ArrayList<>();
+        int i=0;
+        while(i<numVisualSubSet/2){
+
+            i++;
+        }
+        return strSet;
+    }
+
     private void generateExecutorIDtoVSSID(ArrayList<String> VSSIDtoExecutorID) {
         int numExecutor = VSSIDtoExecutorID.get(0).length();
         StringBuilder[] stringBuilder = new StringBuilder[numExecutor];
