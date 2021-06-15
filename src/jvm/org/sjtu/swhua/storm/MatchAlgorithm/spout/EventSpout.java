@@ -108,7 +108,7 @@ public class EventSpout extends BaseRichSpout {
             e.printStackTrace();
         }
         // 只能处理一组match-bolt的情况，即0号bolt组
-        collector.emit(new Values(0, TypeConstant.Event_Match_Subscription, (int) packetID, tupleUnacked.get(packetID)), numEventPacket);
+        collector.emit(new Values(0, TypeConstant.Event_Match_Subscription, (int) packetID, tupleUnacked.get(packetID)), packetID);// 最后一个参数是numEventPacket时会一直死循环地处理最后这个超时的事件，换汤不换药
     }
 
     // 只发同一个事件
