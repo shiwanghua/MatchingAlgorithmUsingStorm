@@ -69,7 +69,7 @@ public class SimpleMatchTopology {
         conf.put(Config.SUPERVISOR_MEMORY_CAPACITY_MB,1024); // The total amount of memory (in MiB) a supervisor is allowed to give to its workers.
 //        conf.put(Config.TOPOLOGY_EXECUTOR_SEND_BUFFER_SIZE,8192); // 无法识别
 //        conf.put(Config.TOPOLOGY_RECEIVER_BUFFER_SIZE,32);// 接收线程缓存消息的大小 // 无法识别
-        conf.put(Config.TOPOLOGY_TRANSFER_BUFFER_SIZE,1024); // 进程中向外发送消息的缓存大小 The size of the Disruptor transfer queue for each worker.
+        conf.put(Config.TOPOLOGY_TRANSFER_BUFFER_SIZE,256); // 进程中向外发送消息的缓存大小 The size of the Disruptor transfer queue for each worker.
         // conf.put(Config.TOPOLOGY_WORKER_CHILDOPTS,"-Xmx%HEAP-MEM%m -XX:+PrintGCDetails -Xloggc:artifacts/gc.log  -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=1M -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=artifacts/heapdump");
 
         // -XX:+PrintGCDateStamps is omitted, because it will lead to a log: "[INFO] Unrecognized VM option 'PrintGCDateStamps'"

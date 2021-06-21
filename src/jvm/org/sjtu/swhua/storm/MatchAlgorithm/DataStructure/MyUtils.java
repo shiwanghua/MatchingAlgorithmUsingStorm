@@ -88,6 +88,7 @@ public class MyUtils {
         int p=0;
         for(int i=0;i<k;i++){
             for(int j=0;j<numVisualSubSet;j++){
+                while(stringBuilder[j].charAt(p)=='1') p=(p+1)%K; // 这里可能只需要执行一次
                 stringBuilder[j].setCharAt(p,'1');
                 p=(p+1)%K;
             }
@@ -169,9 +170,9 @@ public class MyUtils {
                         executorCombination[i] = false; // It's i not j !
                         break;
                     }
-                if(executorCombination[i]==true){ // 第一种编码不会为true, 第二种编码才可能为true
-                    System.out.println("i = "+i+", orResult="+orResult+", countOne="+countOne);
-                }
+//                if(executorCombination[i]==true){ // 第一种编码不会为true, 第二种编码才可能为true
+//                    System.out.println("i = "+i+", orResult="+orResult+", countOne="+countOne);
+//                }
             }
         }
     }
