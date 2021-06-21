@@ -50,7 +50,9 @@ public class MyUtils {
 
     // equal to VSSIDtoExecutorID.size()
     private Integer calculateCmn(int numExecutor, int redundancy) {
-        int n = 1, m = 1, nm = 1;
+//        System.out.println("numExecutor: " +numExecutor);
+//        System.out.println("redundancy: " +redundancy);
+        Long  n = 1L, m = 1L, nm = 1L;
         for (int i = 2; i <= numExecutor; i++) {
             n *= i;
             if (i == redundancy)
@@ -58,7 +60,8 @@ public class MyUtils {
             if (i == (numExecutor - redundancy))
                 nm = n;
         }
-        return n / m / nm;
+        n=n / m / nm;
+        return n.intValue();
     }
 
     //  从K位里生成含k个1的字符串的集合　递归编码
