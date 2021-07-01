@@ -52,15 +52,26 @@ public class MyUtils {
     private Integer calculateCmn(int numExecutor, int redundancy) {
 //        System.out.println("numExecutor: " +numExecutor);
 //        System.out.println("redundancy: " +redundancy);
+        if(redundancy>=numExecutor) // 无需划分子订阅集，每个线程都存整个订阅集
+            return 1;
+
         Long  n = 1L, m = 1L, nm = 1L;
-        for (int i = 2; i <= numExecutor; i++) {
-            n *= i;
-            if (i == redundancy)
-                m = n;
-            if (i == (numExecutor - redundancy))
-                nm = n;
-        }
-        n=n / m / nm;
+        // 容易越界
+//        for (int i = 2; i <= numExecutor; i++) {
+//            n *= i;
+//            if (i == redundancy)
+//                m = n;
+//            if (i == (numExecutor - redundancy))
+//                nm = n;
+//        }
+//        n=n / m / nm;
+
+        Long r=1L;
+        for(int i=2;i<=redundancy;i++)
+            r=r*i;
+        for(int i=numExecutor-redundancy+1;i<=numExecutor;i++)
+            n=n*i;
+        n=n/r;
         return n.intValue();
     }
 
