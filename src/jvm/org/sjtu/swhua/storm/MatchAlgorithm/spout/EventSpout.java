@@ -1,10 +1,11 @@
 package org.sjtu.swhua.storm.MatchAlgorithm.spout;
 
 import org.apache.storm.spout.SpoutOutputCollector;
-import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Event;
-import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.OutputToFile;
-import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Subscription;
-import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.TypeConstant;
+import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.*;
+//import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Event;
+//import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.OutputToFile;
+//import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Subscription;
+//import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.TypeConstant;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichSpout;

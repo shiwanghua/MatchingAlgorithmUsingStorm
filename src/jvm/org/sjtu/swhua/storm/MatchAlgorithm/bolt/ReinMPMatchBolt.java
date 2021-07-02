@@ -57,7 +57,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         numExecutor = num_executor;
         redundancy = redundancy_degree;
         numVisualSubSet = num_visual_subSet;
-        VSSIDtoExecutorID = VSSID_to_ExecutorID;
+        VSSIDtoExecutorID = VSSID_to_ExecutorID; // 不需要每个线程都获取整个 map, 只要拿到属于自己的那一列就好了，这里是为了简便实现和防止出错
 
         log = new StringBuilder();
 //        matchResult = new StringBuilder();
