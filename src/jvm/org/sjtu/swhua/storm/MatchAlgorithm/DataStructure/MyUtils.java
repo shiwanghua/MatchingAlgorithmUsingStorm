@@ -1,7 +1,7 @@
 package org.sjtu.swhua.storm.MatchAlgorithm.DataStructure;
 
 import org.apache.storm.shade.org.apache.commons.lang.StringUtils;
-import sun.text.normalizer.UBiDiProps;
+//import sun.text.normalizer.UBiDiProps;
 
 import java.util.ArrayList;
 import java.util.HashMap;
