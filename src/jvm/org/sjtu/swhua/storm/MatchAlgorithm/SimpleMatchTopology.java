@@ -57,8 +57,8 @@ public class SimpleMatchTopology {
 //        conf.registerSerialization(Rein.class);
 
         conf.setDebug(false); // True will print all sub, event and match data.
-        conf.setNumWorkers(6);
-        conf.setMaxTaskParallelism(6);
+        conf.setNumWorkers(15);
+        conf.setMaxTaskParallelism(15);
         conf.put(Config.TOPOLOGY_ACKER_EXECUTORS, 10);// 设置acker的数量, default: 1
         conf.put(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS, 90);
         conf.put(Config.TOPOLOGY_MAX_SPOUT_PENDING, 1000);//设置一个spout task上面最多有多少个没有处理的tuple（没有ack/failed）回复，以防止tuple队列爆掉
@@ -81,7 +81,7 @@ public class SimpleMatchTopology {
         LocalCluster localCluster = new LocalCluster();
         localCluster.submitTopology(topoName, conf, builder.createTopology());
 //        StormSubmitter.submitTopologyWithProgressBar(topoName, conf, builder.createTopology());
-        Utils.sleep(7200000);
+        Utils.sleep(7500000);
         localCluster.killTopology(topoName);
         localCluster.shutdown();
     }
