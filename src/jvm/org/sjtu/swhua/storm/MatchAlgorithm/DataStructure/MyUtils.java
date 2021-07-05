@@ -137,6 +137,12 @@ public class MyUtils {
             numVisualSubSet3 = 1;
             return;
         }
+
+        if (numExecutor == 9) {
+            numVisualSubSet2 = numVisualSubSet3 = 9;
+            return;
+        }
+
         int maxCompleteNumber = 0;
         int maxZeroNumber = 0;
 
@@ -153,7 +159,7 @@ public class MyUtils {
 //            ArrayList<Integer> a=completeNumberToVSS2Num.getOrDefault(numCompleteNumbers, new ArrayList<>());
 //            a.add(lineNum);
 //            completeNumberToVSS2Num.put(numCompleteNumbers,a);
-            completeNumberToVSS2Num.computeIfAbsent(numCompleteNumbers,key -> new ArrayList<>()).add(lineNum);
+            completeNumberToVSS2Num.computeIfAbsent(numCompleteNumbers, key -> new ArrayList<>()).add(lineNum);
             if (maxZeroNumber < numZerosOfCompleteNumbers) {
                 maxZeroNumber = numZerosOfCompleteNumbers;
                 numVisualSubSet3 = lineNum;
@@ -161,7 +167,7 @@ public class MyUtils {
 //            ArrayList<Integer> b=zeroNumberToVSS3Num.getOrDefault(numZerosOfCompleteNumbers,new ArrayList<>());
 //            b.add(lineNum);
 //            zeroNumberToVSS3Num.put(numZerosOfCompleteNumbers,b);
-            zeroNumberToVSS3Num.computeIfAbsent(numZerosOfCompleteNumbers,key -> new ArrayList<>()).add(lineNum);
+            zeroNumberToVSS3Num.computeIfAbsent(numZerosOfCompleteNumbers, key -> new ArrayList<>()).add(lineNum);
         }
     }
 
