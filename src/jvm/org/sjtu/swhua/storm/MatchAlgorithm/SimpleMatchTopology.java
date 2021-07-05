@@ -2,6 +2,7 @@ package org.sjtu.swhua.storm.MatchAlgorithm;
 
 import clojure.lang.Compiler;
 import kafka.admin.ConsumerGroupCommand;
+import org.apache.storm.StormSubmitter;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.*;
@@ -78,11 +79,11 @@ public class SimpleMatchTopology {
             topoName = args[0];
         }
 
-        LocalCluster localCluster = new LocalCluster();
-        localCluster.submitTopology(topoName, conf, builder.createTopology());
-//        StormSubmitter.submitTopologyWithProgressBar(topoName, conf, builder.createTopology());
-        Utils.sleep(7200000);
-        localCluster.killTopology(topoName);
-        localCluster.shutdown();
+//        LocalCluster localCluster = new LocalCluster();
+//        localCluster.submitTopology(topoName, conf, builder.createTopology());
+        StormSubmitter.submitTopologyWithProgressBar(topoName, conf, builder.createTopology());
+//        Utils.sleep(7200000);
+//        localCluster.killTopology(topoName);
+//        localCluster.shutdown();
     }
 }
