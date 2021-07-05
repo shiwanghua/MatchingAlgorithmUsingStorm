@@ -150,17 +150,18 @@ public class MyUtils {
                 maxCompleteNumber = numCompleteNumbers;
                 numVisualSubSet2 = lineNum;
             }
-            ArrayList<Integer> a=completeNumberToVSS2Num.getOrDefault(numCompleteNumbers, new ArrayList<>());
-            a.add(lineNum);
-            completeNumberToVSS2Num.put(numCompleteNumbers,a);
-
+//            ArrayList<Integer> a=completeNumberToVSS2Num.getOrDefault(numCompleteNumbers, new ArrayList<>());
+//            a.add(lineNum);
+//            completeNumberToVSS2Num.put(numCompleteNumbers,a);
+            completeNumberToVSS2Num.computeIfAbsent(numCompleteNumbers,key -> new ArrayList<>()).add(lineNum);
             if (maxZeroNumber < numZerosOfCompleteNumbers) {
                 maxZeroNumber = numZerosOfCompleteNumbers;
                 numVisualSubSet3 = lineNum;
             }
-            ArrayList<Integer> b=zeroNumberToVSS3Num.getOrDefault(numZerosOfCompleteNumbers,new ArrayList<>());
-            b.add(lineNum);
-            zeroNumberToVSS3Num.put(numZerosOfCompleteNumbers,b);
+//            ArrayList<Integer> b=zeroNumberToVSS3Num.getOrDefault(numZerosOfCompleteNumbers,new ArrayList<>());
+//            b.add(lineNum);
+//            zeroNumberToVSS3Num.put(numZerosOfCompleteNumbers,b);
+            zeroNumberToVSS3Num.computeIfAbsent(numZerosOfCompleteNumbers,key -> new ArrayList<>()).add(lineNum);
         }
     }
 

@@ -8,6 +8,7 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.OutputToFile;
+import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.TypeConstant;
 import org.sjtu.swhua.storm.MatchAlgorithm.KafkaProducer.SubscriptionProducer;
 
 
@@ -50,7 +51,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
 //        redundancy = redundancy_degree;
         executorCombination = executor_combination;
         beginTime = System.nanoTime();
-        intervalTime = 60000000000L;  // 1 minute
+        intervalTime = TypeConstant.intervalTime;  // 1 minute
 //        numMatchExecutor = ThreadDivisionMatchBolt.getNumExecutor(); // This function may not return the final right number. MergerBolt may be initialized before matchBolt!
     }
 
