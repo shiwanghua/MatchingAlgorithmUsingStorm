@@ -79,11 +79,11 @@ public class SimpleMatchTopology {
             topoName = args[0];
         }
 
-//        LocalCluster localCluster = new LocalCluster();
-//        localCluster.submitTopology(topoName, conf, builder.createTopology());
-        StormSubmitter.submitTopologyWithProgressBar(topoName, conf, builder.createTopology());
-//        Utils.sleep(7200000);
-//        localCluster.killTopology(topoName);
-//        localCluster.shutdown();
+        LocalCluster localCluster = new LocalCluster();
+        localCluster.submitTopology(topoName, conf, builder.createTopology());
+//        StormSubmitter.submitTopologyWithProgressBar(topoName, conf, builder.createTopology());
+        Utils.sleep(7200000);
+        localCluster.killTopology(topoName);
+        localCluster.shutdown();
     }
 }
