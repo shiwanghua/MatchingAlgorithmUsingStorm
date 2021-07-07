@@ -144,8 +144,8 @@ public class MyUtils {
         }
 
         int maxCompleteNumber = 0;
-        int maxZeroNumber = 0;
-        int maxZeroNumber2 = 0; // 平方
+        int maxZeroNumber = -1;  // 有可能最大值就是0，所以初始化为小于0, 保证进入一次if进行赋值
+        int maxZeroNumber2 = -1; // 平方
 
         for (int lineNum = 1; lineNum <= maxNumVisualSubSet; lineNum++) {
             if (lineNum * redundancy % numExecutor != 0) // lineNum * redundancy < numExecutor ||
@@ -246,7 +246,7 @@ public class MyUtils {
         String orResult;
         numCompleteNumbers = 0;
         numZerosOfCompleteNumbers = 0;
-	numZeros2OfCompleteNumbers = 0;
+        numZeros2OfCompleteNumbers = 0;
         for (int i = 0; i < numState; i++) {
             countOne = 0;
             int j = i;
