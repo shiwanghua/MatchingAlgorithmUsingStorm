@@ -246,6 +246,7 @@ public class MyUtils {
         String orResult;
         numCompleteNumbers = 0;
         numZerosOfCompleteNumbers = 0;
+	numZeros2OfCompleteNumbers = 0;
         for (int i = 0; i < numState; i++) {
             countOne = 0;
             int j = i;
@@ -253,7 +254,7 @@ public class MyUtils {
                 countOne++;
                 j = j & (j - 1);
             }
-            if (countOne < 1)  // 当只有１个执行者时只有一个１，但也是满的，是完备数
+            if (countOne == 0)  // 当只有１个执行者时只有一个１，但也是满的，是完备数
                 executorCombination[i] = false;
             else if (countOne > numExecutor - redundancy) // cannot equal ! not redundancy !
             {
