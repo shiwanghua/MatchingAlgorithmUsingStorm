@@ -11,43 +11,60 @@ import java.util.HashSet;
 public class Test4 {
     public static void main(final String[] args) {
 
-        int redundancy = 3;
+        int redundancy = 6;
         final long intervalTime = 1000000000L;
         for (int numExecutor = 1; numExecutor <= 20; numExecutor++) {
 
             long beginTime = System.nanoTime();
             MyUtils myUtils = new MyUtils(numExecutor, redundancy);
             long runTime = System.nanoTime() - beginTime;
+
+            int numState = (int) Math.pow(2, numExecutor);
             int numVSS1 = myUtils.numVisualSubSet1;
             int numVSS2 = myUtils.numVisualSubSet2;
             int numCN = myUtils.getNumCompleteNumbers();
-            int numState = (int) Math.pow(2, numExecutor);
-            HashMap<Integer,ArrayList<Integer>> mapVSS2 = myUtils.completeNumberToVSS2Num;
+            HashMap<Integer, ArrayList<Integer>> mapVSS2 = myUtils.completeNumberToVSS2Num;
             int numVSS3 = myUtils.numVisualSubSet3;
             int numZeros = myUtils.getNumZerosOfCompleteNumbers();
-            HashMap<Integer,ArrayList<Integer>>  mapVSS3 = myUtils.zeroNumberToVSS3Num;
+            HashMap<Integer, ArrayList<Integer>> mapVSS3 = myUtils.zeroNumberToVSS3Num;
+            int numVSS4 = myUtils.numVisualSubSet4;
+            int numZeros2 = myUtils.getNumZeros2OfCompleteNumbers();
+            HashMap<Integer, ArrayList<Integer>> mapVSS4 = myUtils.zeroNumber2ToVSS4Num;
 
             System.out.println("numExecutor = " + numExecutor);
+
             System.out.println("numVSS1 = " + numVSS1);
+
             System.out.println("numVSS2 = " + numVSS2 + ", ratio = " + numCN + "/" + numState + " = " + (double) numCN / numState);
             for (HashMap.Entry<Integer, ArrayList<Integer>> entry : mapVSS2.entrySet()) {
-                System.out.print("    numCN="+entry.getKey()+": ");
+                System.out.print("    numCN=" + entry.getKey() + ": ");
                 for (int i = 0; i < entry.getValue().size(); i++) {
                     System.out.print(entry.getValue().get(i) + " ");
                 }
                 System.out.println();
             }
-
             System.out.println();
+
             System.out.println("numVSS3 = " + numVSS3 + ", ratio = " + numZeros + "/" + numState * numExecutor + " = " + (double) numZeros / numState / numExecutor);
             for (HashMap.Entry<Integer, ArrayList<Integer>> entry : mapVSS3.entrySet()) {
-                System.out.print("    numZN="+entry.getKey()+": ");
+                System.out.print("    numZN=" + entry.getKey() + ": ");
                 for (int i = 0; i < entry.getValue().size(); i++) {
                     System.out.print(entry.getValue().get(i) + " ");
                 }
                 System.out.println();
             }
             System.out.println();
+
+            System.out.println("numVSS4 = " + numVSS4 + ", ratio = " + numZeros2 + "/" + numState * numExecutor * numExecutor + " = " + (double) numZeros / numState / numExecutor / numExecutor);
+            for (HashMap.Entry<Integer, ArrayList<Integer>> entry : mapVSS4.entrySet()) {
+                System.out.print("    numZ2N=" + entry.getKey() + ": ");
+                for (int i = 0; i < entry.getValue().size(); i++) {
+                    System.out.print(entry.getValue().get(i) + " ");
+                }
+                System.out.println();
+            }
+            System.out.println();
+
             System.out.println("Run Time = " + (double) runTime / intervalTime + " s　= " + (double) runTime / intervalTime / 60 + " min\n\n");
 
         }

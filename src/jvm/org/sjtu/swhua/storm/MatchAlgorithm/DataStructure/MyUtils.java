@@ -10,15 +10,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MyUtils {
     public Integer numVisualSubSet1;
     public Integer numVisualSubSet2;
-    public HashMap<Integer, ArrayList<Integer>> completeNumberToVSS2Num = new HashMap<>(); // All Equivalent vss2 number
+    public HashMap<Integer, ArrayList<Integer>> completeNumberToVSS2Num; // All Equivalent vss2 number
     public Integer numVisualSubSet3;
-    public HashMap<Integer, ArrayList<Integer>> zeroNumberToVSS3Num = new HashMap<>();     // All Equivalent vss3 number
-    private Integer maxNumVisualSubSet;
-    private Integer numExecutor;
+    public HashMap<Integer, ArrayList<Integer>> zeroNumberToVSS3Num;     // All Equivalent vss3 number
+    public Integer numVisualSubSet4;
+    public HashMap<Integer, ArrayList<Integer>> zeroNumber2ToVSS4Num;    // All Equivalent vss4 number
+
     private Integer redundancy;
+    private Integer numExecutor;
     private Integer numState;
+    private Integer maxNumVisualSubSet;
     private Integer numCompleteNumbers;
     private Integer numZerosOfCompleteNumbers;
+    public Integer numZeros2OfCompleteNumbers;
 
     static public HashMap<String, AtomicInteger> boltNameToIDAllocator;
 
@@ -41,6 +45,7 @@ public class MyUtils {
         executorCombination = new Boolean[numState]; // 单线程，一直重复覆盖利用就好了，不需要深拷贝
         completeNumberToVSS2Num = new HashMap<>();
         zeroNumberToVSS3Num = new HashMap<>();
+        zeroNumber2ToVSS4Num = new HashMap<>();
 
         // calculate the number of visual subset
         maxNumVisualSubSet = calculateCmn();
@@ -69,7 +74,7 @@ public class MyUtils {
         if (redundancy >= numExecutor) // 无需划分子订阅集，每个线程都存整个订阅集
             return 1;
 
-        Long n = 1L, m = 1L, nm = 1L;
+//        Long n = 1L, m = 1L, nm = 1L;
         // 容易越界
 //        for (int i = 2; i <= numExecutor; i++) {
 //            n *= i;
@@ -80,7 +85,7 @@ public class MyUtils {
 //        }
 //        n=n / m / nm;
 
-        Long r = 1L;
+        Long n = 1L, r = 1L;
         for (int i = 2; i <= redundancy; i++)
             r = r * i;
         for (int i = numExecutor - redundancy + 1; i <= numExecutor; i++)
@@ -138,13 +143,9 @@ public class MyUtils {
             return;
         }
 
-       // if (numExecutor == 9) {
-       //     numVisualSubSet2 = numVisualSubSet3 = 84;
-       //     return;
-       // }
-
         int maxCompleteNumber = 0;
         int maxZeroNumber = 0;
+        int maxZeroNumber2 = 0; // 平方
 
         for (int lineNum = 1; lineNum <= maxNumVisualSubSet; lineNum++) {
             if (lineNum * redundancy % numExecutor != 0) // lineNum * redundancy < numExecutor ||
@@ -152,6 +153,7 @@ public class MyUtils {
             VSSIDtoExecutorID = SubsetCodeGeneration2(lineNum);
             ExecutorIDtoVSSID = generateExecutorIDtoVSSID(VSSIDtoExecutorID);  // 转置
             generateCombinationResult(ExecutorIDtoVSSID);
+
             if (maxCompleteNumber < numCompleteNumbers) {
                 maxCompleteNumber = numCompleteNumbers;
                 numVisualSubSet2 = lineNum;
@@ -160,14 +162,18 @@ public class MyUtils {
 //            a.add(lineNum);
 //            completeNumberToVSS2Num.put(numCompleteNumbers,a);
             completeNumberToVSS2Num.computeIfAbsent(numCompleteNumbers, key -> new ArrayList<>()).add(lineNum);
+
             if (maxZeroNumber < numZerosOfCompleteNumbers) {
                 maxZeroNumber = numZerosOfCompleteNumbers;
                 numVisualSubSet3 = lineNum;
             }
-//            ArrayList<Integer> b=zeroNumberToVSS3Num.getOrDefault(numZerosOfCompleteNumbers,new ArrayList<>());
-//            b.add(lineNum);
-//            zeroNumberToVSS3Num.put(numZerosOfCompleteNumbers,b);
             zeroNumberToVSS3Num.computeIfAbsent(numZerosOfCompleteNumbers, key -> new ArrayList<>()).add(lineNum);
+
+            if (maxZeroNumber2 < numZeros2OfCompleteNumbers) {
+                maxZeroNumber2 = numZeros2OfCompleteNumbers;
+                numVisualSubSet4 = lineNum;
+            }
+            zeroNumber2ToVSS4Num.computeIfAbsent(numZeros2OfCompleteNumbers, key -> new ArrayList<>()).add(lineNum);
         }
     }
 
@@ -254,6 +260,7 @@ public class MyUtils {
                 executorCombination[i] = true;
                 numCompleteNumbers++;
                 numZerosOfCompleteNumbers += numExecutor - countOne;
+                numZeros2OfCompleteNumbers += (int) Math.pow(numExecutor - countOne, 2);
             } else {
                 executorCombination[i] = true;
                 j = i;
@@ -278,6 +285,7 @@ public class MyUtils {
                 if (executorCombination[i] == true) { // 第一种编码不会为true, 第二种编码才可能为true
                     numCompleteNumbers++;
                     numZerosOfCompleteNumbers += numExecutor - countOne;
+                    numZeros2OfCompleteNumbers += (int) Math.pow(numExecutor - countOne, 2);
 //                    System.out.println("i = "+i+", orResult="+orResult+", countOne="+countOne);
                 }
             }
@@ -318,5 +326,9 @@ public class MyUtils {
 
     public Integer getNumZerosOfCompleteNumbers() {
         return numZerosOfCompleteNumbers;
+    }
+
+    public Integer getNumZeros2OfCompleteNumbers() {
+        return numZeros2OfCompleteNumbers;
     }
 }
