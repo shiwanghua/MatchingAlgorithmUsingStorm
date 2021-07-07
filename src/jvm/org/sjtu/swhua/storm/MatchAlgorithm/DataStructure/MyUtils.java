@@ -138,10 +138,10 @@ public class MyUtils {
             return;
         }
 
-        if (numExecutor == 9) {
-            numVisualSubSet2 = numVisualSubSet3 = 9;
-            return;
-        }
+       // if (numExecutor == 9) {
+       //     numVisualSubSet2 = numVisualSubSet3 = 84;
+       //     return;
+       // }
 
         int maxCompleteNumber = 0;
         int maxZeroNumber = 0;
