@@ -16,7 +16,7 @@ public class TypeConstant {
     public static final int TAMA = 3;
 
     // 平凡参数
-    public static final int subSetSize = 10000;
+    public static final int subSetSize = 1000000;
     public static final int numAttributeType = 30;
     public static final int maxNumSubscriptionPerPacket = 1;
     public static final int maxNumEventPerPacket = 1;
