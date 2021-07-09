@@ -281,7 +281,7 @@ public class TamaMPMatchBolt extends BaseRichBolt {
             numCell = 0;
             numAttributeType = TypeConstant.numAttributeType;
             numLevel = TypeConstant.numLevel;
-            counter = new int[TypeConstant.subSetSize];
+            counter = new int[TypeConstant.subSetSize/TypeConstant.numExecutorPerMatchBolt+1];
             lchild = new int[1 << numLevel];
             rchild = new int[1 << numLevel];
             mid = new double[1 << numLevel];
