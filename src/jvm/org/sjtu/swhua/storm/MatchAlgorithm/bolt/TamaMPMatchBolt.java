@@ -311,10 +311,9 @@ public class TamaMPMatchBolt extends BaseRichBolt {
 //            } catch (IOException e) {
 //                e.printStackTrace();
 //            }
-
+            mid[cellID] = (l + r) / 2;
             if (level == numLevel)
                 return;
-            mid[cellID] = (l + r) / 2;
 //            if (l < r) {
             lchild[cellID] = ++numCell;
             initiate(level + 1, numCell, l, mid[cellID]);

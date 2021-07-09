@@ -151,8 +151,9 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
             }
             HashSet<Integer> resultSet = matchResultMap.get(eventID);  // This is an reference !
             ArrayList<Integer> subIDs = (ArrayList<Integer>) tuple.getValueByField("subIDs");
-            for (int i = 0; i < subIDs.size(); i++)
-                resultSet.add(subIDs.get(i));
+//            for (int i = 0; i < subIDs.size(); i++)
+//                resultSet.add(subIDs.get(i));
+            resultSet.addAll(subIDs);
             // matchResultNum.get(eventID).add(tuple.getInteger(0));
             Integer nextState = recordStatus.get(eventID) | (1 << tuple.getIntegerByField("executorID"));
             //if (matchResultNum.get(eventID).size() == redundancy) {

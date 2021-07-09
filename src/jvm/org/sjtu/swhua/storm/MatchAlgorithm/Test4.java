@@ -11,7 +11,7 @@ import java.util.HashSet;
 public class Test4 {
     public static void main(final String[] args) {
 
-        int redundancy = 6;
+        int redundancy = 5;
         final long intervalTime = 1000000000L;
         for (int numExecutor = 1; numExecutor <= 20; numExecutor++) {
 

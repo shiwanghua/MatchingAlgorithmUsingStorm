@@ -213,15 +213,15 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                 case TypeConstant.Event_Match_Subscription: {
                     if (tuple.getIntegerByField("MatchBoltID").equals(boltID)) {
                         numEventPacket++;
-//                        log = new StringBuilder(boltName);
-//                        log.append(" boltID: ");
-//                        log.append(boltID);
-//                        log.append(". Thread ");
-//                        log.append(executorID);
-//                        log.append(": EventPacket ");
-//                        log.append(numEventPacket);
-//                        log.append(" is received.\n");
-//                        output.writeToLogFile(log.toString());
+                        log = new StringBuilder(boltName);
+                        log.append(" boltID: ");
+                        log.append(boltID);
+                        log.append(". Thread ");
+                        log.append(executorID);
+                        log.append(": EventPacket ");
+                        log.append(numEventPacket);
+                        log.append(" is received.\n");
+                        output.writeToLogFile(log.toString());
                         ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
                         // 偶尔会出现为空的情况，而且是运行一段时间后产生，还与订阅集大小有关，改大一点可能就没错误了，很随机
                         if(eventPacket==null){
@@ -280,7 +280,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
             speedReport.append(executorID);
             speedReport.append(" - RunTime: ");
             speedReport.append(runTime / intervalTime);
-            speedReport.append("s. numSubInserted: ");
+            speedReport.append("min. numSubInserted: ");
             speedReport.append(numSubInserted); //mapIDtoSub.size()
             speedReport.append("; InsertSpeed: ");
             speedReport.append(intervalTime / (numSubInserted - numSubInsertedLast + 1) / 1000);  // us/per 加一避免除以0
