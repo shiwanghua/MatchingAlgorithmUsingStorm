@@ -140,6 +140,7 @@ public class MyUtils {
         {
             numVisualSubSet2 = 1;
             numVisualSubSet3 = 1;
+            numVisualSubSet4 = 1;
             return;
         }
 
