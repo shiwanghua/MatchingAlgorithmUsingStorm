@@ -48,7 +48,7 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
 
     public MultiPartitionMatchBolt(Integer boltid, Integer num_executor, Integer redundancy_degree,Integer num_visual_subSet, ArrayList<String> VSSID_to_ExecutorID) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
-        intervalTime = 60000000000L;  // 1 minute
+        intervalTime = TypeConstant.intervalTime;
         numSubPacket = 0;
         numEventPacket = 0;
         numSubInserted = 1;
@@ -366,7 +366,7 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
             speedReport.append(numEventMatched);
             speedReport.append("; MatchSpeed: ");
 //            speedReport.append(runTime / numEventMatched / 1000); // us/per
-            speedReport.append(intervalTime / (numEventMatched - numEventMatchedLast) / 1000);
+            speedReport.append(intervalTime / (numEventMatched - numEventMatchedLast+1) / 1000);
             numEventMatchedLast = numEventMatched;
             speedReport.append(".\n");
             try {

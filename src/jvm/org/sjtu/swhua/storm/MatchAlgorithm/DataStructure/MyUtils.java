@@ -53,7 +53,7 @@ public class MyUtils {
 //        numVisualSubSet2 = findVSSNumWithTheMostCompleteNumber();           // 第二种：取完备数最多的行数
 //        numVisualSubSet3 = findVSSNumWithTheMostWeightedCompleteNumber();   // 第三种：取完备数中０的个数最多的行数
         calculateNumVSS(); // 三合一
-        numVisualSubSet3=16;
+
 //        VSSIDtoExecutorID = SubsetCodeGeneration1(numExecutor,redundancy);  // recursion
         mpv = null;  //  Now is not needed.
         VSSIDtoExecutorID = SubsetCodeGeneration2(numVisualSubSet3);
@@ -170,11 +170,11 @@ public class MyUtils {
             }
             zeroNumberToVSS3Num.computeIfAbsent(numZerosOfCompleteNumbers, key -> new ArrayList<>()).add(lineNum);
 
-            if (maxZeroNumber2 < numZeros2OfCompleteNumbers) {
-                maxZeroNumber2 = numZeros2OfCompleteNumbers;
-                numVisualSubSet4 = lineNum;
-            }
-            zeroNumber2ToVSS4Num.computeIfAbsent(numZeros2OfCompleteNumbers, key -> new ArrayList<>()).add(lineNum);
+//            if (maxZeroNumber2 < numZeros2OfCompleteNumbers) {
+//                maxZeroNumber2 = numZeros2OfCompleteNumbers;
+//                numVisualSubSet4 = lineNum;
+//            }
+//            zeroNumber2ToVSS4Num.computeIfAbsent(numZeros2OfCompleteNumbers, key -> new ArrayList<>()).add(lineNum);
         }
     }
 

@@ -55,15 +55,15 @@ public class Test4 {
             }
             System.out.println();
 
-            System.out.println("numVSS4 = " + numVSS4 + ", ratio = " + numZeros2 + "/" + numState * numExecutor * numExecutor + " = " + (double) numZeros / numState / numExecutor / numExecutor);
-            for (HashMap.Entry<Integer, ArrayList<Integer>> entry : mapVSS4.entrySet()) {
-                System.out.print("    numZ2N=" + entry.getKey() + ": ");
-                for (int i = 0; i < entry.getValue().size(); i++) {
-                    System.out.print(entry.getValue().get(i) + " ");
-                }
-                System.out.println();
-            }
-            System.out.println();
+//            System.out.println("numVSS4 = " + numVSS4 + ", ratio = " + numZeros2 + "/" + numState * numExecutor * numExecutor + " = " + (double) numZeros / numState / numExecutor / numExecutor);
+//            for (HashMap.Entry<Integer, ArrayList<Integer>> entry : mapVSS4.entrySet()) {
+//                System.out.print("    numZ2N=" + entry.getKey() + ": ");
+//                for (int i = 0; i < entry.getValue().size(); i++) {
+//                    System.out.print(entry.getValue().get(i) + " ");
+//                }
+//                System.out.println();
+//            }
+//            System.out.println();
 
             System.out.println("Run Time = " + (double) runTime / intervalTime + " s　= " + (double) runTime / intervalTime / 60 + " min\n\n");
 
