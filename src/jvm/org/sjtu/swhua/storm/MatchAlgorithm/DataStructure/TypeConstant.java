@@ -22,12 +22,12 @@ public class TypeConstant {
     public static final int maxNumEventPerPacket = 1;
     public static final int maxNumAttributePerSubscription = 10; // 对所有匹配算法都是越小越好！
 //    public static final String baseLogFilePath = "/home/swhua/Desktop/log/log1/";
-    public static final String baseLogFilePath = "/root/log/tama/log_15_10b_3v5_3r/";
+    public static final String baseLogFilePath = "/root/log/log_16_10b_3v16_2r/";
     public static final long intervalTime = 60000000000L; // The interval between two calculations of speed
 
     // 实验模型参数
 
-    public static final int TYPE = 3; // 本次实验所用的匹配算法类型，假定都用同一种匹配算法
+    public static final int TYPE = 2; // 本次实验所用的匹配算法类型，假定都用同一种匹配算法
 
     // Simple
     public static final double maxAttributeProportion_Simple = 0.5;
@@ -48,7 +48,7 @@ public class TypeConstant {
 
     //MPM
     public static final int numExecutorPerSpout = 1;
-    public static final int numExecutorPerMatchBolt = 15;
-    public static final int redundancy = 3;
+    public static final int numExecutorPerMatchBolt = 16;
+    public static final int redundancy = 2;
     public static final int numMatchBolt = 1;
 }
