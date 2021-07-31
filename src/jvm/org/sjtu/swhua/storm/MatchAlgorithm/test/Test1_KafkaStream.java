@@ -1,4 +1,4 @@
-package org.sjtu.swhua.storm.MatchAlgorithm;
+package org.sjtu.swhua.storm.MatchAlgorithm.test;
 
 //import com.esotericsoftware.kryo.kryo5.util.Null;
 
@@ -17,7 +17,7 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
 // 纯kafka 单词计数，从一个topic读，结果发到另一个topic
-public final class Test {
+public final class Test1_KafkaStream {
 
     public static final String INPUT_TOPIC = "event";
     public static final String OUTPUT_TOPIC = "matchResult";

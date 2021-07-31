@@ -1,4 +1,4 @@
-package org.sjtu.swhua.storm.MatchAlgorithm;
+package org.sjtu.swhua.storm.MatchAlgorithm.test;
 
 import org.checkerframework.checker.units.qual.A;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Event;
@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public class Test4 {
+public class Test4_VSSPerformance {
     public static void main(final String[] args) {
 
         int redundancy = 2;

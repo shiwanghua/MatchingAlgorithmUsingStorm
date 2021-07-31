@@ -319,6 +319,8 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         private HashMap<Integer, Boolean> exist;
         private ArrayList<ArrayList<LinkedList<Pair<Integer, Double>>>> infBuckets; // Attribute ID -> bucket id -> a bucket list -> (subID,subVlue)
         private ArrayList<ArrayList<LinkedList<Pair<Integer, Double>>>> supBuckets;
+        private boolean[][][] leftBits;
+        private boolean[][][] rightBits;
 
         public Rein() {
             numSub = 0;
@@ -337,13 +339,15 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                     supBuckets.get(i).add(new LinkedList<>());
                 }
             }
+            leftBits=new boolean[numAttributeType][3][TypeConstant.subSetSize];  // [0.0,0.25] [0.0,0.5] [0.0,0.75] high
+            rightBits=new boolean[numAttributeType][3][TypeConstant.subSetSize]; // [0.25,1.0] [0.5,1.0] [0.75,1.0] low
         }
 
         public boolean insert(Subscription sub) {
             int subID = sub.getSubID();
             if (exist.getOrDefault(subID, false) == true)
                 return false;
-            int subAttributeID;
+            int subAttributeID,lowBucketID,highBucketID;
             double low, high;
             HashMap.Entry<Integer, Pair<Double, Double>> subAttributeEntry;
             Iterator<HashMap.Entry<Integer, Pair<Double, Double>>> subAttributeIterator = sub.getMap().entrySet().iterator();
@@ -352,9 +356,34 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                 subAttributeID = subAttributeEntry.getKey();
                 low = subAttributeEntry.getValue().getFirst();
                 high = subAttributeEntry.getValue().getSecond();
+                lowBucketID=(int) (low / bucketSpan);
+                highBucketID=(int) (high / bucketSpan);
+                infBuckets.get(subAttributeID).get(lowBucketID).add(Pair.of(numSub, low));
+                supBuckets.get(subAttributeID).get(highBucketID).add(Pair.of(numSub, high));
+                if(lowBucketID>=0.75*(numBucket-1)){
+                    rightBits[subAttributeID][0][numSub]=true;
+                    rightBits[subAttributeID][1][numSub]=true;
+                    rightBits[subAttributeID][2][numSub]=true;
+                }
+                else if(lowBucketID>=0.5*(numBucket-1)){
+                    rightBits[subAttributeID][0][numSub]=true;
+                    rightBits[subAttributeID][1][numSub]=true;
+                }
+                else if(lowBucketID>=0.25*numBucket)
+                    rightBits[subAttributeID][0][numSub]=true;
 
-                infBuckets.get(subAttributeID).get((int) (low / bucketSpan)).add(Pair.of(numSub, low));
-                supBuckets.get(subAttributeID).get((int) (high / bucketSpan)).add(Pair.of(numSub, high));
+                if(highBucketID<=0.25*numBucket){
+                    leftBits[subAttributeID][0][numSub]=true;
+                    leftBits[subAttributeID][1][numSub]=true;
+                    leftBits[subAttributeID][2][numSub]=true;
+                }
+                else if(highBucketID<=0.5*(numBucket-1)){
+                    leftBits[subAttributeID][1][numSub]=true;
+                    leftBits[subAttributeID][2][numSub]=true;
+                }
+                else if(highBucketID<=0.75*numBucket)
+                    leftBits[subAttributeID][2][numSub]=true;
+
             }
             mapToSubID.add(subID);  //  add this map to ensure the size of bits array int match() is right, since each executor will not get a successive subscription set
             exist.put(subID, true);
@@ -367,7 +396,8 @@ public class ReinMPMatchBolt extends BaseRichBolt {
             boolean[] bits = new boolean[numSub];
 //        Integer eventAttributeID;
             Double attributeValue;
-            int bucketID;
+            int eventBucketID;
+            double lowBorder=numBucket,highBorder=0;
 
             // Solution: each event has all attribute types i.e.: e.getMap().size()==numAttributeType
 //        HashMap.Entry<Integer, Double> eventAttributeEntry;
@@ -403,18 +433,51 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                         } // LinkedList
                     } // Bucket ArrayList
                 } else {
-                    bucketID = (int) (attributeValue / bucketSpan);
-                    for (Pair<Integer, Double> subIDValue : infBuckets.get(i).get(bucketID))
+                    eventBucketID = (int) (attributeValue / bucketSpan);
+
+                    if(eventBucketID<0.25*numBucket){
+                        lowBorder=0.25*numBucket;
+                        for(int j=0;j<numSub;j++)
+                            bits[j]=bits[j]|rightBits[i][0][j];
+                    }
+                    else if(eventBucketID<0.5*(numBucket-1)){
+                        lowBorder=0.5*(numBucket-1);
+                        for(int j=0;j<numSub;j++)
+                            bits[j]=bits[j]|rightBits[i][1][j];
+                    }
+                    else if(eventBucketID<0.75*(numBucket-1)){
+                        lowBorder=0.75*(numBucket-1);
+                        for(int j=0;j<numSub;j++)
+                            bits[j]=bits[j]|rightBits[i][2][j];
+                    }
+
+                    if(eventBucketID>0.75*numBucket){
+                        highBorder=0.75*numBucket;
+                        for(int j=0;j<numSub;j++)
+                            bits[j]=bits[j]|leftBits[i][2][j];
+                    }
+                    else if(eventBucketID>0.5*(numBucket-1)){
+                        highBorder=0.5*(numBucket-1);
+                        for(int j=0;j<numSub;j++)
+                            bits[j]=bits[j]|leftBits[i][1][j];
+                    }
+                    else if (eventBucketID>0.25*numBucket){
+                        highBorder=0.25*numBucket;
+                        for(int j=0;j<numSub;j++)
+                            bits[j]=bits[j]|leftBits[i][0][j];
+                    }
+
+                    for (Pair<Integer, Double> subIDValue : infBuckets.get(i).get(eventBucketID))
                         if (subIDValue.value2 > attributeValue)
                             bits[subIDValue.value1] = true;
-                    for (int bi = bucketID + 1; bi < numBucket; bi++)
+                    for (int bi = eventBucketID + 1; bi < lowBorder; bi++)
                         for (Pair<Integer, Double> subIDValue : infBuckets.get(i).get(bi))
                             bits[subIDValue.value1] = true;
 
-                    for (Pair<Integer, Double> subIDValue : supBuckets.get(i).get(bucketID))
+                    for (Pair<Integer, Double> subIDValue : supBuckets.get(i).get(eventBucketID))
                         if (subIDValue.value2 < attributeValue)
                             bits[subIDValue.value1] = true;
-                    for (int bi = 0; bi < bucketID; bi++)
+                    for (int bi = eventBucketID; bi > highBorder ; bi--)
                         for (Pair<Integer, Double> subIDValue : infBuckets.get(i).get(bi))
                             bits[subIDValue.value1] = true;
                 }

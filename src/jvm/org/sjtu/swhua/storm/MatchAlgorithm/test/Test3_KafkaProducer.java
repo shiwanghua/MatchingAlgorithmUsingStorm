@@ -1,4 +1,4 @@
-package org.sjtu.swhua.storm.MatchAlgorithm;
+package org.sjtu.swhua.storm.MatchAlgorithm.test;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,7 +23,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Event;
 
 // kafka 生产者写数据
-public class Test3 {
+public class Test3_KafkaProducer {
 
     public static void main(String[] args) throws Exception{
         //Assign topicName to string variable

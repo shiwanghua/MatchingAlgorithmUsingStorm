@@ -1,4 +1,4 @@
-package org.sjtu.swhua.storm.MatchAlgorithm;
+package org.sjtu.swhua.storm.MatchAlgorithm.test;
 
 import java.util.Map;
 
@@ -25,7 +25,7 @@ import org.apache.storm.tuple.Values;
 
 
 // KafkaSpout  spout读取主题的消息发给bolt消费
-public class Test2 {
+public class Test2_KafkaSpout {
      static class MyboltO extends BaseRichBolt {
         private static final long serialVersionUID = 1L;
         OutputCollector collector = null;
