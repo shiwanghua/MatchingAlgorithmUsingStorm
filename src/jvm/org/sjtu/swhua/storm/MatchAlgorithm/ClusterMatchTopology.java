@@ -1,21 +1,19 @@
 package org.sjtu.swhua.storm.MatchAlgorithm;
 
-import clojure.lang.Compiler;
-import kafka.admin.ConsumerGroupCommand;
-import org.apache.storm.StormSubmitter;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
-import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.*;
-import org.sjtu.swhua.storm.MatchAlgorithm.bolt.*;
-import org.sjtu.swhua.storm.MatchAlgorithm.spout.*;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.utils.Utils;
+import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.*;
+import org.sjtu.swhua.storm.MatchAlgorithm.bolt.MultiPartitionMergerBolt;
+import org.sjtu.swhua.storm.MatchAlgorithm.bolt.TamaMPMatchBolt;
+import org.sjtu.swhua.storm.MatchAlgorithm.spout.EventSpout;
+import org.sjtu.swhua.storm.MatchAlgorithm.spout.SubscriptionSpout;
 
-//storm local ./storm-2021-5-4.jar  org.sjtu.swhua.storm.MatchAlgorithm.SimpleMatchTopology
-public class SimpleMatchTopology {
+public class ClusterMatchTopology {
     public static void main(String[] args) throws Exception {
 
-        int numExecutorInASpout=TypeConstant.numExecutorPerSpout;
+        int numExecutorInASpout= TypeConstant.numExecutorPerSpout;
         int numExecutorInAMatchBolt = TypeConstant.numExecutorPerMatchBolt;
         int redundancy = TypeConstant.redundancy;
         int type=TypeConstant.TYPE;

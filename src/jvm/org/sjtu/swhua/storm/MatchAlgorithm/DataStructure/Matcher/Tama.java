@@ -1,10 +1,8 @@
 package org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Matcher;
 
-import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Event;
-import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Pair;
-import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Subscription;
-import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.TypeConstant;
+import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -18,16 +16,18 @@ public class Tama {
     private ArrayList<ArrayList<ArrayList<Integer>>> table;
     private HashMap<Integer, Integer> mapSubIDtoNumAttribute;
     private ArrayList<Integer> mapToSubID;
-
+    private StringBuilder log;
+    private OutputToFile output;
     public Tama() {
         numSub = 0;
         numCell = 0;
         numAttributeType = TypeConstant.numAttributeType;
         numLevel = TypeConstant.numLevel;
-        counter = new int[TypeConstant.subSetSize/TypeConstant.numExecutorPerMatchBolt+1];
+        counter = new int[TypeConstant.subSetSize*TypeConstant.redundancy/TypeConstant.parallelismDegree+1];
         lchild = new int[1 << numLevel];
         rchild = new int[1 << numLevel];
         mid = new double[1 << numLevel];
+        output=new OutputToFile();
         mapSubIDtoNumAttribute = new HashMap<>();
         mapToSubID = new ArrayList<>();
         table = new ArrayList<>();
@@ -38,10 +38,13 @@ public class Tama {
             }
         }
         initiate(1, 0, 0.0, 1.0);
+//        for (int i = 0; i < 1 << numLevel; i++) {
+//            System.out.println("ID="+String.valueOf(i)+", lchild="+String.valueOf(lchild[i])+", rchild="+String.valueOf(rchild[i])+", mid="+mid[i]);
+//        }
     }
 
     private void initiate(int level, int cellID, double l, double r) {
-//            log=new StringBuilder(level);
+//        log = new StringBuilder(level);
 //            log.append(" ");
 //            log.append(cellID);
 //            log.append(" ");
@@ -50,7 +53,7 @@ public class Tama {
 //            log.append(r);
 //            log.append(".\n");
 //            try {
-//                output.writeToLogFile(log.toString());
+//                output.otherInfo(log.toString());
 //            } catch (IOException e) {
 //                e.printStackTrace();
 //            }

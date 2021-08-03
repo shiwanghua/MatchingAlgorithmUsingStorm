@@ -16,18 +16,18 @@ public class TypeConstant {
     public static final int TAMA = 3;
 
     // 平凡参数
-    public static final int subSetSize = 10000;
+    public static final int subSetSize = 1000000;
     public static final int numAttributeType = 30;
     public static final int maxNumSubscriptionPerPacket = 1;
     public static final int maxNumEventPerPacket = 1;
     public static final int maxNumAttributePerSubscription = 10; // 对所有匹配算法都是越小越好！
-//    public static final String baseLogFilePath = "/home/swhua/Desktop/log/log1/";
-    public static final String baseLogFilePath = "/root/log/log_Rein2/OldRein_6_10b_2s_3r/"; //"log_16_10b_3v16_2r/"; simple/log_15_3r/
+    //    public static final String baseLogFilePath = "/home/swhua/Desktop/log/log1/";
+    public static final String baseLogFilePath = "/root/log/tama/log_15_10b_3v5_3r/"; //"log_16_10b_3v16_2r/"; simple/log_15_3r/
     public static final long intervalTime = 60000000000L; // The interval between two calculations of speed
 
     // 实验模型参数
 
-    public static final int TYPE = 2; // 本次实验所用的匹配算法类型，假定都用同一种匹配算法
+    public static final int TYPE = 3; // 本次实验所用的匹配算法类型，根据这个参数生成合适的事件和订阅数据
 
     // Simple
     public static final double maxAttributeProportion_Simple = 0.5;
@@ -41,14 +41,15 @@ public class TypeConstant {
     public static final double minIntervalWidth_Rein = 0.5;
 
     // TAMA
-    public static final int numLevel = 5;
+    public static final int numLevel = 11;
     public static final double maxAttributeProportion_Tama = 0.5; // 事件有取值的属性个数至多占属性种数的比例
     public static final int maxNumAttributePerEvent_Tama = (int) (numAttributeType * maxAttributeProportion_Tama);
     public static final double minIntervalWidth_Tama = 0.05;
 
     //MPM
     public static final int numExecutorPerSpout = 1;
-    public static final int numExecutorPerMatchBolt = 6;
+    public static final int numExecutorPerMatchBolt = 15; // 并行度，用单个bolt作为一个并行算子组
+    public static final int parallelismDegree = 15;       // 并行度，把单个bolt作为一个匹配器
     public static final int redundancy = 3;
     public static final int numMatchBolt = 1;
 }
