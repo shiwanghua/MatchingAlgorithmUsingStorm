@@ -2,11 +2,9 @@ package org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Matcher;
 
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 // cell 从０开始编号，level从１开始编号
 public class Tama {
@@ -14,8 +12,9 @@ public class Tama {
     private int[] counter, lchild, rchild;
     private double[] mid;
     private ArrayList<ArrayList<ArrayList<Integer>>> table;
-    private HashMap<Integer, Integer> mapSubIDtoNumAttribute;  // Can't be ArrayList, need to check whether it exists in Rein
-    private ArrayList<Integer> mapToSubID;
+    private HashMap<Integer,Boolean> exist;
+    private ArrayList<Integer> mapInnerIDToNumAttribute;
+    private ArrayList<Integer> mapInnerIDToSubID;
     private StringBuilder log;
     private OutputToFile output;
     public Tama() {
@@ -28,8 +27,9 @@ public class Tama {
         rchild = new int[1 << numLevel];
         mid = new double[1 << numLevel];
         output=new OutputToFile();
-        mapSubIDtoNumAttribute = new HashMap<>();
-        mapToSubID = new ArrayList<>();
+        exist=new HashMap<>();
+        mapInnerIDToNumAttribute = new ArrayList<>();
+        mapInnerIDToSubID = new ArrayList<>();
         table = new ArrayList<>();
         for (int i = 0; i < numAttributeType; i++) {
             table.add(new ArrayList<>());
@@ -70,7 +70,7 @@ public class Tama {
 
     public boolean insert(Subscription sub) {
         int subID = sub.getSubID();
-        if (mapSubIDtoNumAttribute.getOrDefault(subID, 0) > 0) // Check whether it has been in Rein, so mapSubIDtoNumAttribute can't be a ArrayList
+        if (exist.getOrDefault(subID, false))
             return false;
 
         HashMap.Entry<Integer, Pair<Double, Double>> subAttributeEntry;
@@ -79,8 +79,9 @@ public class Tama {
             subAttributeEntry = subAttributeIterator.next();
             insert(1, 0, 0.0, 1.0, numSub, subAttributeEntry.getKey(), subAttributeEntry.getValue().getFirst(), subAttributeEntry.getValue().getSecond());
         }
-        mapSubIDtoNumAttribute.put(subID, sub.getAttibuteNum());  // Here is subID not numSub
-        mapToSubID.add(subID);  //  add this map to ensure the size of bits array int match() is right, since each executor will not get a successive subscription set
+        exist.put(subID, true);
+        mapInnerIDToSubID.add(subID);  //  add this map to ensure the size of bits array int match() is right, since each executor will not get a successive subscription set
+        mapInnerIDToNumAttribute.add(sub.getAttibuteNum());
         numSub++;   //  after Deletion operation, numSub!=numSubInserted, so variable 'numSubInserted' is needed.
         return true;
     }
@@ -102,8 +103,8 @@ public class Tama {
 
     public ArrayList<Integer> match(Event e) {
 
-        for (HashMap.Entry<Integer, Integer> entry : mapSubIDtoNumAttribute.entrySet())
-            counter[entry.getKey()] = entry.getValue();
+        for (int innerID=0;innerID<mapInnerIDToNumAttribute.size();innerID++)
+            counter[innerID] = mapInnerIDToNumAttribute.get(innerID);
         int eventAttributeID;
         double attributeValue;
         HashMap.Entry<Integer, Double> eventAttributeEntry;
@@ -116,9 +117,9 @@ public class Tama {
         }
 
         ArrayList<Integer> matchResult = new ArrayList<>();
-        for (int i = 0; i < numSub; i++)
-            if (counter[i] == 0)
-                matchResult.add(mapToSubID.get(i));
+        for (int innerID = 0; innerID < numSub; innerID++)
+            if (counter[innerID] == 0) // && mapInnerIDToSubID.getOrDefault(innerID,-1)!=-1
+                matchResult.add(mapInnerIDToSubID.get(innerID));
         return matchResult;
     }
 

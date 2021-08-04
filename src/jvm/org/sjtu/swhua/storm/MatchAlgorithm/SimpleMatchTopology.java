@@ -59,7 +59,7 @@ public class SimpleMatchTopology {
 
         conf.setDebug(false); // True will print all sub, event and match data.
         conf.setNumWorkers(6);
-        conf.setMaxTaskParallelism(16);
+        conf.setMaxTaskParallelism(10);
         conf.put(Config.TOPOLOGY_ACKER_EXECUTORS, 10);// 设置acker的数量, default: 1
         conf.put(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS, 90);
         conf.put(Config.TOPOLOGY_MAX_SPOUT_PENDING, 1000);//设置一个spout task上面最多有多少个没有处理的tuple（没有ack/failed）回复，以防止tuple队列爆掉
