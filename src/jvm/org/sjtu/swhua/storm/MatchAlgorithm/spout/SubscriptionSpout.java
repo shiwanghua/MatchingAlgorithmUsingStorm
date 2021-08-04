@@ -38,6 +38,7 @@ public class SubscriptionSpout extends BaseRichSpout {
     private final double maxIntervalWidth_Simple;
     private final double minIntervalWidth_Rein;
     private final double minIntervalWidth_Tama;
+    private final double maxIntervalWidth_Tama;
 
 
     public SubscriptionSpout(int Type) { // 1 代表简单匹配模式，2 代表 Rein 模式，3 代表 Tama 模式
@@ -51,6 +52,7 @@ public class SubscriptionSpout extends BaseRichSpout {
         maxIntervalWidth_Simple = TypeConstant.maxIntervalWidth_Simple;
         minIntervalWidth_Rein = TypeConstant.minIntervalWidth_Rein;
         minIntervalWidth_Tama = TypeConstant.minIntervalWidth_Tama;
+        maxIntervalWidth_Tama = TypeConstant.maxIntervalWidth_Tama;
     }
 
     @Override
@@ -155,7 +157,7 @@ public class SubscriptionSpout extends BaseRichSpout {
                         break;
                     case TypeConstant.TAMA:
                         low = (1.0 - minIntervalWidth_Tama) * valueGenerator.nextDouble();
-                        high = low + minIntervalWidth_Tama + (1.0 - low - minIntervalWidth_Tama) * valueGenerator.nextDouble();
+                        high = low + minIntervalWidth_Tama + Math.min(maxIntervalWidth_Tama,1.0 - low - minIntervalWidth_Tama) * valueGenerator.nextDouble();
                         break;
                     default:
                         low = 0.0;

@@ -14,7 +14,7 @@ public class Tama {
     private int[] counter, lchild, rchild;
     private double[] mid;
     private ArrayList<ArrayList<ArrayList<Integer>>> table;
-    private HashMap<Integer, Integer> mapSubIDtoNumAttribute;
+    private HashMap<Integer, Integer> mapSubIDtoNumAttribute;  // Can't be ArrayList, need to check whether it exists in Rein
     private ArrayList<Integer> mapToSubID;
     private StringBuilder log;
     private OutputToFile output;
@@ -70,7 +70,7 @@ public class Tama {
 
     public boolean insert(Subscription sub) {
         int subID = sub.getSubID();
-        if (mapSubIDtoNumAttribute.getOrDefault(subID, 0) > 0)
+        if (mapSubIDtoNumAttribute.getOrDefault(subID, 0) > 0) // Check whether it has been in Rein, so mapSubIDtoNumAttribute can't be a ArrayList
             return false;
 
         HashMap.Entry<Integer, Pair<Double, Double>> subAttributeEntry;
@@ -79,7 +79,7 @@ public class Tama {
             subAttributeEntry = subAttributeIterator.next();
             insert(1, 0, 0.0, 1.0, numSub, subAttributeEntry.getKey(), subAttributeEntry.getValue().getFirst(), subAttributeEntry.getValue().getSecond());
         }
-        mapSubIDtoNumAttribute.put(numSub, sub.getAttibuteNum());
+        mapSubIDtoNumAttribute.put(subID, sub.getAttibuteNum());  // Here is subID not numSub
         mapToSubID.add(subID);  //  add this map to ensure the size of bits array int match() is right, since each executor will not get a successive subscription set
         numSub++;   //  after Deletion operation, numSub!=numSubInserted, so variable 'numSubInserted' is needed.
         return true;

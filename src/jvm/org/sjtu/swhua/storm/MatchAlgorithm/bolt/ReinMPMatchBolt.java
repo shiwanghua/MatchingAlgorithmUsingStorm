@@ -32,7 +32,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
     private int numEventMatched;
     private int numEventMatchedLast;
     final private int numVisualSubSet;
-    final private int numExecutor;
+    final private int numExecutor;  // 大于１时表示一个bolt就是一个并行算子组，等于１时表示一个bolt就是一个匹配器
     private int executorID;
     static private int executorIDAllocator;
     //    static private IDAllocator executorIDAllocator;
@@ -75,7 +75,10 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         collector = outputCollector;
         boltName = boltContext.getThisComponentId();
         //allocateID();  // boltIDAllocator need to keep synchronized
-        executorID = MyUtils.allocateID(boltName);
+        if (numExecutor > 1) // 本地运行时
+            executorID = MyUtils.allocateID(boltName);
+        else
+            executorID = boltID;  // 一个bolt就是一个匹配器, boltID就是匹配器ID
         rein = new Rein();
         output = new OutputToFile();
 
@@ -310,9 +313,6 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         return numExecutor;
 //        return boltIDAllocator;   //  this variable may not be the last executor number.
     }
-
-
-
 
 
 }
