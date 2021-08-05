@@ -70,12 +70,12 @@ public class SubscriptionSpout extends BaseRichSpout {
         tupleUnacked = new HashMap<>();
         try {
             log = new StringBuilder(spoutName);
-            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + spoutName + ":");
+            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + "    TaskID:");
             List<Integer> taskIds = subSpoutTopologyContext.getComponentTasks(spoutName);
             Iterator taskIdsIter = taskIds.iterator();
             while (taskIdsIter.hasNext())
                 log.append(" " + String.valueOf(taskIdsIter.next()));
-            log.append("\nThisTaskId: ");
+            log.append("\n    ThisTaskId: ");
             log.append(subSpoutTopologyContext.getThisTaskId() + "\n\n");  // Get the current thread number
             output.otherInfo(log.toString());
         } catch (IOException e) {

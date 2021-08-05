@@ -14,66 +14,102 @@ import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.TypeConstant;
 import java.io.IOException;
 import java.util.*;
 
-// 用于发订阅和事件的spout, 还没写好
-public class SubEventSpout extends BaseRichSpout {
+// 只考虑一个bolt就是一个匹配器的情况，假设只有一个并行匹配组，假设每个匹配器的并行度都是１
+// 每次只发一个订阅，根据订阅数组的第一个元素的subID判断发给哪些bolt
+public class SubscriptionSpout_emitDirect extends BaseRichSpout {
     //    private static final Logger LOG = LoggerFactory.getLogger(SubscriptionSpout.class);
     private SpoutOutputCollector collector;
-    private TopologyContext spoutTopologyContext;
+    private TopologyContext subSpoutTopologyContext;
     private int subID;
-    private int numPacket;
+    private int numSubPacket;               // 订阅包发送次数＝订阅个数　ｘ　冗余度
     private final int type;
-    private final int maxNumSubscription;           //  Maximum number of subscription emitted per time
-    private final int maxNumSubAttribute;              //  Maxinum number of attributes in a subscription
-    private final int numAttributeType;             //  Type number of attributes
+    private final int maxNumSubscription;   //  Maximum number of subscription emitted per time
+    private final int maxNumAttribute;      //  Maxinum number of attributes in a subscription
+    private final int numAttributeType;     //  Type number of attributes
     private final int subSetSize;
+    private final int parallelismDegree;
+    private final int redundancy;
+    private final int numVisualSubSet;
+    private int[][] VSSIDtoExecutorID;
+
     private Random valueGenerator;          //  Generate the interval value and index of attribute name
-    private int[] randomPermutation;              //  To get the attribute name
+    private int[] randomPermutation;        //  To get the attribute name
     private OutputToFile output;
     private StringBuilder log;
     private StringBuilder errorLog;
     private String spoutName;
+    private String boltNamePrefix;   // 用于构造匹配器的名称
     private HashMap<Integer, ArrayList<Subscription>> tupleUnacked;  // backup data
 
     private final double maxIntervalWidth_Simple;
     private final double minIntervalWidth_Rein;
     private final double minIntervalWidth_Tama;
+    private final double maxIntervalWidth_Tama;
 
-
-    public SubEventSpout(int Type) { // 1 代表简单匹配模式，2 代表 Rein 模式，3 代表 Tama 模式
+    public SubscriptionSpout_emitDirect(int Type, int num_visual_subSet, ArrayList<String> VSSID_to_ExecutorID) { // 1 代表简单匹配模式，2 代表 Rein 模式，3 代表 Tama 模式
         type = Type;
-
+        numVisualSubSet = num_visual_subSet;
+        parallelismDegree = TypeConstant.parallelismDegree;
+        redundancy = TypeConstant.redundancy;
         maxNumSubscription = TypeConstant.maxNumSubscriptionPerPacket;
-        maxNumSubAttribute = TypeConstant.maxNumAttributePerSubscription;
+        maxNumAttribute = TypeConstant.maxNumAttributePerSubscription;
         numAttributeType = TypeConstant.numAttributeType;
         subSetSize = TypeConstant.subSetSize;
 
         maxIntervalWidth_Simple = TypeConstant.maxIntervalWidth_Simple;
         minIntervalWidth_Rein = TypeConstant.minIntervalWidth_Rein;
         minIntervalWidth_Tama = TypeConstant.minIntervalWidth_Tama;
+        maxIntervalWidth_Tama = TypeConstant.maxIntervalWidth_Tama;
+
+        if (type == 1) boltNamePrefix = "MultiPartitionMatchBolt";
+        else if (type == 2) boltNamePrefix = "ReinMPMBolt";
+        else if (type == 3) boltNamePrefix = "TamaMPMBolt";
+
+        VSSIDtoExecutorID = new int[numVisualSubSet][];
+        for (int i = 0; i < numVisualSubSet; i++) {
+            VSSIDtoExecutorID[i] = new int[redundancy];
+            int k = 0;
+            for (int j = 0; j < parallelismDegree; j++)
+                if (VSSID_to_ExecutorID.get(i).charAt(j) == '1')
+                    VSSIDtoExecutorID[i][k++] = j;
+        }
     }
 
     @Override
     public void open(Map<String, Object> map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
-        subID = 1;
-        numPacket = 0;
+        subID = -1;
+        numSubPacket = 0;
         valueGenerator = new Random();
         randomPermutation = new int[numAttributeType];
         for (int i = 0; i < numAttributeType; i++)
             randomPermutation[i] = i;
-        spoutTopologyContext = topologyContext;
-        spoutName = spoutTopologyContext.getThisComponentId();
+        subSpoutTopologyContext = topologyContext;
+        spoutName = subSpoutTopologyContext.getThisComponentId();
         collector = spoutOutputCollector;
         output = new OutputToFile();
         tupleUnacked = new HashMap<>();
         try {
             log = new StringBuilder(spoutName);
-            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + "    TaskID:");
-            List<Integer> taskIds = spoutTopologyContext.getComponentTasks(spoutName);
+            log.append(" ThreadName: " + Thread.currentThread().getName() + "\n" + "    TaskID:");
+            List<Integer> taskIds = subSpoutTopologyContext.getComponentTasks(spoutName);
             Iterator taskIdsIter = taskIds.iterator();
             while (taskIdsIter.hasNext())
                 log.append(" " + String.valueOf(taskIdsIter.next()));
-            log.append("\n    ThisTaskId: ");
-            log.append(spoutTopologyContext.getThisTaskId() + "\n\n");  // Get the current thread number
+            log.append("\n    ThisTaskId: ");// Get the current thread number
+            log.append(subSpoutTopologyContext.getThisTaskId());
+            for (int i = 0; i < parallelismDegree; i++) {
+                taskIdsIter = subSpoutTopologyContext.getComponentTasks(boltNamePrefix + i).iterator();
+                log.append("\n    " + boltNamePrefix + i + " TaskID: ");
+                while (taskIdsIter.hasNext())
+                    log.append(" " + String.valueOf(taskIdsIter.next()));
+            }
+            log.append("\n    Emit Table\n    VSSID  BoltID");
+            for (int i = 0; i < numVisualSubSet; i++) {
+                log.append(String.format("\n    %02d: ", i)+"     ");
+                for (int j = 0; j < redundancy; j++)
+                    log.append(VSSIDtoExecutorID[i][j] + " ");
+            }
+            log.append("\n\n");
             output.otherInfo(log.toString());
         } catch (IOException e) {
             e.printStackTrace();
@@ -107,7 +143,7 @@ public class SubEventSpout extends BaseRichSpout {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        collector.emit(new Values(TypeConstant.Insert_Subscription, (int) packetID, tupleUnacked.get(packetID)), numPacket);
+        collector.emit(new Values(TypeConstant.Insert_Subscription, (int) packetID, tupleUnacked.get(packetID)), numSubPacket);
     }
 
     @Override
@@ -128,7 +164,7 @@ public class SubEventSpout extends BaseRichSpout {
         int numSub = (int) (Math.random() * maxNumSubscription + 1); // Generate the number of subscriptions in this tuple: 1~maxNumSubscription
         ArrayList<Subscription> sub = new ArrayList<>(numSub);
         for (int i = 0; i < numSub; i++) {
-            int numAttribute = new Random().nextInt(maxNumSubAttribute + 1); // Generate the number of attribute in this subscription: 0~maxNumAttribute
+            int numAttribute = new Random().nextInt(maxNumAttribute + 1); // Generate the number of attribute in this subscription: 0~maxNumAttribute
 
             for (int j = 0; j < numAttribute; j++) { // Use the first #numAttribute values of randomArray to create the attribute name
                 int index = valueGenerator.nextInt(numAttributeType - j) + j;
@@ -154,7 +190,7 @@ public class SubEventSpout extends BaseRichSpout {
                         break;
                     case TypeConstant.TAMA:
                         low = (1.0 - minIntervalWidth_Tama) * valueGenerator.nextDouble();
-                        high = low + minIntervalWidth_Tama + (1.0 - low - minIntervalWidth_Tama) * valueGenerator.nextDouble();
+                        high = low + minIntervalWidth_Tama + Math.min(maxIntervalWidth_Tama, 1.0 - low - minIntervalWidth_Tama) * valueGenerator.nextDouble();
                         break;
                     default:
                         low = 0.0;
@@ -164,8 +200,7 @@ public class SubEventSpout extends BaseRichSpout {
                 mapNameToPair.put(randomPermutation[j], Pair.of(low, high));
             }
             try {
-                sub.add(new Subscription(subID, mapNameToPair));
-                subID += 1;
+                sub.add(new Subscription(++subID, mapNameToPair));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -202,7 +237,7 @@ public class SubEventSpout extends BaseRichSpout {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
-        numPacket++;
+//        numSubPacket++;
 //        try {
 //            log = new StringBuilder(spoutName);
 //            log.append(": SubID ");
@@ -217,8 +252,13 @@ public class SubEventSpout extends BaseRichSpout {
 //        }
 
 //        collector.emit(new Values(TypeConstant.Insert_Subscription, sub),numSubPacket);
-        tupleUnacked.put(numPacket, sub);
-        collector.emit(new Values(TypeConstant.Insert_Subscription, numPacket, sub), numPacket);
+        tupleUnacked.put(numSubPacket, sub);
+        int vssID = subID % numVisualSubSet;
+        for (int i = 0; i < redundancy; i++) {
+            collector.emitDirect(subSpoutTopologyContext.getComponentTasks(boltNamePrefix + VSSIDtoExecutorID[vssID][i]).get(0),
+                    new Values(TypeConstant.Insert_Subscription, numSubPacket, sub), ++numSubPacket);
+        }
+//        collector.emit(new Values(TypeConstant.Insert_Subscription, numSubPacket, sub), numSubPacket);
     }
 
     @Override

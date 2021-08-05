@@ -20,7 +20,7 @@ public class EventSpout extends BaseRichSpout {
     private SpoutOutputCollector collector;
     private int eventID;
     private int numEventPacket;
-    private int numMatchBolt;
+    private int numMatchGroup;
     private int nextMatchBoltID;
     private final int type;
     private final int maxNumEvent;            //  Maximum number of event emitted per time
@@ -39,9 +39,9 @@ public class EventSpout extends BaseRichSpout {
 
     private final long beginTime; //
 
-    public EventSpout(int Type, int num_match_bolt) {
+    public EventSpout(int Type, int num_match_group) {
         type = Type;
-        numMatchBolt = num_match_bolt;
+        numMatchGroup = num_match_group;
         maxNumEvent = TypeConstant.maxNumEventPerPacket;
         maxNumAttribute_Simple = TypeConstant.maxNumAttributePerEvent_Simple;
         minNumAttribute_Rein = TypeConstant.minNumAttributePerEvent_Rein;
@@ -68,12 +68,12 @@ public class EventSpout extends BaseRichSpout {
 
         try {
             log = new StringBuilder(spoutName);
-            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + spoutName + ":");
+            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + "    TaskID:");
             List<Integer> taskIds = eventSpoutTopologyContext.getComponentTasks(spoutName);
             Iterator taskIdsIter = taskIds.iterator();
             while (taskIdsIter.hasNext())
                 log.append(" " + String.valueOf(taskIdsIter.next()));
-            log.append("\nThisTaskId: ");
+            log.append("\n    ThisTaskId: ");
             log.append(eventSpoutTopologyContext.getThisTaskId());  // Get the current thread number
             log.append("\n\n");
             output.otherInfo(log.toString());
@@ -258,13 +258,13 @@ public class EventSpout extends BaseRichSpout {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
-        nextMatchBoltID = (nextMatchBoltID + 1) % numMatchBolt;
+        nextMatchBoltID = (nextMatchBoltID + 1) % numMatchGroup;
         tupleUnacked.put(numEventPacket, events);
         collector.emit(new Values(nextMatchBoltID, TypeConstant.Event_Match_Subscription, numEventPacket, events), numEventPacket);
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("MatchBoltID", "Type", "PacketID", "EventPacket"));
+        outputFieldsDeclarer.declare(new Fields("MatchGroupID", "Type", "PacketID", "EventPacket"));
     }
 }

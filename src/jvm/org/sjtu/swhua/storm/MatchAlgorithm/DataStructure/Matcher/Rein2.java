@@ -121,7 +121,9 @@ public class Rein2 {
         for (int i = 0; i < numAttributeType; i++) {   // i: attributeID
             attributeValue = e.getAttributeValue(i);
             if (attributeValue == null) {  // all sub containing this attribute should be marked, only either sup or inf is enough.
-                for (int j = 0; j < numBucket; j++) {  // j: BucketID
+                for (int j = 0; j < numSub; j++)
+                    bits[j] = bits[j] | rightBits[i][0][j];
+                for (int j = 0; j < 0.25 * numBucket; j++) {  // j: BucketID
                     for (Iterator<Pair<Integer, Double>> pairIterator = infBuckets.get(i).get(j).iterator(); pairIterator.hasNext(); ) {
                         bits[pairIterator.next().getFirst()] = true;
                     } // LinkedList

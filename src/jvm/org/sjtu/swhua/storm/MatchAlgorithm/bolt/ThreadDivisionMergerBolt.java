@@ -66,11 +66,11 @@ public class ThreadDivisionMergerBolt extends BaseRichBolt {
                 log.append(" ");
                 log.append(taskID);
             }
-            log.append("\nThisTaskId: ");
+            log.append("\n    ThisTaskId: ");
             log.append(executorID);
-            log.append(";\nNumberOfMatchExecutor: ");
+            log.append(";\n    NumberOfMatchExecutor: ");
             log.append(numMatchExecutor); // need to be checked carefully
-            log.append("\n\nComplete Executor Combination:\n");
+            log.append("\n\n    Complete Executor Combination:\n");
             for (int i = 0; i < executorCombination.length; i++) {
                 if (executorCombination[i] == true) {
                     log.append(i);

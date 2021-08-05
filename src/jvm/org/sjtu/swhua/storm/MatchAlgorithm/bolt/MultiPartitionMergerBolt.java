@@ -74,7 +74,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
 
         try {
             log = new StringBuilder(boltName);
-            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + boltName + ":");
+            log.append("\n    ThreadName: " + Thread.currentThread().getName() + "\n" + "    TaskID:");
             List<Integer> taskIds = boltContext.getComponentTasks(boltContext.getThisComponentId());
             Iterator taskIdsIter = taskIds.iterator();
             int taskID;
@@ -83,20 +83,19 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
                 log.append(" ");
                 log.append(taskID);
             }
-            log.append("\nThisTaskId: ");
+            log.append("\n    ThisTaskId: ");
             log.append(executorID);
-            log.append(";\nNumberOfMatchExecutor: ");
+            log.append(";\n    NumberOfMatchExecutor: ");
             log.append(numMatchExecutor); // need to be checked carefully
-            log.append("\nComplete Executor Combination:\n");
+            log.append("\n    Complete Executor Combination:\n    ");
             int count = 0;
             for (int i = 0; i < executorCombination.length; i++) {
                 if (executorCombination[i] == true) {
-                    log.append(i);
-                    log.append(" ");
+                    log.append(i+" ");
                     count++;
                 }
             }
-            log.append(" TotalNum: ");
+            log.append("\n    TotalNum: ");
             log.append(count);
             log.append("\n\n");
             output.otherInfo(log.toString());

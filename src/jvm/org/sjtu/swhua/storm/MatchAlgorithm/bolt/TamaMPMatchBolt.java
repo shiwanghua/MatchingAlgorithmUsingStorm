@@ -24,9 +24,11 @@ public class TamaMPMatchBolt extends BaseRichBolt {
 //    private StringBuilder matchResult;
 
     private String boltName;
+    private String signature;
+    private int groupID;
     private int boltID;
     //    private int numSubPacket;
-//    private int numEventPacket;
+    private int numEventPacket;
     private int numSubInserted;
     private int numSubInsertedLast;
     private int numEventMatched;
@@ -42,14 +44,15 @@ public class TamaMPMatchBolt extends BaseRichBolt {
     final private long beginTime;
     final private long intervalTime; // The interval between two calculations of speed
 
-    public TamaMPMatchBolt(int boltid, int num_executor, int redundancy_degree, int num_visual_subSet, ArrayList<String> VSSID_to_ExecutorID) {   // only execute one time for all executors!
+    public TamaMPMatchBolt(int groupid, int boltid, int num_executor, int redundancy_degree, int num_visual_subSet, ArrayList<String> VSSID_to_ExecutorID) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
+        groupID = groupid;
         boltID = boltid;
         intervalTime = TypeConstant.intervalTime;//1000000000L;//60000000000L;  // 1 minute
         executorIDAllocator = 0;
         //executorIDAllocator=new IDAllocator();
 //        numSubPacket = 0;
-//        numEventPacket = 0;
+        numEventPacket = 0;
         numSubInserted = 1;
         numSubInsertedLast = 1;
         numEventMatched = 1;
@@ -75,24 +78,26 @@ public class TamaMPMatchBolt extends BaseRichBolt {
         collector = outputCollector;
         boltName = boltContext.getThisComponentId();
         //allocateID();  // boltIDAllocator need to keep synchronized
-        executorID = MyUtils.allocateID(boltName);
+        if (numExecutor > 1) // 本地测试运行时
+            executorID = MyUtils.allocateID(boltName);
+        else
+            executorID = boltID;  // 一个bolt就是一个匹配器, boltID就是匹配器ID
+        signature=boltName+", GroupID="+groupID+", BoltID="+boltID+", ExecutorID="+executorID;
         tama = new Tama();
         output = new OutputToFile();
 
         if (executorID == 0) {
-            log = new StringBuilder(boltName);
-            log.append(" boltID: ");
-            log.append(boltID);
-            log.append("\nnumExecutor = ");
+            log = new StringBuilder("TamaMPMatchBolt "+signature);
+            log.append("\n    numExecutor = ");
             log.append(numExecutor);
-            log.append("\nredundancy = ");
+            log.append("\n    redundancy = ");
             log.append(redundancy);
-            log.append("\nnumVisualSubSet = ");
+            log.append("\n    numVisualSubSet = ");
             log.append(numVisualSubSet);
-            log.append("\nMap Table:\nID  ExecutorID");
+            log.append("\n    Map Table:\n    ID  ExecutorID");
             int size = VSSIDtoExecutorID.size();
             for (int i = 0; i < size; i++) {
-                log.append(String.format("\n%02d: ", i));
+                log.append(String.format("\n    %02d: ", i));
                 log.append(VSSIDtoExecutorID.get(i));
             }
             log.append("\n\n");
@@ -104,8 +109,8 @@ public class TamaMPMatchBolt extends BaseRichBolt {
         }
 
         try {
-            log = new StringBuilder(boltName);
-            log.append(" boltID: " + String.valueOf(boltID) + " ThreadNum: " + Thread.currentThread().getName() + "\n" + boltName + ":");
+            log = new StringBuilder("TamaMPMatchBolt "+signature);
+            log.append("\n    ThreadNum: " + Thread.currentThread().getName() + "\n    TaskID: ");
             List<Integer> taskIds = boltContext.getComponentTasks(boltContext.getThisComponentId());
             Iterator taskIdsIter = taskIds.iterator();
             int taskID;
@@ -114,8 +119,8 @@ public class TamaMPMatchBolt extends BaseRichBolt {
                 log.append(" ");
                 log.append(taskID);
             }
-            log.append("\nThisTaskId: ");
-            log.append(executorID);   // boltContext.getThisTaskId();
+//            log.append("\nThisTaskId: ");
+//            log.append(executorID);   // boltContext.getThisTaskId();
             log.append("\n\n");
             output.otherInfo(log.toString());
         } catch (IOException e) {
@@ -152,8 +157,17 @@ public class TamaMPMatchBolt extends BaseRichBolt {
                         subID = subPacket.get(i).getSubID();
                         if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID) == '0')
                             continue;
-                        if (tama.insert(subPacket.get(i))) // no need to add if already exists
+                        log = new StringBuilder(signature);
+                        log.append(": Sub ");
+                        log.append(subID);
+                        if (tama.insert(subPacket.get(i))) { // no need to add if already exists
                             numSubInserted++;
+                            log.append(" is inserted.\n");
+                        }
+                        else{
+                            log.append(" is already inserted.\n");
+                        }
+                        output.writeToLogFile(log.toString());
 //                        log = new StringBuilder(boltName);
 //                        log.append(" boltID: ");
 //                        log.append(boltID);
@@ -181,27 +195,19 @@ public class TamaMPMatchBolt extends BaseRichBolt {
                     break;
                 }
                 case TypeConstant.Event_Match_Subscription: {
-                    if (tuple.getIntegerByField("MatchBoltID").equals(boltID)) {
-//                        numEventPacket++;
-//                        log = new StringBuilder(boltName);
-//                        log.append(" boltID: ");
-//                        log.append(boltID);
-//                        log.append(". Thread ");
-//                        log.append(executorID);
-//                        log.append(": EventPacket ");
-//                        log.append(numEventPacket);
-//                        log.append(" is received.\n");
-//                        output.writeToLogFile(log.toString());
+                    if (tuple.getIntegerByField("MatchGroupID").equals(groupID)) {
+                        numEventPacket++;
+                        log = new StringBuilder(signature);
+                        log.append(": EventPacket ");
+                        log.append(numEventPacket);
+                        log.append(" is received.\n");
+                        output.writeToLogFile(log.toString());
                         ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
                         int size = eventPacket.size(), eventID;
                         for (int i = 0; i < size; i++) {
                             ArrayList<Integer> matchedSubIDList = tama.match(eventPacket.get(i));
                             eventID = eventPacket.get(i).getEventID();
-//                            log = new StringBuilder(boltName);
-//                            log.append(" boltID: ");
-//                            log.append(boltID);
-//                            log.append(". Thread ");
-//                            log.append(executorID);
+//                            log = new StringBuilder(signature);
 //                            log.append(": EventID ");
 //                            log.append(eventID);
 //                            log.append(" matching task is done.\n");
@@ -215,11 +221,7 @@ public class TamaMPMatchBolt extends BaseRichBolt {
                 }
                 default:
                     collector.fail(tuple);
-                    log = new StringBuilder(boltName);
-                    log.append(" boltID: ");
-                    log.append(boltID);
-                    log.append(". Thread ");
-                    log.append(executorID);
+                    log = new StringBuilder(signature);
                     log.append(": Wrong operation type is detected.\n");
                     output.writeToLogFile(log.toString());
             }
@@ -229,14 +231,10 @@ public class TamaMPMatchBolt extends BaseRichBolt {
 
         if (System.nanoTime() > speedTime) {
             runTime = System.nanoTime() - beginTime;
-            StringBuilder speedReport = new StringBuilder(boltName);
-            speedReport.append(" boltID: ");
-            speedReport.append(boltID);
-            speedReport.append(". Thread ");
-            speedReport.append(executorID);
+            StringBuilder speedReport = new StringBuilder(signature);
             speedReport.append(" - RunTime: ");
             speedReport.append(runTime / intervalTime);
-            speedReport.append("s. numSubInserted: ");
+            speedReport.append("min. numSubInserted: ");
             speedReport.append(numSubInserted); //mapIDtoSub.size()
             speedReport.append("; InsertSpeed: ");
             speedReport.append(intervalTime / (numSubInserted - numSubInsertedLast + 1) / 1000);  // us/per 加一避免除以0

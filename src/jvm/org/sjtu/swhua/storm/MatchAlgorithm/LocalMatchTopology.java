@@ -11,32 +11,33 @@ import org.sjtu.swhua.storm.MatchAlgorithm.spout.*;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.utils.Utils;
 
-//storm local ./storm-2021-5-4.jar  org.sjtu.swhua.storm.MatchAlgorithm.SimpleMatchTopology
-public class SimpleMatchTopology {
+//storm local ./storm-2021-5-4.jar  org.sjtu.swhua.storm.MatchAlgorithm.LocalMatchTopology
+public class LocalMatchTopology {
     public static void main(String[] args) throws Exception {
 
         int numExecutorInASpout=TypeConstant.numExecutorPerSpout;
         int numExecutorInAMatchBolt = TypeConstant.numExecutorPerMatchBolt;
         int redundancy = TypeConstant.redundancy;
-        int type=TypeConstant.TYPE;
-        int numMatchBolt=TypeConstant.numMatchBolt;
+        int dataDistributionType=TypeConstant.TYPE;
+        int numMatchGroup=TypeConstant.numMatchGroup;
         int boltId=0;
+        int groupID=0;
 
         MyUtils utils = new MyUtils(numExecutorInAMatchBolt, redundancy);
         TopologyBuilder builder = new TopologyBuilder();
 
-        builder.setSpout("SubSpout", new SubscriptionSpout(type), numExecutorInASpout);
-        builder.setSpout("EventSpout", new EventSpout(type,numMatchBolt), numExecutorInASpout);
+        builder.setSpout("SubSpout", new SubscriptionSpout(dataDistributionType), numExecutorInASpout);
+        builder.setSpout("EventSpout", new EventSpout(dataDistributionType,numMatchGroup), numExecutorInASpout);
 
-        builder.setBolt("TamaMPMBolt0",new TamaMPMatchBolt(boltId++,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
-        builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("TamaMPMBolt0");
+//        builder.setBolt("TamaMPMBolt0",new TamaMPMatchBolt(groupID,boltId++,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
+//        builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("TamaMPMBolt0");
 
-//        builder.setBolt("ReinMPMBolt0", new ReinMPMatchBolt(boltId++,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
-//        builder.setBolt("ReinMPMBolt1", new ReinMPMatchBolt(boltId++,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
-//        builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("ReinMPMBolt0");
+        builder.setBolt("ReinMPMBolt0", new ReinMPMatchBolt(groupID,boltId++,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
+//        builder.setBolt("ReinMPMBolt1", new ReinMPMatchBolt(groupID,boltId++,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);
+        builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("ReinMPMBolt0");
 //        builder.setBolt("MPMergerBolt1", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("ReinMPMBolt1");
 
-//        builder.setBolt("MPMBolt1", new MultiPartitionMatchBolt(0,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()),numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
+//        builder.setBolt("MPMBolt1", new MultiPartitionMatchBolt(groupID,0,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()),numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
 //        builder.setBolt("MergerBolt1",new MultiPartitionMergerBolt(numExecutorInAMatchBolt,redundancy,utils.getExecutorCombination()),1).allGrouping("MPMBolt1");
 
 //        builder.setBolt("TDMBolt0", new ThreadDivisionMatchBolt(numExecutorInAMatchBolt),6).allGrouping("SubSpout").allGrouping("EventSpout");//.setNumTasks(2);

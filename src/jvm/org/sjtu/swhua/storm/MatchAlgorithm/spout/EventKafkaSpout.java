@@ -55,12 +55,12 @@ public class EventKafkaSpout extends BaseRichSpout {
 
         try {
             log = new StringBuilder(spoutName);
-            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + spoutName + ":");
+            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + "    TaskID:");
             List<Integer> taskIds = eventSpoutTopologyContext.getComponentTasks(spoutName);
             Iterator taskIdsIter = taskIds.iterator();
             while (taskIdsIter.hasNext())
                 log.append(" " + String.valueOf(taskIdsIter.next()));
-            log.append("\nThisTaskId: ");
+            log.append("\n    ThisTaskId: ");
             log.append(eventSpoutTopologyContext.getThisTaskId());  // Get the current thread number
             log.append("\n\n");
             output.otherInfo(log.toString());

@@ -27,26 +27,28 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
     private StringBuilder matchResult;
 
     private String boltName;
-    private Integer boltID;
-    private Integer numSubPacket;
-    private Integer numEventPacket;
-    private Integer numSubInserted;
-    private Integer numSubInsertedLast;
-    private Integer numEventMatched;
-    private Integer numEventMatchedLast;
-    final private Integer numVisualSubSet;
-    final private Integer numExecutor;
-    private Integer executorID;
-    static private Integer executorIDAllocator;
+    private String signature;
+    private int groupID;
+    private int boltID;
+    private int numSubPacket;
+    private int numEventPacket;
+    private int numSubInserted;
+    private int numSubInsertedLast;
+    private int numEventMatched;
+    private int numEventMatchedLast;
+    final private int numVisualSubSet;
+    final private int numExecutor;
+    private int executorID;
+//    static private int executorIDAllocator;
     //    private IDAllocator executorIDAllocator;
-    private Integer redundancy;
+    private int redundancy;
     //    static private Integer beginExecutorID;
     private long runTime;
     private long speedTime;  // The time to calculate and record speed
     final private long beginTime;
     final private long intervalTime; // The interval between two calculations of speed
 
-    public MultiPartitionMatchBolt(Integer boltid, Integer num_executor, Integer redundancy_degree,Integer num_visual_subSet, ArrayList<String> VSSID_to_ExecutorID) {   // only execute one time for all executors!
+    public MultiPartitionMatchBolt(Integer groupid, Integer boltid, Integer num_executor, Integer redundancy_degree,Integer num_visual_subSet, ArrayList<String> VSSID_to_ExecutorID) {   // only execute one time for all executors!
         beginTime = System.nanoTime();
         intervalTime = TypeConstant.intervalTime;
         numSubPacket = 0;
@@ -56,7 +58,8 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
         numEventMatched = 1;
         numEventMatchedLast = 1;
         runTime = 1;
-        executorIDAllocator = 0;
+//        executorIDAllocator = 0;
+        groupID=groupid;
         boltID=boltid;
         numExecutor = num_executor;
         redundancy = redundancy_degree;
@@ -80,9 +83,9 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
 //        mpv = null;  //  Now is not needed.
     }
 
-    public synchronized void allocateID() {
-        executorID = executorIDAllocator++;//boltContext.getThisTaskId(); // Get the current thread number
-    }
+//    public synchronized void allocateID() {
+//        executorID = executorIDAllocator++;//boltContext.getThisTaskId(); // Get the current thread number
+//    }
 
 //    static private HashMap<Pair<Integer, Integer>, ArrayList<String>> mpv;
 
@@ -113,13 +116,16 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
         boltName = boltContext.getThisComponentId();
 //        executorID=executorIDAllocator.allocateID();
 //        allocateID();  // boltIDAllocator need to keep synchronized
-        executorID = MyUtils.allocateID(boltName);
+        if (numExecutor > 1) // 本地运行时
+            executorID = MyUtils.allocateID(boltName);
+        else
+            executorID = boltID;  // 一个bolt就是一个匹配器, boltID就是匹配器ID
         output = new OutputToFile();
         mapIDtoSub = new HashMap<>();
-
+        signature=boltName+", GroupID="+groupID+", BoltID="+boltID+", ExecutorID="+executorID;
         if (executorID == 0) {
-            log = new StringBuilder(boltName);
-            log.append("MultiPartitionMatchBolt \nnumExecutor = ");
+            log = new StringBuilder("MultiPartitionMatchBolt "+signature);
+            log.append("\nnumExecutor = ");
             log.append(numExecutor);
             log.append("\nredundancy = ");
             log.append(redundancy);
@@ -139,8 +145,8 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
         }
 
         try {
-            log = new StringBuilder(boltName);
-            log.append(" ThreadNum: " + Thread.currentThread().getName() + "\n" + boltName + ":");
+            log = new StringBuilder(signature);
+            log.append("\n    ThreadName: " + Thread.currentThread().getName()+"\n    TaskID: ");
             List<Integer> taskIds = boltContext.getComponentTasks(boltContext.getThisComponentId());
 //            numExecutor = taskIds.size();
             Iterator taskIdsIter = taskIds.iterator();
@@ -152,8 +158,8 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
                 log.append(" ");
                 log.append(taskID);
             }
-            log.append("\nThisTaskId: ");
-            log.append(executorID);   // boltContext.getThisTaskId();
+//            log.append("\nThisTaskId: ");
+//            log.append(executorID);   // boltContext.getThisTaskId();
             log.append("\n\n");
             output.otherInfo(log.toString());
         } catch (IOException e) {
@@ -241,7 +247,7 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
                     break;
                 }
                 case TypeConstant.Event_Match_Subscription: {
-                    if (tuple.getIntegerByField("MatchBoltID").equals(boltID)) {
+                    if (tuple.getIntegerByField("MatchGroupID").equals(groupID)) {
 //                    Integer eventPacketID=(Integer)tuple.getIntegerByField("PacketID");
 //                    if(eventPacketID%executorIDAllocator.getIDNum()!=executorID) {
 //                        collector.ack(tuple);
@@ -337,7 +343,7 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
                 }
                 default:
                     collector.fail(tuple);
-                    log = new StringBuilder(boltName);
+                    log = new StringBuilder(signature);
                     log.append(" Thread ");
                     log.append(executorID);
                     log.append(": Wrong operation type is detected.\n");
@@ -349,11 +355,7 @@ public class MultiPartitionMatchBolt extends BaseRichBolt {
 //        System.out.println("\n\n\n"+numSubInserted+"\n\n\n");
         if (System.nanoTime() > speedTime) {
             runTime = System.nanoTime() - beginTime;
-            StringBuilder speedReport = new StringBuilder(boltName);
-            speedReport.append(" boltID: ");
-            speedReport.append(boltID);
-            speedReport.append(". Thread ");
-            speedReport.append(executorID);
+            StringBuilder speedReport = new StringBuilder(signature);
             speedReport.append(" - RunTime: ");
             speedReport.append(runTime / intervalTime);
             speedReport.append("min. numSubInserted: ");
