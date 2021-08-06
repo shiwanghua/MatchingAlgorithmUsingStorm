@@ -53,7 +53,7 @@ public class Rein2 {
             low = subAttributeEntry.getValue().getFirst();
             high = subAttributeEntry.getValue().getSecond();
             lowBucketID = (int) (low / bucketSpan);
-            highBucketID = (int) (high / bucketSpan);
+            highBucketID = Math.min((int) (high / bucketSpan),numBucket-1); // high==1时会越界
             infBuckets.get(subAttributeID).get(lowBucketID).add(Pair.of(numSub, low));
             supBuckets.get(subAttributeID).get(highBucketID).add(Pair.of(numSub, high));
             // 从右往左判断插入位置

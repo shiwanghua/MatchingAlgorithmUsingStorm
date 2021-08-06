@@ -155,8 +155,15 @@ public class TamaMPMatchBolt extends BaseRichBolt {
                     int size = subPacket.size();
                     for (int i = 0; i < size; i++) {
                         subID = subPacket.get(i).getSubID();
-                        if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID) == '0')
+                        if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID) == '0'){
+                            // 用emitDirect发送时，收到的订阅应该都是属于这个匹配器的
+                            log = new StringBuilder(signature);
+                            log.append(": subPacket ");
+                            log.append(tuple.getValueByField("PacketID"));
+                            log.append(", subID "+subID+" is not correctly emitted.\n");
+                            output.errorLog(log.toString());
                             continue;
+                        }
                         log = new StringBuilder(signature);
                         log.append(": Sub ");
                         log.append(subID);
