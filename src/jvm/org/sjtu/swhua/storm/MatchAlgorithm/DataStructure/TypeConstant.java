@@ -36,9 +36,9 @@ public interface TypeConstant {
 
     //REIN
     public static final int numBucket = 10;
-    public static final double minAttributeProportion_Rein = 0.5; // 事件有取值的属性个数至少占属性种数的比例
+    public static final double minAttributeProportion_Rein = 1.0; // 事件有取值的属性个数至少占属性种数的比例
     public static final int minNumAttributePerEvent_Rein = (int) (numAttributeType * minAttributeProportion_Rein); // 每个事件里最少要有这么多个属性有值, 属性越少匹配越慢
-    public static final double minIntervalWidth_Rein = 1.0;
+    public static final double minIntervalWidth_Rein = 0.5;
 
     // TAMA
     public static final int numLevel = 11;
