@@ -83,7 +83,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         else
             executorID = boltID;  // 一个bolt就是一个匹配器, boltID就是匹配器ID
         signature = boltName + ", GroupID=" + groupID + ", BoltID=" + boltID + ", ExecutorID=" + executorID;
-//        rein = new Rein2();
+        rein = new Rein2();
         output = new OutputToFile();
 
         if (executorID == 0) {
@@ -210,11 +210,11 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                         if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID) == '0')
                         {
                             // 用emitDirect发送时，收到的订阅应该都是属于这个匹配器的
-                            log = new StringBuilder(signature);
-                            log.append(": subPacket ");
-                            log.append(tuple.getValueByField("PacketID"));
-                            log.append(", subID "+subID+" is not correctly emitted.\n");
-                            output.errorLog(log.toString());
+//                            log = new StringBuilder(signature);
+//                            log.append(": subPacket ");
+//                            log.append(tuple.getValueByField("PacketID"));
+//                            log.append(", subID "+subID+" is not correctly emitted.\n");
+//                            output.errorLog(log.toString());
                             continue;
                         }
                         log = new StringBuilder(signature);

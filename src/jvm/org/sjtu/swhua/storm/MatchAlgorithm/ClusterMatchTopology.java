@@ -31,11 +31,11 @@ public class ClusterMatchTopology {
 
         builder.setSpout("SubSpout", new SubscriptionSpout(dataDistributionType), numExecutorInASpout);
 //        builder.setSpout("SubscriptionSpout_emitDirect",new SubscriptionSpout_emitDirect(dataDistributionType,utils.getNumVisualSubSet(),utils.getVSSIDtoExecutorID()),numExecutorInASpout);
-//        builder.setSpout("EventSpout", new EventSpout(dataDistributionType, numMatchGroup), numExecutorInASpout);
+        builder.setSpout("EventSpout", new EventSpout(dataDistributionType, numMatchGroup), numExecutorInASpout);
 
         for (; boltId <parallelismDegree;boltId++){
 //            builder.setBolt("TamaMPMBolt"+String.valueOf(boltId), new TamaMPMatchBolt(groupID,boltId, numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).directGrouping("SubscriptionSpout_emitDirect").allGrouping("EventSpout");
-            builder.setBolt("ReinMPMBolt"+String.valueOf(boltId), new ReinMPMatchBolt(groupID,boltId, numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout");
+            builder.setBolt("ReinMPMBolt"+String.valueOf(boltId), new ReinMPMatchBolt(groupID,boltId, numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
         }
 //        builder.setBolt("ReinMPMBolt"+String.valueOf(boltId), new ReinMPMatchBolt(groupID,boltId, numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout");
 //        builder.setBolt("TamaMPMBolt0", new TamaMPMatchBolt(groupID,boltId++, numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
