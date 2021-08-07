@@ -132,7 +132,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
     public void execute(Tuple tuple) {
 
         // 测速
-        collector.ack(tuple);
+//        collector.ack(tuple);
       /*  ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
         if (VSSIDtoExecutorID.get((subPacket.get(0).getSubID()) % numVisualSubSet).charAt(executorID) != '0')
             numSubInserted++;
@@ -148,153 +148,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                 e.printStackTrace();
             }
         }*/
-        numEventMatched++;
-        if (System.nanoTime() > speedTime) {
-            runTime = System.nanoTime() - beginTime;
-            StringBuilder speedReport = new StringBuilder(signature);
-            speedReport.append(" - RunTime: ");
-            speedReport.append(runTime / intervalTime);
-            speedReport.append("min. numSubInserted: ");
-            speedReport.append(numSubInserted); //mapIDtoSub.size()
-            speedReport.append("; InsertSpeed: ");
-            speedReport.append(intervalTime / (numSubInserted - numSubInsertedLast + 1) / 1000);  // us/per 加一避免除以0
-            numSubInsertedLast = numSubInserted;
-            speedReport.append(". numEventMatched: ");
-            speedReport.append(numEventMatched);
-            speedReport.append("; MatchSpeed: ");
-//            speedReport.append(runTime / numEventMatched / 1000); // us/per
-            speedReport.append(intervalTime / (numEventMatched - numEventMatchedLast + 1) / 1000);
-            numEventMatchedLast = numEventMatched;
-            speedReport.append(".\n");
-            try {
-                output.recordSpeed(speedReport.toString());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            speedTime = System.nanoTime() + intervalTime;
-        }
-        return;
-
-//        int type = tuple.getIntegerByField("Type");
-//        try {
-//            switch (type) {
-//                case TypeConstant.Insert_Subscription: {
-//
-//                    //Integer subPacketID = tuple.getIntegerByField("PacketID");
-//
-//                    int subID;
-//                    numSubPacket++;
-////                    log = new StringBuilder(boltName);
-////                    log.append(" boltID: ");
-////                    log.append(boltID);
-////                    log.append(". Thread ");
-////                    log.append(executorID);
-////                    log.append(": SubPacket ");
-////                    log.append(numSubPacket);
-////                    log.append(" is received.\n");
-////                    output.writeToLogFile(log.toString());
-//
-//                    ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
-//                    if (subPacket == null) {
-//                        log = new StringBuilder(signature);
-//                        log.append(": subPacket ");
-//                        log.append(tuple.getValueByField("PacketID"));
-//                        log.append(" is null.\n");
-//                        output.writeToLogFile(log.toString());
-//                        collector.ack(tuple);
-//                        break;
-//                    }
-//                    int size = subPacket.size();
-//                    for (int i = 0; i < size; i++) {
-//                        subID = subPacket.get(i).getSubID();
-//                        if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID) == '0')
-//                        {
-//                            // 用emitDirect发送时，收到的订阅应该都是属于这个匹配器的
-//                            log = new StringBuilder(signature);
-//                            log.append(": subPacket ");
-//                            log.append(tuple.getValueByField("PacketID"));
-//                            log.append(", subID "+subID+" is not correctly emitted.\n");
-//                            output.errorLog(log.toString());
-//                            continue;
-//                        }
-//                        log = new StringBuilder(signature);
-//                        log.append(": Sub ");
-//                        log.append(subID);
-//                        if (rein.insert(subPacket.get(i))) // no need to add if already exists
-//                        {
-//                            numSubInserted++;
-////                       System.out.println("\n\n\n"+numSubInserted+"\n\n\n");
-//                            log.append(" is inserted.\n");
-//                        } else {
-//                            log.append(" is already inserted.\n");
-//                        }
-//                        output.writeToLogFile(log.toString());
-//                    }
-//                    collector.ack(tuple);
-////                    insertSubTime += System.nanoTime() - startTime;
-//                    break;
-//                }
-//                case TypeConstant.Insert_Attribute_Subscription: {
-//                    System.out.println("Insert attributes to a subscription.\n");
-//                    break;
-//                }
-//                case TypeConstant.Update_Attribute_Subscription: {
-//                    System.out.println("Update attributes of a subscription.\n");
-//                    break;
-//                }
-//                case TypeConstant.Delete_Subscription: {
-//                    System.out.println("Delete subscriptions.\n");
-//                    break;
-//                }
-//                case TypeConstant.Delete_Attribute_Subscription: {
-//                    System.out.println("Delete attributes of a subscription.\n");
-//                    break;
-//                }
-//                case TypeConstant.Event_Match_Subscription: {
-//                    if (tuple.getIntegerByField("MatchGroupID").equals(groupID)) {
-//                        numEventPacket++;
-//                        log = new StringBuilder(signature);
-//                        log.append(": EventPacket ");
-//                        log.append(numEventPacket);
-//                        log.append(" is received.\n");
-//                        output.writeToLogFile(log.toString());
-//                        ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
-//                        // 偶尔会出现为空的情况，而且是运行一段时间后产生，还与订阅集大小有关，改大一点可能就没错误了，很随机
-//                        if (eventPacket == null) {
-//                            log = new StringBuilder(signature);
-//                            log.append(": EventPacket ");
-//                            log.append(tuple.getValueByField("PacketID"));
-//                            log.append(" is null.\n");
-//                            output.writeToLogFile(log.toString());
-//                            collector.ack(tuple);
-//                            break;
-//                        }
-//                        int size = eventPacket.size(), eventID;
-//                        for (int i = 0; i < size; i++) {
-//                            ArrayList<Integer> matchedSubIDList = rein.match(eventPacket.get(i));
-//                            eventID = eventPacket.get(i).getEventID();
-////                            log = new StringBuilder(signature);
-////                            log.append(": EventID ");
-////                            log.append(eventID);
-////                            log.append(" matching task is done.\n");
-////                            output.writeToLogFile(log.toString());
-//                            collector.emit(new Values(executorID, eventID, matchedSubIDList));
-//                        }
-//                        numEventMatched += eventPacket.size();
-//                    }
-//                    collector.ack(tuple);
-//                    break;
-//                }
-//                default:
-//                    collector.fail(tuple);
-//                    log = new StringBuilder(signature);
-//                    log.append(": Wrong operation type is detected.\n");
-//                    output.writeToLogFile(log.toString());
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
+//        numEventMatched++;
 //        if (System.nanoTime() > speedTime) {
 //            runTime = System.nanoTime() - beginTime;
 //            StringBuilder speedReport = new StringBuilder(signature);
@@ -319,6 +173,152 @@ public class ReinMPMatchBolt extends BaseRichBolt {
 //            }
 //            speedTime = System.nanoTime() + intervalTime;
 //        }
+//        return;
+
+        int type = tuple.getIntegerByField("Type");
+        try {
+            switch (type) {
+                case TypeConstant.Insert_Subscription: {
+
+                    //Integer subPacketID = tuple.getIntegerByField("PacketID");
+
+                    int subID;
+                    numSubPacket++;
+//                    log = new StringBuilder(boltName);
+//                    log.append(" boltID: ");
+//                    log.append(boltID);
+//                    log.append(". Thread ");
+//                    log.append(executorID);
+//                    log.append(": SubPacket ");
+//                    log.append(numSubPacket);
+//                    log.append(" is received.\n");
+//                    output.writeToLogFile(log.toString());
+
+                    ArrayList<Subscription> subPacket = (ArrayList<Subscription>) tuple.getValueByField("SubscriptionPacket");
+                    if (subPacket == null) {
+                        log = new StringBuilder(signature);
+                        log.append(": subPacket ");
+                        log.append(tuple.getValueByField("PacketID"));
+                        log.append(" is null.\n");
+                        output.writeToLogFile(log.toString());
+                        collector.ack(tuple);
+                        break;
+                    }
+                    int size = subPacket.size();
+                    for (int i = 0; i < size; i++) {
+                        subID = subPacket.get(i).getSubID();
+                        if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID) == '0')
+                        {
+                            // 用emitDirect发送时，收到的订阅应该都是属于这个匹配器的
+                            log = new StringBuilder(signature);
+                            log.append(": subPacket ");
+                            log.append(tuple.getValueByField("PacketID"));
+                            log.append(", subID "+subID+" is not correctly emitted.\n");
+                            output.errorLog(log.toString());
+                            continue;
+                        }
+                        log = new StringBuilder(signature);
+                        log.append(": Sub ");
+                        log.append(subID);
+                        if (rein.insert(subPacket.get(i))) // no need to add if already exists
+                        {
+                            numSubInserted++;
+//                       System.out.println("\n\n\n"+numSubInserted+"\n\n\n");
+                            log.append(" is inserted.\n");
+                        } else {
+                            log.append(" is already inserted.\n");
+                        }
+                        output.writeToLogFile(log.toString());
+                    }
+                    collector.ack(tuple);
+//                    insertSubTime += System.nanoTime() - startTime;
+                    break;
+                }
+                case TypeConstant.Insert_Attribute_Subscription: {
+                    System.out.println("Insert attributes to a subscription.\n");
+                    break;
+                }
+                case TypeConstant.Update_Attribute_Subscription: {
+                    System.out.println("Update attributes of a subscription.\n");
+                    break;
+                }
+                case TypeConstant.Delete_Subscription: {
+                    System.out.println("Delete subscriptions.\n");
+                    break;
+                }
+                case TypeConstant.Delete_Attribute_Subscription: {
+                    System.out.println("Delete attributes of a subscription.\n");
+                    break;
+                }
+                case TypeConstant.Event_Match_Subscription: {
+                    if (tuple.getIntegerByField("MatchGroupID").equals(groupID)) {
+                        numEventPacket++;
+                        log = new StringBuilder(signature);
+                        log.append(": EventPacket ");
+                        log.append(numEventPacket);
+                        log.append(" is received.\n");
+                        output.writeToLogFile(log.toString());
+                        ArrayList<Event> eventPacket = (ArrayList<Event>) tuple.getValueByField("EventPacket");
+                        // 偶尔会出现为空的情况，而且是运行一段时间后产生，还与订阅集大小有关，改大一点可能就没错误了，很随机
+                        if (eventPacket == null) {
+                            log = new StringBuilder(signature);
+                            log.append(": EventPacket ");
+                            log.append(tuple.getValueByField("PacketID"));
+                            log.append(" is null.\n");
+                            output.writeToLogFile(log.toString());
+                            collector.ack(tuple);
+                            break;
+                        }
+                        int size = eventPacket.size(), eventID;
+                        for (int i = 0; i < size; i++) {
+                            ArrayList<Integer> matchedSubIDList = rein.match(eventPacket.get(i));
+                            eventID = eventPacket.get(i).getEventID();
+//                            log = new StringBuilder(signature);
+//                            log.append(": EventID ");
+//                            log.append(eventID);
+//                            log.append(" matching task is done.\n");
+//                            output.writeToLogFile(log.toString());
+                            collector.emit(new Values(executorID, eventID, matchedSubIDList));
+                        }
+                        numEventMatched += eventPacket.size();
+                    }
+                    collector.ack(tuple);
+                    break;
+                }
+                default:
+                    collector.fail(tuple);
+                    log = new StringBuilder(signature);
+                    log.append(": Wrong operation type is detected.\n");
+                    output.writeToLogFile(log.toString());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (System.nanoTime() > speedTime) {
+            runTime = System.nanoTime() - beginTime;
+            StringBuilder speedReport = new StringBuilder(signature);
+            speedReport.append(" - RunTime: ");
+            speedReport.append(runTime / intervalTime);
+            speedReport.append("min. numSubInserted: ");
+            speedReport.append(numSubInserted); //mapIDtoSub.size()
+            speedReport.append("; InsertSpeed: ");
+            speedReport.append(intervalTime / (numSubInserted - numSubInsertedLast + 1) / 1000);  // us/per 加一避免除以0
+            numSubInsertedLast = numSubInserted;
+            speedReport.append(". numEventMatched: ");
+            speedReport.append(numEventMatched);
+            speedReport.append("; MatchSpeed: ");
+//            speedReport.append(runTime / numEventMatched / 1000); // us/per
+            speedReport.append(intervalTime / (numEventMatched - numEventMatchedLast + 1) / 1000);
+            numEventMatchedLast = numEventMatched;
+            speedReport.append(".\n");
+            try {
+                output.recordSpeed(speedReport.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            speedTime = System.nanoTime() + intervalTime;
+        }
     }
 
     @Override

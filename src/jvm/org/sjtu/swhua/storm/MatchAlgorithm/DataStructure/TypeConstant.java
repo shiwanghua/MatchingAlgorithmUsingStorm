@@ -22,7 +22,7 @@ public interface TypeConstant {
     int maxNumEventPerPacket = 1;
     int maxNumAttributePerSubscription = 10; // 对所有匹配算法都是越小越好！
 //    String baseLogFilePath = "/home/swhua/Desktop/log/log1/";
-    public static final String baseLogFilePath = "/root/log/DataReceivingSpeed/"; //"log_16_10b_3v16_2r/"; simple/log_15_3r/
+    public static final String baseLogFilePath = "/root/log/test/"; //"log_16_10b_3v16_2r/"; simple/log_15_3r/
     long intervalTime = 1000000000L; // The interval between two calculations of speed
 
     // 实验模型参数

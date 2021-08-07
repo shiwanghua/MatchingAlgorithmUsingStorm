@@ -86,7 +86,7 @@ public class Rein {
                     if (subIDValue.value2 < attributeValue)
                         bits[subIDValue.value1] = true;
                 for (int bi = 0; bi < bucketID; bi++)
-                    for (Pair<Integer, Double> subIDValue : infBuckets.get(i).get(bi))
+                    for (Pair<Integer, Double> subIDValue : supBuckets.get(i).get(bi))
                         bits[subIDValue.value1] = true;
             }
         }
