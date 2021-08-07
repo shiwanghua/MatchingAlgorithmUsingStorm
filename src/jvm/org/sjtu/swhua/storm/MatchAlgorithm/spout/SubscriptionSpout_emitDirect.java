@@ -64,6 +64,7 @@ public class SubscriptionSpout_emitDirect extends BaseRichSpout {
         if (type == 1) boltNamePrefix = "MultiPartitionMatchBolt";
         else if (type == 2) boltNamePrefix = "ReinMPMBolt";
         else if (type == 3) boltNamePrefix = "TamaMPMBolt";
+        else boltNamePrefix="";
 
         VSSIDtoExecutorID = new int[numVisualSubSet][];
         for (int i = 0; i < numVisualSubSet; i++) {
