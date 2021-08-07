@@ -8,7 +8,7 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.*;
-import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Matcher.Rein2;
+import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Matcher.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -17,7 +17,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
     private OutputToFile output;
     private OutputCollector collector;
     private TopologyContext boltContext;
-    private Rein2 rein;
+    private Rein rein;
     private ArrayList<String> VSSIDtoExecutorID;
 
     private StringBuilder log;
@@ -83,7 +83,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         else
             executorID = boltID;  // 一个bolt就是一个匹配器, boltID就是匹配器ID
         signature = boltName + ", GroupID=" + groupID + ", BoltID=" + boltID + ", ExecutorID=" + executorID;
-        rein = new Rein2();
+        rein = new Rein();
         output = new OutputToFile();
 
         if (executorID == 0) {

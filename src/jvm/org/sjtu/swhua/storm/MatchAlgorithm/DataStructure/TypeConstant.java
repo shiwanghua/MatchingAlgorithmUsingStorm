@@ -49,8 +49,8 @@ public interface TypeConstant {
 
     //MPM
     public static final int numExecutorPerSpout = 1;
-    public static final int numExecutorPerMatchBolt = 1; // 并行度，用单个bolt作为一个并行算子组
-    public static final int parallelismDegree = 6;       // 并行度，把单个bolt作为一个匹配器
+    public static final int numExecutorPerMatchBolt = 15; // 并行度，用单个bolt作为一个并行算子组
+    public static final int parallelismDegree = 15;       // 并行度，把单个bolt作为一个匹配器
     public static final int redundancy = 3;
     public static final int numMatchGroup = 1;
 }

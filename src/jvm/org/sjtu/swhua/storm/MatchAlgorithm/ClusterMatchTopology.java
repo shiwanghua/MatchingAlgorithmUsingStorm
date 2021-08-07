@@ -60,7 +60,7 @@ public class ClusterMatchTopology {
 //        conf.registerSerialization(Rein.class);
 
         conf.setDebug(false); // True will print all sub, event and match data.
-        conf.setNumWorkers(6);
+        conf.setNumWorkers(15);
         conf.setMaxTaskParallelism(16);
         conf.put(Config.TOPOLOGY_ACKER_EXECUTORS, 10);// 设置acker的数量, default: 1
         conf.put(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS, 90);
