@@ -28,7 +28,7 @@ public class pRein {
     private ExecutorService executorService;
     private int[] attributeNum;
     private int[] attributeThread; // 记录哪个线程负责这个属性
-    private int[] workloadThread;  // 记录每个线程的负载情况
+    private int[] workloadThread;  // 记录每个线程的负载情况(NumPredicates)
 
     public pRein() {
         numSub = 0;

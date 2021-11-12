@@ -47,7 +47,7 @@ public class EventSpout extends BaseRichSpout {
         minNumAttribute_Rein = TypeConstant.minNumAttributePerEvent_Rein;
         maxNumAttribute_Tama = TypeConstant.maxNumAttributePerEvent_Tama;
         numAttributeType = TypeConstant.numAttributeType;
-        beginTime = System.nanoTime()+60000000000L;
+        beginTime = System.nanoTime()+3*60000000000L;
     }
 
     @Override
