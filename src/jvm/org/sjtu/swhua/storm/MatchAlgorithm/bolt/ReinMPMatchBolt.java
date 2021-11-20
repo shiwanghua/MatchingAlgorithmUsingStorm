@@ -88,7 +88,16 @@ public class ReinMPMatchBolt extends BaseRichBolt {
 
         if (executorID == 0) {
             log = new StringBuilder("ReinMPMatchBolt " + signature);
-            log.append("\n    numExecutor = ");
+            log.append("\n    ThreadName: " + Thread.currentThread().getName() + "\n    TaskID: ");
+            List<Integer> taskIds = boltContext.getComponentTasks(boltContext.getThisComponentId());
+            Iterator taskIdsIter = taskIds.iterator();
+            int taskID;
+            while (taskIdsIter.hasNext()) {
+                taskID = (Integer) taskIdsIter.next();
+                log.append(" ");
+                log.append(taskID);
+            }
+            log.append("\n\n    numExecutor = ");
             log.append(numExecutor);
             log.append("\n    redundancy = ");
             log.append(redundancy);
@@ -105,26 +114,25 @@ public class ReinMPMatchBolt extends BaseRichBolt {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-
-        try {
-            log = new StringBuilder("ReinMPMatchBolt " + signature);
-            log.append("\n    ThreadName: " + Thread.currentThread().getName() + "\n    TaskID: ");
-            List<Integer> taskIds = boltContext.getComponentTasks(boltContext.getThisComponentId());
-            Iterator taskIdsIter = taskIds.iterator();
-            int taskID;
-            while (taskIdsIter.hasNext()) {
-                taskID = (Integer) taskIdsIter.next();
-                log.append(" ");
-                log.append(taskID);
+        } else
+            try {
+                log = new StringBuilder("ReinMPMatchBolt " + signature);
+                log.append("\n    ThreadName: " + Thread.currentThread().getName() + "\n    TaskID: ");
+                List<Integer> taskIds = boltContext.getComponentTasks(boltContext.getThisComponentId());
+                Iterator taskIdsIter = taskIds.iterator();
+                int taskID;
+                while (taskIdsIter.hasNext()) {
+                    taskID = (Integer) taskIdsIter.next();
+                    log.append(" ");
+                    log.append(taskID);
+                }
+                //            log.append("\nThisTaskId: ");
+                //            log.append(executorID);   // boltContext.getThisTaskId();
+                log.append("\n\n");
+                output.otherInfo(log.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-//            log.append("\nThisTaskId: ");
-//            log.append(executorID);   // boltContext.getThisTaskId();
-            log.append("\n\n");
-            output.otherInfo(log.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         speedTime = System.nanoTime() + intervalTime;
     }
 
@@ -207,8 +215,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                     int size = subPacket.size();
                     for (int i = 0; i < size; i++) {
                         subID = subPacket.get(i).getSubID();
-                        if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID) == '0')
-                        {
+                        if (VSSIDtoExecutorID.get(subID % numVisualSubSet).charAt(executorID) == '0') {
                             // 用emitDirect发送时，收到的订阅应该都是属于这个匹配器的
 //                            log = new StringBuilder(signature);
 //                            log.append(": subPacket ");
@@ -271,14 +278,14 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                         }
                         int size = eventPacket.size(), eventID;
                         for (int i = 0; i < size; i++) {
-                            ArrayList<Integer> matchedSubIDList = rein.match(eventPacket.get(i));
+                            BitSet matchingBitset = rein.match(eventPacket.get(i));
                             eventID = eventPacket.get(i).getEventID();
 //                            log = new StringBuilder(signature);
 //                            log.append(": EventID ");
 //                            log.append(eventID);
 //                            log.append(" matching task is done.\n");
 //                            output.writeToLogFile(log.toString());
-                            collector.emit(new Values(executorID, eventID, matchedSubIDList));
+                            collector.emit(new Values(executorID, eventID, matchingBitset));
                         }
                         numEventMatched += eventPacket.size();
                     }
@@ -323,7 +330,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("executorID", "eventID", "subIDs"));
+        outputFieldsDeclarer.declare(new Fields("executorID", "eventID", "subIDBitset"));
     }
 
     public Integer getNumExecutor() {

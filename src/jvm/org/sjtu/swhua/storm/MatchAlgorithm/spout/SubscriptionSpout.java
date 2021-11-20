@@ -84,6 +84,17 @@ public class SubscriptionSpout extends BaseRichSpout {
     }
 
     @Override
+    public void close(){
+        log = new StringBuilder(spoutName);
+        log.append(": All subscriptions have been created and sent. \nClose the subscription spout.\n\n\n");
+        try {
+            output.otherInfo(log.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public void ack(Object packetID) {
 //        LOG.debug("Got ACK for msgId : ");
         log = new StringBuilder(spoutName);
@@ -125,6 +136,7 @@ public class SubscriptionSpout extends BaseRichSpout {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            close();
             return;
         }
 

@@ -58,9 +58,10 @@ public class Rein {
         return true;
     }
 
-    public ArrayList<Integer> match(Event e) {
+    public BitSet match(Event e) {
 
-        boolean[] bits = new boolean[numSub];
+//        boolean[] bits = new boolean[numSub];
+        BitSet gb=new BitSet(numSub);
 //        Integer eventAttributeID;
         Double attributeValue;
         int bucketID;
@@ -70,32 +71,34 @@ public class Rein {
             if (attributeValue == null) {  // all sub containing this attribute should be marked, only either sup or inf is enough.
                 for (int j = 0; j < numBucket; j++) {  // j: BucketID
                     for (Iterator<Pair<Integer, Double>> pairIterator = infBuckets.get(i).get(j).iterator(); pairIterator.hasNext(); ) {
-                        bits[pairIterator.next().getFirst()] = true;
+                        //bits[pairIterator.next().getFirst()] = true;
+                        gb.set(pairIterator.next().getFirst());
                     } // LinkedList
                 } // Bucket ArrayList
             } else {
                 bucketID = (int) (attributeValue / bucketSpan);
                 for (Pair<Integer, Double> subIDValue : infBuckets.get(i).get(bucketID))
                     if (subIDValue.value2 > attributeValue)
-                        bits[subIDValue.value1] = true;
+//                        bits[subIDValue.value1] = true;
+                        gb.set(subIDValue.value1);
                 for (int bi = bucketID + 1; bi < numBucket; bi++)
                     for (Pair<Integer, Double> subIDValue : infBuckets.get(i).get(bi))
-                        bits[subIDValue.value1] = true;
+                        gb.set(subIDValue.value1);
 
                 for (Pair<Integer, Double> subIDValue : supBuckets.get(i).get(bucketID))
                     if (subIDValue.value2 < attributeValue)
-                        bits[subIDValue.value1] = true;
+                        gb.set(subIDValue.value1);
                 for (int bi = 0; bi < bucketID; bi++)
                     for (Pair<Integer, Double> subIDValue : supBuckets.get(i).get(bi))
-                        bits[subIDValue.value1] = true;
+                        gb.set(subIDValue.value1);
             }
         }
 
-        ArrayList<Integer> matchResult = new ArrayList<>();
-        for (int i = 0; i < numSub; i++)
-            if (!bits[i])
-                matchResult.add(mapToSubID.get(i));
-        return matchResult;
+//        ArrayList<Integer> matchResult = new ArrayList<>();
+//        for (int i = 0; i < numSub; i++)
+//            if (!gb.get(i))
+//                matchResult.add(mapToSubID.get(i));
+        return gb;
     }
 
     public int getNumSub() {
