@@ -27,7 +27,7 @@ public class LocalMatchTopology {
         TopologyBuilder builder = new TopologyBuilder();
 
         builder.setSpout("SubSpout", new SubscriptionSpout(dataDistributionType), numExecutorInASpout);
-        builder.setSpout("EventSpout", new EventSpout(dataDistributionType,numMatchGroup), numExecutorInASpout);
+        builder.setSpout("EventSpout", new EventSpout(dataDistributionType), numExecutorInASpout);
 
 //        builder.setBolt("TamaMPMBolt0",new TamaMPMatchBolt(groupID,boltId++,numExecutorInAMatchBolt, redundancy, utils.getNumVisualSubSet(), utils.getVSSIDtoExecutorID()), numExecutorInAMatchBolt).allGrouping("SubSpout").allGrouping("EventSpout");
 //        builder.setBolt("MPMergerBolt0", new MultiPartitionMergerBolt(numExecutorInAMatchBolt, redundancy, utils.getExecutorCombination()), 1).allGrouping("TamaMPMBolt0");

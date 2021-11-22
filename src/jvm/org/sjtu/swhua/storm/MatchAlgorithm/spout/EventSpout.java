@@ -21,7 +21,7 @@ public class EventSpout extends BaseRichSpout {
     private int eventID;
     private int numEventPacket;
     private int numMatchGroup;
-    private int nextMatchBoltID;
+    private int nextMatchGroupID;
     private final int type;
     private final int maxNumEvent;            //  Maximum number of event emitted per time
     private final int maxNumAttribute_Simple; //  Maxinum number of attributes in a event
@@ -39,22 +39,22 @@ public class EventSpout extends BaseRichSpout {
 
     private final long beginTime; //
 
-    public EventSpout(int Type, int num_match_group) {
+    public EventSpout(int Type) {
         type = Type;
-        numMatchGroup = num_match_group;
+        numMatchGroup = TypeConstant.numMatchGroup;
         maxNumEvent = TypeConstant.maxNumEventPerPacket;
         maxNumAttribute_Simple = TypeConstant.maxNumAttributePerEvent_Simple;
         minNumAttribute_Rein = TypeConstant.minNumAttributePerEvent_Rein;
         maxNumAttribute_Tama = TypeConstant.maxNumAttributePerEvent_Tama;
         numAttributeType = TypeConstant.numAttributeType;
-        beginTime = System.nanoTime()+3*60000000000L;
+        beginTime = System.nanoTime()+TypeConstant.intervalTime;
     }
 
     @Override
     public void open(Map<String, Object> map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
         eventID = 1;
         numEventPacket = 0;  // messageID、packetID
-        nextMatchBoltID = -1;
+        nextMatchGroupID = -1;
         randomPermutation = new int[numAttributeType];
         for (int i = 0; i < numAttributeType; i++)
             randomPermutation[i] = i;
@@ -155,13 +155,13 @@ public class EventSpout extends BaseRichSpout {
     public void nextTuple() {
         if(System.nanoTime()<beginTime)
         {
-            log = new StringBuilder(spoutName);
-            log.append(": Waiting sub inserted. \n");
-            try {
-                output.writeToLogFile(log.toString());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            log = new StringBuilder(spoutName);
+//            log.append(": Waiting sub inserted. \n");
+//            try {
+//                output.writeToLogFile(log.toString());
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
             return;
         }
 //        if(eventID>=11000) return;
@@ -258,9 +258,9 @@ public class EventSpout extends BaseRichSpout {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
-        nextMatchBoltID = (nextMatchBoltID + 1) % numMatchGroup;
+        nextMatchGroupID = (nextMatchGroupID + 1) % numMatchGroup;
         tupleUnacked.put(numEventPacket, events);
-        collector.emit(new Values(nextMatchBoltID, TypeConstant.Event_Match_Subscription, numEventPacket, events), numEventPacket);
+        collector.emit(new Values(nextMatchGroupID, TypeConstant.Event_Match_Subscription, numEventPacket, events)); // , numEventPacket
     }
 
     @Override

@@ -62,6 +62,8 @@ public class Rein {
 
 //        boolean[] bits = new boolean[numSub];
         BitSet gb=new BitSet(numSub);
+        System.out.println("Rein"+e.getEventID()+" "+gb.size()+" "+numSub+"\n");
+
 //        Integer eventAttributeID;
         Double attributeValue;
         int bucketID;

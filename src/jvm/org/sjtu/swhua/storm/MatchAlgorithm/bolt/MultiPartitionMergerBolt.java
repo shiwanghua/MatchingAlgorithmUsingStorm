@@ -34,7 +34,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
     final private long beginTime;
     final private long intervalTime; // The interval between two calculations of speed
 
-    private HashMap<Integer, HashSet<Integer>> matchResultMap;
+    //    private HashMap<Integer, HashSet<Integer>> matchResultMap;
     private HashMap<Integer, BitSet> partialMatchingResult;
     //private HashMap<Integer, HashSet<Integer>> matchResultNum;
     private HashMap<Integer, Integer> recordStatus;
@@ -58,15 +58,15 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
 
     @Override
     public void prepare(Map<String, Object> map, TopologyContext topologyContext, OutputCollector outputCollector) {
+        collector = outputCollector;
         boltContext = topologyContext;
         boltName = boltContext.getThisComponentId();
         executorID = boltContext.getThisTaskId();
-        collector = outputCollector;
         output = new OutputToFile();
         log = new StringBuilder();
         matchResultBuilder = new StringBuilder();
 //        matchResultMap = new HashMap<>();
-        partialMatchingResult=new HashMap<>();
+        partialMatchingResult = new HashMap<>();
         //matchResultNum = new HashMap<>();
         recordStatus = new HashMap<>();
         numEventMatched = 1;
@@ -93,7 +93,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
             int count = 0;
             for (int i = 0; i < executorCombination.length; i++) {
                 if (executorCombination[i] == true) {
-                    log.append(i+" ");
+                    log.append(i + " ");
                     count++;
                 }
             }
@@ -145,20 +145,23 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
             }
         } else {
             receive_max_event_id = Math.max(eventID, receive_max_event_id);
+            System.out.println("\neventID= "+eventID+", maxEventID= " + receive_max_event_id + "\n");
             BitSet subIDBitset = (BitSet) tuple.getValueByField("subIDBitset");
+            System.out.println("\nEventID= "+eventID+" get bitset from executor "+tuple.getIntegerByField("executorID")+".\n");
             Integer nextState;
             if (!recordStatus.containsKey(eventID)) {
                 // matchResultNum.put(eventID, new HashSet<>());
                 partialMatchingResult.put(eventID, subIDBitset);
-                nextState=1 << tuple.getIntegerByField("executorID");
+                nextState = 1 << tuple.getIntegerByField("executorID");
                 recordStatus.put(eventID, nextState);
-            }
-            else{
+            } else {
                 partialMatchingResult.get(eventID).or(subIDBitset);  // This is an reference !
+                System.out.println("\nEventID= "+eventID+" from executor "+tuple.getIntegerByField("executorID")+" does or operation.\n");
                 nextState = recordStatus.get(eventID) | (1 << tuple.getIntegerByField("executorID"));
             }
 
             if (executorCombination[nextState]) {
+
                 matchResultBuilder = new StringBuilder(boltName);
                 matchResultBuilder.append(" Thread ");
                 matchResultBuilder.append(executorID);
@@ -166,12 +169,12 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
                 matchResultBuilder.append(eventID);
                 matchResultBuilder.append("; MatchedSubNum: ");
                 matchResultBuilder.append(partialMatchingResult.get(eventID).stream().count());
-                matchResultBuilder.append("; SubID:");
-                BitSet finalMatchingResult = partialMatchingResult.get(eventID);
-                for(int i=finalMatchingResult.nextClearBit(0);i>=0;finalMatchingResult.nextClearBit(i+1)){
-                    matchResultBuilder.append(" ");
-                    matchResultBuilder.append(i);
-                }
+//                matchResultBuilder.append("; SubID:");
+//                BitSet finalMatchingResult = partialMatchingResult.get(eventID);
+//                for (int i = finalMatchingResult.nextClearBit(0); i >= 0; finalMatchingResult.nextClearBit(i + 1)) {
+//                    matchResultBuilder.append(" ");
+//                    matchResultBuilder.append(i);
+//                }
                 matchResultBuilder.append("; receive_max_event_id: ");
                 matchResultBuilder.append(receive_max_event_id);
                 matchResultBuilder.append(".\n");
@@ -200,6 +203,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
                 recordStatus.put(eventID, -1); // 表示已经完成
             } // Finish an event matching
             else recordStatus.put(eventID, nextState);
+            System.out.println("\neventID= " + eventID +" from executor "+tuple.getIntegerByField("executorID")+ ", state= " + recordStatus.get(eventID) + "\n");
         } // Add a partial result
 
         if (System.nanoTime() > speedTime) {
@@ -223,7 +227,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
             }
             speedTime = System.nanoTime() + intervalTime;
         }
-	collector.ack(tuple);
+        collector.ack(tuple);
     }
 
     @Override

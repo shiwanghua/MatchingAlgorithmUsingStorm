@@ -34,6 +34,7 @@
 /home/swh/桌面/MyProgram/RSSTPP/src/jvm/org/sjtu/swhua/storm/MatchAlgorithm/spout/SubEventSpout.java
 /home/swh/桌面/MyProgram/RSSTPP/src/jvm/org/sjtu/swhua/storm/MatchAlgorithm/bolt/ThreadDivisionMatchBolt.java
 /home/swh/桌面/MyProgram/RSSTPP/src/jvm/org/sjtu/swhua/storm/MatchAlgorithm/bolt/ThreadDivisionMergerBolt.java
+/home/swh/桌面/MyProgram/RSSTPP/src/jvm/org/sjtu/swhua/storm/MatchAlgorithm/GroupRedundancyTopology.java
 /home/swh/桌面/MyProgram/RSSTPP/src/jvm/org/sjtu/swhua/storm/MatchAlgorithm/DataStructure/Event.java
 /home/swh/桌面/MyProgram/RSSTPP/src/jvm/org/sjtu/swhua/storm/MatchAlgorithm/DataStructure/Matcher/Tama.java
 /home/swh/桌面/MyProgram/RSSTPP/src/jvm/org/sjtu/swhua/storm/MatchAlgorithm/DataStructure/Matcher/Simple.java

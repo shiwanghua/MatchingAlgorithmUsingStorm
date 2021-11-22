@@ -85,13 +85,13 @@ public class SubscriptionSpout extends BaseRichSpout {
 
     @Override
     public void close(){
-        log = new StringBuilder(spoutName);
-        log.append(": All subscriptions have been created and sent. \nClose the subscription spout.\n\n\n");
-        try {
-            output.otherInfo(log.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        log = new StringBuilder(spoutName);
+//        log.append(": All subscriptions have been created and sent. Try to close the subscription spout.\n\n\n");
+//        try {
+//            output.otherInfo(log.toString());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     @Override
@@ -129,13 +129,13 @@ public class SubscriptionSpout extends BaseRichSpout {
 //        Utils.sleep(5);
         if (subID >= subSetSize) {
 //            collector.emit(new Values(TypeConstant.Null_Operation, null));
-            log = new StringBuilder(spoutName);
-            log.append(": All subscriptions are created and sent. \n");
-            try {
-                output.writeToLogFile(log.toString());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            log = new StringBuilder(spoutName);
+//            log.append(": All subscriptions are created and sent. \n");
+//            try {
+//                output.writeToLogFile(log.toString());
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
             close();
             return;
         }
@@ -233,7 +233,7 @@ public class SubscriptionSpout extends BaseRichSpout {
 
 //        collector.emit(new Values(TypeConstant.Insert_Subscription, sub),numSubPacket);
         tupleUnacked.put(numSubPacket, sub);
-        collector.emit(new Values(TypeConstant.Insert_Subscription, numSubPacket, sub), numSubPacket);
+        collector.emit(new Values(TypeConstant.Insert_Subscription, numSubPacket, sub));//,numSubPacket
     }
 
     @Override

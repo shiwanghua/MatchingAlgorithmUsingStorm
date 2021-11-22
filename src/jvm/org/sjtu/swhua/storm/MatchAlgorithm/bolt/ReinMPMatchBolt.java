@@ -37,7 +37,7 @@ public class ReinMPMatchBolt extends BaseRichBolt {
     final private int numExecutor;  // 大于１时表示一个bolt就是一个并行算子组，等于１时表示一个bolt就是一个匹配器
     private int executorID;
     //    static private int executorIDAllocator;
-    //    static private IDAllocator executorIDAllocator;
+//        static private IDAllocator executorIDAllocator;
     final private int redundancy; // 这个可以删了
     private long runTime;
     private long speedTime;  // The time to calculate and record speed
@@ -53,11 +53,11 @@ public class ReinMPMatchBolt extends BaseRichBolt {
         //executorIDAllocator=new IDAllocator();
         numSubPacket = 0;
         numEventPacket = 0;
-        numSubInserted = 1;
-        numSubInsertedLast = 1;
-        numEventMatched = 1;
-        numEventMatchedLast = 1;
-        runTime = 1;
+        numSubInserted = 0;
+        numSubInsertedLast = 0;
+        numEventMatched = 0;
+        numEventMatchedLast = 0;
+        runTime = 0;
         numExecutor = num_executor;
         redundancy = redundancy_degree;
         numVisualSubSet = num_visual_subSet;
@@ -280,6 +280,8 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                         for (int i = 0; i < size; i++) {
                             BitSet matchingBitset = rein.match(eventPacket.get(i));
                             eventID = eventPacket.get(i).getEventID();
+                            System.out.println("\nEvent"+String.valueOf(eventID)+" from executor "+executorID+": "
+                                    +matchingBitset.size()+" "+numSubInserted+" "+rein.getNumSub()+"\n");
 //                            log = new StringBuilder(signature);
 //                            log.append(": EventID ");
 //                            log.append(eventID);
