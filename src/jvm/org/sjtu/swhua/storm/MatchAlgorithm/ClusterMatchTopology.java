@@ -14,8 +14,8 @@ import org.sjtu.swhua.storm.MatchAlgorithm.spout.SubscriptionSpout;
 import org.sjtu.swhua.storm.MatchAlgorithm.spout.SubscriptionSpout_emitDirect;
 import java.util.BitSet;
 
-//storm local target/storm-2021-11-13.jar  org.sjtu.swhua.storm.MatchAlgorithm.ClusterMatchTopology
-// storm jar target/storm-2021-11-13.jar  org.sjtu.swhua.storm.MatchAlgorithm.ClusterMatchTopology
+//storm local target/storm-2021-11-21.jar  org.sjtu.swhua.storm.MatchAlgorithm.ClusterMatchTopology
+// storm jar target/storm-2021-11-21.jar  org.sjtu.swhua.storm.MatchAlgorithm.ClusterMatchTopology
 public class ClusterMatchTopology {
     public static void main(String[] args) throws Exception {
 
@@ -72,29 +72,29 @@ public class ClusterMatchTopology {
         conf.put(Config.TOPOLOGY_ACKER_EXECUTORS, numAckers);                 // 设置acker的数量, default: 1
         conf.put(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS, 120);
         conf.put(Config.TOPOLOGY_MAX_SPOUT_PENDING, 1000);            //设置一个spout task上面最多有多少个没有处理的tuple（没有ack/failed）回复，以防止tuple队列爆掉
-//        conf.put(Config.TOPOLOGY_EXECUTOR_OVERFLOW_LIMIT, 600);      // If number of items in task’s overflowQ exceeds this, new messages coming from other workers to this task will be dropped This prevents OutOfMemoryException that can occur in rare scenarios in the presence of BackPressure.
-//        conf.put(Config.TOPOLOGY_EXECUTOR_RECEIVE_BUFFER_SIZE, 500); // 262144*2 8192*32
-        conf.put(Config.TOPOLOGY_WORKER_MAX_HEAP_SIZE_MB, 7000);      // A per topology config that specifies the maximum amount of memory a worker can use for that specific topology
-        conf.put(Config.WORKER_HEAP_MEMORY_MB, 7000);                 // The default heap memory size in MB per worker, used in the jvm -Xmx opts for launching the worker
+        conf.put(Config.TOPOLOGY_EXECUTOR_OVERFLOW_LIMIT, 1000);      // If number of items in task’s overflowQ exceeds this, new messages coming from other workers to this task will be dropped This prevents OutOfMemoryException that can occur in rare scenarios in the presence of BackPressure.
+        conf.put(Config.TOPOLOGY_EXECUTOR_RECEIVE_BUFFER_SIZE, 1000); // 262144*2 8192*32
+        conf.put(Config.TOPOLOGY_WORKER_MAX_HEAP_SIZE_MB, 6000);      // A per topology config that specifies the maximum amount of memory a worker can use for that specific topology
+        conf.put(Config.WORKER_HEAP_MEMORY_MB, 5000);                 // The default heap memory size in MB per worker, used in the jvm -Xmx opts for launching the worker
 //        conf.put(Config.NIMBUS_SUPERVISOR_USERS,);
-//        conf.put(Config.SUPERVISOR_MEMORY_CAPACITY_MB, 1500);         // The total amount of memory (in MiB) a supervisor is allowed to give to its workers.
-//        conf.put(Config.SUPERVISOR_QUEUE_SIZE, 600);
+        conf.put(Config.SUPERVISOR_MEMORY_CAPACITY_MB, 1024);         // The total amount of memory (in MiB) a supervisor is allowed to give to its workers.
+        conf.put(Config.SUPERVISOR_QUEUE_SIZE, 1000);
 //        conf.put(Config.TOPOLOGY_EXECUTOR_SEND_BUFFER_SIZE,8192); // 无法识别
 //        conf.put(Config.TOPOLOGY_RECEIVER_BUFFER_SIZE,32);// 接收线程缓存消息的大小 // 无法识别
-//        conf.put(Config.TOPOLOGY_TRANSFER_BUFFER_SIZE, 1100);         // 进程中向外发送消息的缓存大小 The size of the Disruptor transfer queue for each worker.
+        conf.put(Config.TOPOLOGY_TRANSFER_BUFFER_SIZE, 1024);         // 进程中向外发送消息的缓存大小 The size of the Disruptor transfer queue for each worker.
         // conf.put(Config.TOPOLOGY_WORKER_CHILDOPTS,"-Xmx%HEAP-MEM%m -XX:+PrintGCDetails -Xloggc:artifacts/gc.log  -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=1M -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=artifacts/heapdump");
-        conf.put(Config.TOPOLOGY_COMPONENT_RESOURCES_ONHEAP_MEMORY_MB, 3000); // The maximum amount of memory an instance of a spout/bolt will take on heap. This enables the scheduler to allocate slots on machines with enough available memory.
-        conf.put(Config.TOPOLOGY_COMPONENT_RESOURCES_OFFHEAP_MEMORY_MB, 3000);
-//        conf.put(Config.TOPOLOGY_ACKER_RESOURCES_ONHEAP_MEMORY_MB, 1000);
-//        conf.put(Config.TOPOLOGY_ACKER_RESOURCES_OFFHEAP_MEMORY_MB, 1000);
+        conf.put(Config.TOPOLOGY_COMPONENT_RESOURCES_ONHEAP_MEMORY_MB, 1500); // The maximum amount of memory an instance of a spout/bolt will take on heap. This enables the scheduler to allocate slots on machines with enough available memory.
+        conf.put(Config.TOPOLOGY_COMPONENT_RESOURCES_OFFHEAP_MEMORY_MB, 1500);
+        conf.put(Config.TOPOLOGY_ACKER_RESOURCES_ONHEAP_MEMORY_MB, 400);
+        conf.put(Config.TOPOLOGY_ACKER_RESOURCES_OFFHEAP_MEMORY_MB, 400);
         // -XX:+PrintGCDateStamps is omitted, because it will lead to a log: "[INFO] Unrecognized VM option 'PrintGCDateStamps'"
         String topoName = "ClusterMatchTopology";
         if (args != null && args.length > 0) {
             topoName = args[0];
         }
 
-        StormSubmitter.submitTopologyWithProgressBar(topoName, conf, builder.createTopology());
-        System.out.println("StormSubmitter over.");
+//        StormSubmitter.submitTopologyWithProgressBar(topoName, conf, builder.createTopology());
+//        System.out.println("StormSubmitter over.");
         LocalCluster localCluster = new LocalCluster();
         localCluster.submitTopology(topoName, conf, builder.createTopology());
         Utils.sleep(7200000);

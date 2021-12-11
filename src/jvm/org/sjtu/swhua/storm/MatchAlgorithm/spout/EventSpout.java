@@ -1,6 +1,7 @@
 package org.sjtu.swhua.storm.MatchAlgorithm.spout;
 
 import org.apache.storm.spout.SpoutOutputCollector;
+import org.apache.storm.utils.Utils;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.*;
 //import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Event;
 //import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.OutputToFile;
@@ -165,8 +166,8 @@ public class EventSpout extends BaseRichSpout {
             return;
         }
 //        if(eventID>=11000) return;
-//        if (eventID % 1000 == 0)
-//            Utils.sleep(2000);
+        if (eventID % 10 == 0)
+            Utils.sleep(1000);
         int numEvent = (int) (Math.random() * maxNumEvent + 1); // Generate the number of subscriptions in this tuple: 1~maxNumEvent
         ArrayList<Event> events = new ArrayList<>(numEvent);
 

@@ -10,6 +10,7 @@ import org.apache.storm.tuple.Tuple;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.OutputToFile;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.TypeConstant;
 import org.sjtu.swhua.storm.MatchAlgorithm.KafkaProducer.SubscriptionProducer;
+import scala.Int;
 
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
     private StringBuilder log;
     private StringBuilder matchResultBuilder;
     private String boltName;
+    private Integer subSetSize;
     private Integer executorID;
     private Integer numMatchExecutor;
     //    private Integer redundancy;
@@ -53,6 +55,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
         executorCombination = executor_combination;
         beginTime = System.nanoTime();
         intervalTime = TypeConstant.intervalTime;  // 1 minute
+        subSetSize=TypeConstant.subSetSize;
 //        numMatchExecutor = ThreadDivisionMatchBolt.getNumExecutor(); // This function may not return the final right number. MergerBolt may be initialized before matchBolt!
     }
 
@@ -129,9 +132,10 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple tuple) {
         Integer eventID = tuple.getIntegerByField("eventID");
+        Integer state = recordStatus.getOrDefault(eventID, 0);
         // 每个事件会有 redundancy-1 个进来
         // -1代表得到了完整匹配集，0代表还没收到过这个事件的部分匹配结果
-        if (recordStatus.getOrDefault(eventID, 0) == -1) {
+        if (state == -1) {
             log = new StringBuilder(boltName);
             log.append(" Thread ");
             log.append(executorID);
@@ -145,30 +149,21 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
             }
         } else {
             receive_max_event_id = Math.max(eventID, receive_max_event_id);
-            System.out.println("\neventID= "+eventID+", maxEventID= " + receive_max_event_id + "\n");
-            BitSet subIDBitset = (BitSet) tuple.getValueByField("subIDBitset");
-            System.out.println("\nEventID= "+eventID+" get bitset from executor "+tuple.getIntegerByField("executorID")+".\n");
-            Integer nextState;
-            if (!recordStatus.containsKey(eventID)) {
-                // matchResultNum.put(eventID, new HashSet<>());
-                partialMatchingResult.put(eventID, subIDBitset);
-                nextState = 1 << tuple.getIntegerByField("executorID");
-                recordStatus.put(eventID, nextState);
+//            System.out.println("\nEventID= " + eventID + " from executor " + tuple.getIntegerByField("executorID")
+//                    + " does or operation, maxEventID= " + receive_max_event_id + ".\n");
+            state = state | (1 << tuple.getIntegerByField("executorID"));
+
+            if (!executorCombination[state]) {
+                partialMatchingResult.computeIfAbsent(eventID,key->new BitSet()).or((BitSet) tuple.getValueByField("subIDBitset"));  // This is an reference !
+                recordStatus.put(eventID, state);
             } else {
-                partialMatchingResult.get(eventID).or(subIDBitset);  // This is an reference !
-                System.out.println("\nEventID= "+eventID+" from executor "+tuple.getIntegerByField("executorID")+" does or operation.\n");
-                nextState = recordStatus.get(eventID) | (1 << tuple.getIntegerByField("executorID"));
-            }
-
-            if (executorCombination[nextState]) {
-
                 matchResultBuilder = new StringBuilder(boltName);
                 matchResultBuilder.append(" Thread ");
                 matchResultBuilder.append(executorID);
                 matchResultBuilder.append(" - EventID: ");
                 matchResultBuilder.append(eventID);
                 matchResultBuilder.append("; MatchedSubNum: ");
-                matchResultBuilder.append(partialMatchingResult.get(eventID).stream().count());
+                matchResultBuilder.append(subSetSize-partialMatchingResult.get(eventID).stream().count());
 //                matchResultBuilder.append("; SubID:");
 //                BitSet finalMatchingResult = partialMatchingResult.get(eventID);
 //                for (int i = finalMatchingResult.nextClearBit(0); i >= 0; finalMatchingResult.nextClearBit(i + 1)) {
@@ -202,8 +197,7 @@ public class MultiPartitionMergerBolt extends BaseRichBolt {
 //            recordStatus.remove(eventID);
                 recordStatus.put(eventID, -1); // 表示已经完成
             } // Finish an event matching
-            else recordStatus.put(eventID, nextState);
-            System.out.println("\neventID= " + eventID +" from executor "+tuple.getIntegerByField("executorID")+ ", state= " + recordStatus.get(eventID) + "\n");
+//            System.out.println("\neventID= " + eventID + " from executor " + tuple.getIntegerByField("executorID") + ", state= " + recordStatus.get(eventID) + "\n");
         } // Add a partial result
 
         if (System.nanoTime() > speedTime) {

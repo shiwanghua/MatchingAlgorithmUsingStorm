@@ -9,7 +9,7 @@ import java.util.*;
 
 // old Rein
 public class Rein {
-    private int numBucket, numSub, numAttributeType;
+    private int numBucket, numSub, numAttributeType, subSetSize;
     private double bucketSpan;
     private ArrayList<Integer> mapToSubID;
     private HashMap<Integer, Boolean> exist;
@@ -17,9 +17,10 @@ public class Rein {
     private ArrayList<ArrayList<LinkedList<Pair<Integer, Double>>>> supBuckets;
 
     public Rein() {
-        numSub = 0;
+        numSub = 0; // number of inserted sub
         numBucket = TypeConstant.numBucket;
         numAttributeType = TypeConstant.numAttributeType;
+        subSetSize = TypeConstant.subSetSize;
         bucketSpan = 1.0 / numBucket;
         mapToSubID = new ArrayList<>();
         exist = new HashMap<>();
@@ -61,8 +62,8 @@ public class Rein {
     public BitSet match(Event e) {
 
 //        boolean[] bits = new boolean[numSub];
-        BitSet gb=new BitSet(numSub);
-        System.out.println("Rein"+e.getEventID()+" "+gb.size()+" "+numSub+"\n");
+        BitSet gb = new BitSet(numSub);
+//        System.out.println("Rein"+e.getEventID()+" "+gb.size()+" "+numSub+"\n");
 
 //        Integer eventAttributeID;
         Double attributeValue;
@@ -100,7 +101,15 @@ public class Rein {
 //        for (int i = 0; i < numSub; i++)
 //            if (!gb.get(i))
 //                matchResult.add(mapToSubID.get(i));
-        return gb;
+        BitSet ans = new BitSet(subSetSize);
+        ans.set(0, subSetSize); // number of 1 > number of 0 in most cases, so set some 1 to 0
+        for (int i = gb.nextClearBit(0); i < numSub; i = gb.nextClearBit(i + 1)) { // && i >= 0
+            ans.clear(mapToSubID.get(i));
+//            System.out.println("ans.size= " + ans.size() + ", ans.count= " + ans.stream().count()
+//                    + ", mtsi.size= " + mapToSubID.size() + ", mtsi.count= " + mapToSubID.stream().count()
+//                    + ", gB.size= " + gb.size() + ", gB.count= " + gb.stream().count() + ", i= " + i+"\n");
+        }
+        return ans;
     }
 
     public int getNumSub() {

@@ -170,19 +170,19 @@ public class GroupRedundancyMatchBolt extends BaseRichBolt {
                         int size = eventPacket.size(), eventID;
                         for (int i = 0; i < size; i++) {
                             eventID = eventPacket.get(i).getEventID();
-                            log = new StringBuilder(signature);
-                            log.append(": Begin to match eventID ");
-                            log.append(eventID+"\n");
-                            output.writeToLogFile(log.toString());
-                            BitSet matchingBitset = rein.match(eventPacket.get(i));
-                            System.out.println("\nEvent"+String.valueOf(eventID)+" from group "+groupID+", executor "+executorID+": "
-                                    +matchingBitset.size()+" "+numSubInserted+" "+rein.getNumSub()+"\n");
+//                            log = new StringBuilder(signature);
+//                            log.append(": Begin to match eventID ");
+//                            log.append(eventID+"\n");
+//                            output.writeToLogFile(log.toString());
+//                            BitSet matchingBitset = rein.match(eventPacket.get(i));
+//                            System.out.println("\nEvent"+String.valueOf(eventID)+" from group "+groupID+", executor "+executorID+": "
+//                                    +matchingBitset.size()+" "+numSubInserted+" "+rein.getNumSub()+"\n");
                             log = new StringBuilder(signature);
                             log.append(": EventID ");
                             log.append(eventID);
                             log.append(" matching task is done.\n");
                             output.writeToLogFile(log.toString());
-                            collector.emit(new Values(eventID, matchingBitset));
+                            collector.emit(new Values(eventID, rein.match(eventPacket.get(i))));
                         }
                         numEventMatched += eventPacket.size();
                     }

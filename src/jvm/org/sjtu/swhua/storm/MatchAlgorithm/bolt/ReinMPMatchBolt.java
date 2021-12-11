@@ -278,16 +278,16 @@ public class ReinMPMatchBolt extends BaseRichBolt {
                         }
                         int size = eventPacket.size(), eventID;
                         for (int i = 0; i < size; i++) {
-                            BitSet matchingBitset = rein.match(eventPacket.get(i));
-                            eventID = eventPacket.get(i).getEventID();
-                            System.out.println("\nEvent"+String.valueOf(eventID)+" from executor "+executorID+": "
-                                    +matchingBitset.size()+" "+numSubInserted+" "+rein.getNumSub()+"\n");
+//                            BitSet matchingBitset = rein.match(eventPacket.get(i));
+//                            eventID = eventPacket.get(i).getEventID();
+//                            System.out.println("\nEvent"+String.valueOf(eventID)+" from executor "+executorID+": "
+//                                    +matchingBitset.size()+" "+numSubInserted+" "+rein.getNumSub()+"\n");
 //                            log = new StringBuilder(signature);
 //                            log.append(": EventID ");
 //                            log.append(eventID);
 //                            log.append(" matching task is done.\n");
 //                            output.writeToLogFile(log.toString());
-                            collector.emit(new Values(executorID, eventID, matchingBitset));
+                            collector.emit(new Values(executorID, eventPacket.get(i).getEventID(), rein.match(eventPacket.get(i))));
                         }
                         numEventMatched += eventPacket.size();
                     }

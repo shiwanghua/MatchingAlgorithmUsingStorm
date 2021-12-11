@@ -25,6 +25,7 @@ public class GroupRedundancyMergerBolt extends BaseRichBolt {
     //    private Integer numMatchExecutor;
     private Integer numEventMatched;
     private Integer numEventMatchedLast;
+    private final Integer subSetSize;
     private long runTime;
     private long speedTime;  // The time to calculate and record speed
     final private long beginTime;
@@ -41,6 +42,7 @@ public class GroupRedundancyMergerBolt extends BaseRichBolt {
         boltID = boltid;
         beginTime = System.nanoTime();
         intervalTime = TypeConstant.intervalTime;  // 1 minute
+        subSetSize=TypeConstant.subSetSize;
     }
 
     @Override
@@ -82,7 +84,7 @@ public class GroupRedundancyMergerBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple tuple) {
         Integer eventID = tuple.getIntegerByField("eventID");
-        System.out.println("\nEventID= "+eventID+" receive_max_event_id="+receive_max_event_id+".\n");
+//        System.out.println("\nEventID= "+eventID+" receive_max_event_id="+receive_max_event_id+".\n");
         // true代表得到了完整匹配集，false代表还没收到过这个事件的匹配结果
         // 每个事件会有 redundancy-1 个进来
         if (recordStatus.getOrDefault(eventID, false) == true) {
@@ -98,21 +100,18 @@ public class GroupRedundancyMergerBolt extends BaseRichBolt {
         } else {
             receive_max_event_id = Math.max(eventID, receive_max_event_id);
             BitSet subIDBitset = (BitSet) tuple.getValueByField("subIDBitset");
-            System.out.println("\nEventID= "+eventID+" receive_max_event_id="+receive_max_event_id+".\n");
+//            System.out.println("\nEventID= "+eventID+" receive_max_event_id="+receive_max_event_id+".\n");
             recordStatus.put(eventID, true);
             matchResultBuilder = new StringBuilder(signature);
             matchResultBuilder.append(" - EventID: ");
             matchResultBuilder.append(eventID);
-            int s=subIDBitset.size();
-            matchResultBuilder.append(", bitsetSize= ");
-            matchResultBuilder.append(s);
             matchResultBuilder.append("; MatchedSubNum: ");
-            matchResultBuilder.append(s-subIDBitset.stream().count());
+            matchResultBuilder.append(subSetSize-subIDBitset.stream().count());
             matchResultBuilder.append("; SubID:");
-            for (int i = subIDBitset.nextClearBit(0); i >= 0&&i<=20; subIDBitset.nextClearBit(i + 1)) {
-                matchResultBuilder.append(" ");
-                matchResultBuilder.append(i);
-            }
+//            for (int i = subIDBitset.nextClearBit(0); i >= 0&&i<=subSetSize; subIDBitset.nextClearBit(i + 1)) {
+//                matchResultBuilder.append(" ");
+//                matchResultBuilder.append(i);
+//            }
             matchResultBuilder.append("; receive_max_event_id: ");
             matchResultBuilder.append(receive_max_event_id);
             matchResultBuilder.append(".\n");

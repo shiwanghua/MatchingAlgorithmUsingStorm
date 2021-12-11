@@ -3,6 +3,7 @@ package org.sjtu.swhua.storm.MatchAlgorithm.spout;
 //import org.apache.jasper.tagplugins.jstl.core.Out;
 
 import org.apache.storm.spout.SpoutOutputCollector;
+import org.apache.storm.utils.Utils;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.OutputToFile;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Pair;
 import org.sjtu.swhua.storm.MatchAlgorithm.DataStructure.Subscription;
@@ -139,6 +140,8 @@ public class SubscriptionSpout extends BaseRichSpout {
             close();
             return;
         }
+        if (subID % 1000 == 0)
+            Utils.sleep(1000);
 
         int numSub = (int) (Math.random() * maxNumSubscription + 1); // Generate the number of subscriptions in this tuple: 1~maxNumSubscription
         ArrayList<Subscription> sub = new ArrayList<>(numSub);
